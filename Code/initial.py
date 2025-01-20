@@ -10,6 +10,9 @@ from matplotlib import pyplot as plt
 
 dt = 0.001
 
+t_array = np.arange(0, 100, dt) 
+steps   = []
+
 
 # Growth Constant, same because same cell
 k = k_1 = k_2 = 2
@@ -26,51 +29,63 @@ q_2 = 0.8
 
 c_10 = 0.9 * n
 c_20 = 0.1 * n
-i_0 = 0.3
+i_0 = 0.02
+
+
+init_cond = np.array([n, 0, 0])
+steps.append(init_cond)
 
 
 parameters = [
-    k_1,
-    k_2,
-    w_1,
-    w_2,
-    q_1,
-    q_2,
-    n_1,
-    n_2,
+    k_1, k_2,
+    w_1, w_2,
+    q_1, q_2,
+    n_1, n_2,
 ]
+
+#dd_x = lambda c1: lambda c2: lambda I: k_1*c1 
+def d_c1(c1, c2, I): 
+    ct   = c1 + c2
+    diff = c1 * ( k_1 * ( 1 - ct/n_1 ) - w_1 ) + w_2 * c2 - q_1 * I * c1
+    return diff
+
+def d_c2(c1, c2, I): 
+    ct   = c1 + c2
+    diff = c2 * ( k_2 * ( 1 - ct/n_2 ) - w_2 ) + w_1 * c1
+    return diff
+
+def d_i(c1, c2, I): 
+    diff = - q_2 * I * c2 + i_0
+    return diff
+
 
 def dynamical_system(xs):
 
     c_1, c_2, i = xs
-    c_t         = c_1 + c_2
 
-    c_1_dot = c_1 * ( k_1 * ( 1 - c_t/n_1 ) - w_1 ) + w_2 * c_2 - q_1 * i * c_1
-    c_2_dot = c_2 * ( k_1 * ( 1 - c_t/n_2 ) - w_2 ) + w_1 * c_1
-
-    i_dot = - q_2 * i * c_2
+    c_1_dot = d_c1(c_1, c_2, i)
+    c_2_dot = d_c2(c_1, c_2, i)
+    i_dot = d_i(c_1, c_2, i)
 
     dx = np.array([ c_1_dot, c_2_dot, i_dot ])
 
     return dx
 
 
-t_array = np.arange(0, 100, dt) 
-steps   = []
-
-init_cond = np.array([c_10, c_20, i_0])
-steps.append(init_cond)
 
 
-for i, _ in enumerate(t_array[0:-1]):
-    current = steps[i]
-    next    = dynamical_system(steps[i])
+for j, _ in enumerate(t_array[0:-1]):
+    current = steps[j]
+    difference = dynamical_system(steps[j])
 
-    value   = current + next * dt
+    value = current + difference * dt
     steps.append(value)
 
 
-plt.plot(t_array, steps, label=["Non-resistant Type", "Resistant Type", "Antibiotic", ])
+names = ["Non-resistant Type", "Resistant Type", "Antibiotic", ]
+
+
+plt.plot(t_array, steps, label=names)
 plt.legend()
 plt.show()
 
