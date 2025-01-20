@@ -4,3 +4,4 @@
 Litterature/
 /Code/.venv
 Code/.venv/bin/activate
+Code/.venv/bin/activate.csh
