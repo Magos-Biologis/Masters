@@ -9,8 +9,9 @@ from matplotlib import pyplot as plt
 
 
 dt = 0.001
+t_end = 100
 
-t_array = np.arange(0, 100, dt) 
+t_array = np.arange(0, t_end, dt) 
 steps   = []
 
 
@@ -27,13 +28,24 @@ q_1 = 0.999
 q_2 = 0.8
 
 
-c_10 = 0.9 * n
-c_20 = 0.1 * n
+c_10 = 1.0 * n
+c_20 = 0.0 * n
 i_0 = 0.02
 
+c_t0 = c_10 + c_20
 
 init_cond = np.array([n, 0, 0])
 steps.append(init_cond)
+
+omega_1 = k_1*(1-c_t0/n)-w_1
+omega_2 = k_2*(1-c_t0/n)-w_2
+
+#trace = (i_0 * q_1 - omega_2 - omega_1)
+#dete  = (omega_1 - i_0 * q_1) * omega_2 - w_1 * w_2
+
+#disc  = trace**2 - dete
+
+c1_fixed = -((w_1 / k_1 - 1) * n_2 + c_20)
 
 
 parameters = [
@@ -63,11 +75,11 @@ def dynamical_system(xs):
 
     c_1, c_2, i = xs
 
-    c_1_dot = d_c1(c_1, c_2, i)
-    c_2_dot = d_c2(c_1, c_2, i)
-    i_dot = d_i(c_1, c_2, i)
-
-    dx = np.array([ c_1_dot, c_2_dot, i_dot ])
+    dx = np.array([
+        d_c1(c_1, c_2, i),
+        d_c2(c_1, c_2, i),
+        d_i(c_1, c_2, i)
+        ])
 
     return dx
 
@@ -84,8 +96,13 @@ for j, _ in enumerate(t_array[0:-1]):
 
 names = ["Non-resistant Type", "Resistant Type", "Antibiotic", ]
 
+fig, ax = plt.subplots()
 
-plt.plot(t_array, steps, label=names)
+ax.plot(t_array, steps, label=names)
+#ax.hlines(c1_fixed, 0, t_end)
+
+#[((-dete + np.sqrt(dete))/2),((-dete - np.sqrt(dete))/2)]
+
 plt.legend()
 plt.show()
 
