@@ -4,6 +4,7 @@
 from numpy import log, min, sum, ndarray
 from numpy.random import rand
 
+
 def gillespie(aj: ndarray) -> list:
     """
     Gillespie event determination
@@ -27,8 +28,8 @@ def gillespie(aj: ndarray) -> list:
 
     sum_aj = sum(aj)
 
-    r1, r2 = rand(1,2)
-    dt = log(1/r1) / sum_aj
+    r1, r2 = rand(1, 2)
+    dt = log(1 / r1) / sum_aj
 
     event_id = 0
     for n, _ in enumerate(aj):
@@ -38,4 +39,3 @@ def gillespie(aj: ndarray) -> list:
             break
 
     return [event_id, dt]
-
