@@ -9,6 +9,12 @@
 using Plots
 gr()
 
+using DifferentialEquations
+
+
+odeprob = ODEProblem()
+sol = solve(odeprob)
+
 
 test_plot = plot(t -> sin(t))
 
