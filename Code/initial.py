@@ -7,8 +7,11 @@ import numpy as np
 from matplotlib import pyplot as plt
 # import sympy as sy
 
+print("")
 
-figure_path = str(os.getenv("THESIS_FIGURE_PATH"))
+
+# figure_path = str(os.getenv("THESIS_FIGURE_PATH"))
+figure_path = "./figs"
 
 
 ### Variables
@@ -26,8 +29,8 @@ n[0] = 100
 n[1] = 100
 
 
-w[0] = 0.01
-w[1] = 0.03
+w[0] = 0.015
+w[1] = 0.035
 
 q[0] = 0.999
 q[1] = 0.8
@@ -96,7 +99,6 @@ def step_function(xs, dt) -> np.ndarray:
 
 c10 = n[0]  # n_1 * w[1] / w[0]  # n_1
 c20 = n[1]  # n_2 * w[0] / w[1]  # n_1
-
 w1_frac = w[0] / (w[0] + w[1])
 w2_frac = w[1] / (w[0] + w[1])
 n1_frac = n[0] / (n[0] + n[1])
@@ -111,36 +113,33 @@ stavec2 = n[0] * (
 )
 
 
-print("")
-# if m_0 == 0:
-# m_trace = (omega_1 - ku1 * ct_1) + (omega_2 - ku2 * ct_2)
-# m_det = (omega_1 - ku1 * ct_1) * (omega_2 - ku2 * ct_2) - w[0] * w[1]
-# m_disc = m_det**2 - 4 * m_trace
-# c1_fixed = (m_trace + np.sqrt(m_disc)) / 2
-# c2_fixed = (m_trace - np.sqrt(m_disc)) / 2
-# c1_fixed *= n_1
-# c2_fixed *= n_2
-# if m_det <= 0:
-#     print("Determinant less than zero")
-# elif m_det >= 0:
-#     print("Determinant greater than zero")
-# if m_trace <= 0:
-#     print("Trace less than zero")
-# elif m_trace >= 0:
-#     print("Trace greater than zero")
-# if m_disc == 0:
-#     print("Discriminant less than zero")
-# elif m_disc <= 0:
-#     print("Discriminant less than zero")
-# elif m_disc >= 0:
-#     print("Discriminant greater than zero")
-# print(m_disc)
-# c1_fixed = w[1] * n_1
-# c2_fixed = n_2 / (1 - (w[0] + w[1]))
-# c2_fixed = w[0] / (w[0] + w[1])
+M = np.array(
+    [
+        [(omega_1 - k_1), w[0]],
+        [w[1], (omega_2 - k_2)],
+    ]
+)
 
-# c1_fixed = w[1] / (w[0] + w[1])
-# c1_fixed = (w[1] / w[0]) * ((n[0] * n[1]) / (n[0] + n[1]))
+row1_sum = np.abs(sum(M[0, :]))
+row2_sum = np.abs(sum(M[1, :]))
+
+col1_sum = np.abs(sum(M[:, 0]))
+col2_sum = np.abs(sum(M[:, 1]))
+
+# M[0, :] = M[0, :] / row1_sum
+# M[1, :] = M[1, :] / row2_sum
+#
+# M[:, 0] = M[:, 0] / col1_sum
+# M[:, 1] = M[:, 1] / col2_sum
+
+solutions = np.zeros(2)
+
+solution_norm = M[0, 1] + M[1, 0]
+solutions[0] = M[1, 0] / solution_norm
+solutions[1] = M[0, 1] / solution_norm
+
+print(solutions)
+
 
 c_T = 2 * (n[0] ** (-1) + n[1] ** (-1))
 n1n2 = n[0] * n[1] / (n[0] + n[1])
@@ -173,28 +172,35 @@ quad = quadratic(a, b, c)
 # c2_fixed = quad2
 # c1_fixed = ((q[0] * m_0) - (w[1] * n[0])) / (omega_1 - (k_1 * n[0]) - w[1])
 # c2_fixed = -(w[0] * n[0]) / (omega_2 - k_2 * n[0] - w[0])
-
-c1_fixed = n[0]
-c2_fixed = (1 - (w[0] / w[1])) * n[1]
-
 # -(w[1] / w[0]) * n[1]
 # ((w[0] * w[1]) / ((2 * w[0] + w[1]) * (2 * w[1] + w[0]))) * n[0]
 # c2_fixed = w1_frac * c_tt
-
 # c1_fixed = w2_frac * n[0]
 # c2_fixed = w1_frac * n[1]
-m_fixed = m_0 / q[1]
-
 # c1_fixed = ((q_1) - (w[1] * n[0])) / (omega_1 - k_1 * n[0] - w[1])
 # c2_fixed = -(w[0] * c_T) / (omega_2 - k_2 * c_T - w[0])
-
 # steps[0, :] = c_10 - c2_fixed, c2_fixed, m_0
-steps[0, :] = c_10 - c_20, c_20, m_0
+
+c1_fixed = n[0]
+c2_fixed = (1 - (w[0] / w[1])) * n[1]
+m_fixed = m_0 / q[1]
+
+
+steps[0, :] = c_10, c_20, m_0
 for j, _ in enumerate(t_array):
     steps[j, :] += steps[j - 1, :]
     steps[j, :] += step_function(steps[j - 1, :], dt)  # print(steps[j, :])
 
 dt_zeroes = [c1_fixed, c2_fixed, m_fixed]
+
+total = steps[:, 0] + steps[:, 1]
+steps[:, 0] = steps[:, 0] / total
+steps[:, 1] = steps[:, 1] / total
+
+# print(2 * ((n[0] * n[1]) / (n[0] + n[1])))
+# print(total)
+# exit()
+
 
 color_list = ["b", "r", "g"]
 name_list = [
@@ -224,9 +230,9 @@ for i, curve in enumerate(steps.T):
     color = color_list[i]
     curve_name = name_list[i]
     dt_curve_name = dt_name_list[i]
-    zero_line = dt_zeroes[i]
+    # zero_line = dt_zeroes[i]
+    zero_line = solutions[i]
 
-    ax.plot(t_array, curve, label=curve_name, color=color)
     ax.hlines(
         zero_line,
         0,
@@ -237,13 +243,19 @@ for i, curve in enumerate(steps.T):
         linewidth=1,
     )
 
+    ax.plot(t_array, curve, label=curve_name, color=color)
+
+
 ax.set_xlabel("Time")
 ax.set_ylabel("Percentage")
 
 ax.set_xlim(0, t_end)
 # ax.set_ylim(0, 100)
 
-figure_file = os.path.join(figure_path, "plot.pdf")
+
 plt.legend()
-# plt.savefig(figure_file)
-plt.show()
+plt.tight_layout()
+
+figure_file = os.path.join(figure_path, "plot.pdf")
+plt.savefig(figure_file)
+# plt.show()

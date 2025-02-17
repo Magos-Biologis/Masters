@@ -1,4 +1,5 @@
-#!./.venv/bin/pythsumon
+#!./.venv/bin/python
+
 from itertools import chain
 import os
 from pprint import pprint as pp
@@ -28,14 +29,14 @@ k[1] = 2
 
 # Population cap (purely aesthetic if n₁ = n₂)
 n[0] = 100
-n[1] = 100
+n[1] = 101
 
 
 w[0] = 0.015
 w[1] = 0.035
 
-w[0] = 0.7
-w[1] = 0.4
+# w[0] = 0.7
+# w[1] = 0.4
 
 q[0] = 0.999
 q[1] = 0.8
@@ -56,12 +57,12 @@ om2 = k[1] - w[1]
 var_name = [r"$x$", r"$y$"]
 
 ## Markov Matrix multiplication
-# state_end = 150
-state_end = 5
+state_end = 150
+# state_end = 5
 dt = 1
 
 ## Simulated Markov process
-t_end = 2000
+t_end = 10000
 
 a = 1
 c1_0 = n[0] - a
@@ -84,6 +85,7 @@ tran_mat2 = np.array(
         [w[1], (om2 - k2)],
     ]
 )
+
 
 det2 = tran_mat2[0, 0] * tran_mat2[1, 1] - tran_mat2[0, 1] * tran_mat2[1, 0]
 
@@ -126,8 +128,16 @@ name_list = [
 #     f"$m$ fixed point at {m_fixed}",
 # ]
 
+
+row1_sum = np.abs(sum(tran_mat2[0, :]))
+row2_sum = np.abs(sum(tran_mat2[1, :]))
+
+tran_mat2[0, :] = tran_mat2[0, :] / row1_sum
+tran_mat2[1, :] = tran_mat2[1, :] / row2_sum
+
+
 naive_mat = np.array([[1 - w[0], w[0]], [w[1], 1 - w[1]]])
-M = naive_mat
+M = tran_mat2
 
 naive_mat_left_eigen = np.array(
     [
@@ -141,15 +151,22 @@ naive_mat_left_eigen = np.array(
 naive_norm_1 = sum([x**2 for x in naive_mat_left_eigen[0, :]])
 naive_norm_2 = sum([x**2 for x in naive_mat_left_eigen[1, :]])
 
-solutions = np.zeros(2)
 
 # solutions[0] = w[1] / np.sum(w)
 # solutions[1] = w[0] / np.sum(w)
 # solutions[0] = c1_0 * (w[1] / (w[0] + w[1])) + c2_0
 # solutions[1] = c1_0 * (w[0] / (w[0] + w[1])) - c2_0
 
-solutions[0] = w[0] / sum(w)  # - 1
-solutions[1] = w[1] / sum(w)  # + 1
+# solutions[0] = w[0] / sum(w)  # - 1
+# solutions[1] = w[1] / sum(w)  # + 1
+
+solutions = np.zeros(2)
+
+solution_norm = M[0, 1] + M[1, 0]
+solutions[0] = M[0, 1] / solution_norm
+solutions[1] = M[1, 0] / solution_norm
+
+# print(M[0, 1])
 
 c1_0 = 0.99
 c2_0 = 1 - c1_0
@@ -163,6 +180,8 @@ c2_0 = 1 - c1_0
 # pp(naive_mat_left_eigen)
 # exit()
 
+# pp(M)
+# exit()
 
 is_c1 = r"$c_1$"
 is_c2 = r"$c_2$"
@@ -195,15 +214,15 @@ ax1.set_yticklabels(y_ticks)
 fixed_point_ticks = w / sum(w)
 fixed_point_tick_labels = [r"$w_1 \over w_1 + w_2$", r"$w_2 \over w_1 + w_2$"]
 
-new_y_ticks = np.append(ax1.get_yticks(), fixed_point_ticks)
+new_y_ticks = np.append(ax1.get_yticks(), solutions)
 # ax1.yaxis.set_ticklabels()
 ax1.set_yticks(new_y_ticks)
 
 
 def fixed_point_format(val, pos):
-    if val == fixed_point_ticks[0]:
+    if val == solutions[0]:
         return fixed_point_tick_labels[0]
-    elif val == fixed_point_ticks[1]:
+    elif val == solutions[1]:
         return fixed_point_tick_labels[1]
     else:
         return val
@@ -348,13 +367,12 @@ plt.tight_layout()
 
 
 file_path = os.path.join(figure_path, "markov", f"chain-{w[0]}-{w[1]}")
-plt.savefig(
-    file_path + ".pdf",
-)
+plt.savefig(file_path + ".pdf", format="pdf")
 
 
 plt.show()
 
+print("done")
 exit()
 
 for i in range(2):
