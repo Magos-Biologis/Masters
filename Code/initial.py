@@ -5,6 +5,7 @@ from sys import exit
 
 import numpy as np
 from matplotlib import pyplot as plt
+from matplotlib.pyplot import FuncFormatter
 # import sympy as sy
 
 print("")
@@ -25,7 +26,7 @@ k[0] = 2
 k[1] = 2
 
 # Population cap (purely aesthetic if n₁ = n₂)
-n[0] = 100
+n[0] = 102
 n[1] = 100
 
 
@@ -49,11 +50,8 @@ n2_wt = n[1] / pop_norm
 ct_1 = n[0] * ((k[0] - 1) / k[0])
 ct_2 = n[1] * ((k[1] - 1) / k[1])
 
-# c_t0 = c_10 + c_20
-
 omega_1 = k[0] - w[0]
 omega_2 = k[1] - w[1]
-
 
 k_1 = k[0] / n[0]
 k_2 = k[1] / n[1]
@@ -62,8 +60,8 @@ w1w2 = w[0] / w[1]
 w2w1 = w[1] / w[0]
 
 alpha = 1
-c_10 = n[0] - alpha
-c_20 = alpha
+c1_0 = n[0] - alpha
+c2_0 = alpha
 m_0 = 0
 
 
@@ -80,21 +78,26 @@ steps = np.zeros((len(t_array), 3))
 
 parameters = [k, w, q, n]
 
-c_tt = 2 * (n[0] * n[1]) / (n[0] + n[1])
-# c_tt = 2 * (1 / n[0] + 1 / n[1])
-# c_tt = n[0]
+
+cq = sum(n) / len(n)
 
 
 def step_function(xs, dt) -> np.ndarray:
     c_1, c_2, m = xs
-    ct = c_1 + c_2
-    # ct = c_tt
+    # ct = c_1 + c_2
+    ct = cq
 
     c1_dot = (k[0] * (1 - ct / n[0]) - w[0]) * c_1 + w[1] * c_2 - q[0] * m * c_1
     c2_dot = (k[1] * (1 - ct / n[1]) - w[1]) * c_2 + w[0] * c_1
     m_dot = -q[1] * m * c_2 + m_0
 
     return dt * np.array([c1_dot, c2_dot, m_dot])
+
+
+steps[0, :] = c1_0, c2_0, m_0
+for j, _ in enumerate(t_array):
+    steps[j, :] += steps[j - 1, :]
+    steps[j, :] += step_function(steps[j - 1, :], dt)  # print(steps[j, :])
 
 
 c10 = n[0]  # n_1 * w[1] / w[0]  # n_1
@@ -164,32 +167,11 @@ c = (
 quad = np.zeros(2)
 quad = quadratic(a, b, c)
 
-# c1_fixed = w[1] / quad[0]
-# c2_fixed = w[1] / quad[1]
-
-
-# c1_fixed = quad1
-# c2_fixed = quad2
-# c1_fixed = ((q[0] * m_0) - (w[1] * n[0])) / (omega_1 - (k_1 * n[0]) - w[1])
-# c2_fixed = -(w[0] * n[0]) / (omega_2 - k_2 * n[0] - w[0])
-# -(w[1] / w[0]) * n[1]
-# ((w[0] * w[1]) / ((2 * w[0] + w[1]) * (2 * w[1] + w[0]))) * n[0]
-# c2_fixed = w1_frac * c_tt
-# c1_fixed = w2_frac * n[0]
-# c2_fixed = w1_frac * n[1]
-# c1_fixed = ((q_1) - (w[1] * n[0])) / (omega_1 - k_1 * n[0] - w[1])
-# c2_fixed = -(w[0] * c_T) / (omega_2 - k_2 * c_T - w[0])
-# steps[0, :] = c_10 - c2_fixed, c2_fixed, m_0
 
 c1_fixed = n[0]
 c2_fixed = (1 - (w[0] / w[1])) * n[1]
 m_fixed = m_0 / q[1]
 
-
-steps[0, :] = c_10, c_20, m_0
-for j, _ in enumerate(t_array):
-    steps[j, :] += steps[j - 1, :]
-    steps[j, :] += step_function(steps[j - 1, :], dt)  # print(steps[j, :])
 
 dt_zeroes = [c1_fixed, c2_fixed, m_fixed]
 
@@ -245,17 +227,38 @@ for i, curve in enumerate(steps.T):
 
     ax.plot(t_array, curve, label=curve_name, color=color)
 
+ax.set_xlim(0, t_end)
+ax.set_ylim(0, 1)
+# ax.set_ylim(0, 100)
+
+fixed_point_ticks = w / sum(w)
+fixed_point_tick_labels = [
+    r"$w_1 \over w_1 + w_2$" + f" = {np.round(solutions[0], 3)}",
+    r"$w_2 \over w_1 + w_2$" + f" = {np.round(solutions[1], 3)}",
+]
+
+new_y_ticks = np.append(ax.get_yticks(), solutions)
+# ax1.yaxis.set_ticklabels()
+ax.set_yticks(new_y_ticks)
+
+
+def fixed_point_format(val, pos):
+    if val == solutions[0]:
+        return fixed_point_tick_labels[0]
+    elif val == solutions[1]:
+        return fixed_point_tick_labels[1]
+    else:
+        return np.round(val, 3)
+
+
+ax.yaxis.set_major_formatter(FuncFormatter(fixed_point_format))
 
 ax.set_xlabel("Time")
 ax.set_ylabel("Percentage")
-
-ax.set_xlim(0, t_end)
-# ax.set_ylim(0, 100)
-
 
 plt.legend()
 plt.tight_layout()
 
 figure_file = os.path.join(figure_path, "plot.pdf")
-plt.savefig(figure_file)
-# plt.show()
+# plt.savefig(figure_file)
+plt.show()

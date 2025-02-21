@@ -14,7 +14,9 @@ from matplotlib.pyplot import FuncFormatter
 
 # import sympy as sy
 
-figure_path = str(os.getenv("THESIS_FIGURE_PATH"))
+# thesis_env = str(os.getenv("THESIS_FIGURE_PATH"))
+# figure_path = os.path.join(thesis_env, "markov")
+figure_path = "./figs"
 
 print()
 
@@ -43,7 +45,7 @@ q[1] = 0.8
 
 m_0 = 0
 
-c_t = 1 / n[0] + 1 / n[1]
+c_t = sum(n) / len(n)
 
 k1 = k[0] / n[0]
 k2 = k[1] / n[1]
@@ -81,8 +83,8 @@ tran_mat3 = np.array(
 
 tran_mat2 = np.array(
     [
-        [(om1 - k1), w[0]],
-        [w[1], (om2 - k2)],
+        [(om1 - k1 * c_t), w[0]],
+        [w[1], (om2 - k2 * c_t)],
     ]
 )
 
@@ -179,7 +181,6 @@ c2_0 = 1 - c1_0
 # naive_solution
 # pp(naive_mat_left_eigen)
 # exit()
-
 # pp(M)
 # exit()
 
@@ -366,8 +367,8 @@ plt.legend()
 plt.tight_layout()
 
 
-file_path = os.path.join(figure_path, "markov", f"chain-{w[0]}-{w[1]}")
-plt.savefig(file_path + ".pdf", format="pdf")
+file_path = os.path.join(figure_path, f"chain-{w[0]}-{w[1]}")
+# plt.savefig(file_path + ".pdf", format="pdf")
 
 
 plt.show()
