@@ -30,11 +30,14 @@ k[1] = 2
 # Population cap (purely aesthetic if n₁ = n₂)
 n[0] = 100
 n[1] = 100
-n[1] = 90
 
 w[0] = 0.015
 w[1] = 0.035
+
+
+n[1] = 90
 w[1] = 0.015
+
 
 q[0] = 0.999
 q[1] = qm = 0.8
@@ -278,33 +281,39 @@ pd = dcf / sum(dcf) * 100
 ## Nullcline
 
 
-def c2_sol(c1) -> float:
+def c1_sol(c1) -> float:
     num = -(c1 * (omega_1 - k_1 * c1))
     den = w[1] - k_1 * c1
     return num / den
 
 
-def c1_sol(c2) -> float:
+def c2_sol(c2) -> float:
     num = -(c2 * (omega_2 - k_2 * c2))
     den = w[0] - k_2 * c2
     return num / den
 
+
+c1_min = w[1] / k_1
+c2_min = w[0] / k_2
+
+c1_sol_array = np.arange(c1_min + 0.01, 100, 0.2)
+c2_sol_array = np.arange(c2_min + 0.01, 100, 0.2)
 
 null_alpha = 0.3
 null_width = 3
 # colors = ["k", "k"]
 
 ax.plot(
-    c1s,
-    c2_sol(c1s),
+    c1_sol_array,
+    c1_sol(c1_sol_array),
     label=r"$c_1$ Nullcline",
     color=colors[0],
     alpha=null_alpha,
     linewidth=null_width,
 )
 ax.plot(
-    c1_sol(c2s),
-    c2s,
+    c2_sol(c2_sol_array),
+    c2_sol_array,
     label=r"$c_2$ Nullcline",
     color=colors[1],
     alpha=null_alpha,
@@ -313,24 +322,28 @@ ax.plot(
 
 c2_null = (omega_2 * w[1] - omega_1 * omega_2) / (k_1 * (w[1] - omega_1))
 
-# ax.plot(c1_sol, c2_sol)
+# ax.scatter(c1_sol(t_array[1:]), c2_sol(t_array[1:]))
+# ax.scatter(c1_sol(n[0]), c2_sol(n[1]))
 
 
-ax.hlines([0], *y_lims, color=colors[0])
-ax.vlines([0], *x_lims, color=colors[1])
+# ax.vlines([0], *x_lims, color=colors[0])
+# ax.hlines([0], *y_lims, color=colors[1])
 
+# c1_min = n[0] * w[1] / k[0]
+# c2_min = n[1] * w[0] / k[1]
+
+
+# ax.vlines([c1_min], *x_lims, color=colors[0], linestyles="--", alpha=null_alpha)
+# ax.hlines([c2_min], *y_lims, color=colors[1], linestyles="--", alpha=null_alpha)
 
 print(f1, "\n", f2)
 print(pd)
 print("\n")
-
-# ax.scatter(*state_vec, marker="X")
-
-# ax.set_xlim(left=0)
-# ax.set_ylim(bottom=0)
+print(c1_min, "  ", c2_min)
 
 
 plt.legend()
 plt.tight_layout()
-# plt.savefig(figure_file + ".pdf", format="pdf")
+
+plt.savefig(figure_file + ".pdf", format="pdf")
 plt.show()
