@@ -26,12 +26,14 @@ k[0] = 2
 k[1] = 2
 
 # Population cap (purely aesthetic if n₁ = n₂)
-n[0] = 102
+n[0] = 100
 n[1] = 100
-
 
 w[0] = 0.015
 w[1] = 0.035
+
+# n[1] = 90
+# w[1] = 0.015
 
 q[0] = 0.999
 q[1] = 0.8
@@ -59,7 +61,7 @@ k_2 = k[1] / n[1]
 w1w2 = w[0] / w[1]
 w2w1 = w[1] / w[0]
 
-alpha = 1
+alpha = 0
 c1_0 = n[0] - alpha
 c2_0 = alpha
 m_0 = 0
@@ -141,7 +143,7 @@ solution_norm = M[0, 1] + M[1, 0]
 solutions[0] = M[1, 0] / solution_norm
 solutions[1] = M[0, 1] / solution_norm
 
-print(solutions)
+# print(solutions)
 
 
 c_T = 2 * (n[0] ** (-1) + n[1] ** (-1))
@@ -175,9 +177,9 @@ m_fixed = m_0 / q[1]
 
 dt_zeroes = [c1_fixed, c2_fixed, m_fixed]
 
-total = steps[:, 0] + steps[:, 1]
-steps[:, 0] = steps[:, 0] / total
-steps[:, 1] = steps[:, 1] / total
+# total = steps[:, 0] + steps[:, 1]
+# steps[:, 0] = steps[:, 0] / total
+# steps[:, 1] = steps[:, 1] / total
 
 # print(2 * ((n[0] * n[1]) / (n[0] + n[1])))
 # print(total)
@@ -230,6 +232,15 @@ for i, curve in enumerate(steps.T):
 ax.set_xlim(0, t_end)
 ax.set_ylim(0, 1)
 # ax.set_ylim(0, 100)
+
+# print()
+# exit()
+
+total = steps.T[0] + steps.T[1]
+percent_total = np.divide(steps.T[0], n[0]) + np.divide(steps.T[1], n[1])
+
+# pp(percent_total)
+# exit()
 
 fixed_point_ticks = w / sum(w)
 fixed_point_tick_labels = [

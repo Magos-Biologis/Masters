@@ -14,9 +14,9 @@ from matplotlib.pyplot import FuncFormatter
 
 # import sympy as sy
 
-# thesis_env = str(os.getenv("THESIS_FIGURE_PATH"))
-# figure_path = os.path.join(thesis_env, "markov")
-figure_path = "./figs"
+thesis_env = str(os.getenv("THESIS_FIGURE_PATH"))
+figure_path = os.path.join(thesis_env, "markov")
+# figure_path = "./figs"
 
 print()
 
@@ -31,14 +31,14 @@ k[1] = 2
 
 # Population cap (purely aesthetic if n₁ = n₂)
 n[0] = 100
-n[1] = 101
+n[1] = 100
 
 
 w[0] = 0.015
 w[1] = 0.035
 
-# w[0] = 0.7
-# w[1] = 0.4
+w[0] = 0.7
+w[1] = 0.4
 
 q[0] = 0.999
 q[1] = 0.8
@@ -59,12 +59,13 @@ om2 = k[1] - w[1]
 var_name = [r"$x$", r"$y$"]
 
 ## Markov Matrix multiplication
-state_end = 150
-# state_end = 5
+# state_end = 150
+state_end = 3
 dt = 1
 
 ## Simulated Markov process
-t_end = 10000
+t_end = 1500
+# t_end = 25000
 
 a = 1
 c1_0 = n[0] - a
@@ -85,6 +86,13 @@ tran_mat2 = np.array(
     [
         [(om1 - k1 * c_t), w[0]],
         [w[1], (om2 - k2 * c_t)],
+    ]
+)
+
+tran_mat22 = np.array(
+    [
+        [(om1 - k1), w[0]],
+        [w[1], (om2 - k2)],
     ]
 )
 
@@ -131,27 +139,44 @@ name_list = [
 # ]
 
 
-row1_sum = np.abs(sum(tran_mat2[0, :]))
-row2_sum = np.abs(sum(tran_mat2[1, :]))
+# row1_sum = np.abs(sum(tran_mat2[0, :]))
+# row2_sum = np.abs(sum(tran_mat2[1, :]))
 
-tran_mat2[0, :] = tran_mat2[0, :] / row1_sum
-tran_mat2[1, :] = tran_mat2[1, :] / row2_sum
+# print(tran_mat2, "   ", tran_mat2[0, :])
+# exit()
+
+
+def rownorm(matrix):
+    row1_sum = np.abs(sum(matrix[0, :]))
+    row2_sum = np.abs(sum(matrix[1, :]))
+
+    matrix[0, :] = matrix[0, :] / row1_sum
+    matrix[1, :] = matrix[1, :] / row2_sum
+
+    return matrix
+
+
+# tran_mat2 = rownorm(tran_mat2)
+# tran_mat22 = rownorm(tran_mat22)
 
 
 naive_mat = np.array([[1 - w[0], w[0]], [w[1], 1 - w[1]]])
-M = tran_mat2
 
-naive_mat_left_eigen = np.array(
-    [
-        [
-            naive_mat[1, 0] / (naive_mat[1, 0] + naive_mat[0, 1]),
-            naive_mat[0, 1] / (naive_mat[1, 0] + naive_mat[0, 1]),
-        ],
-        [1, -1],
-    ]
-)
-naive_norm_1 = sum([x**2 for x in naive_mat_left_eigen[0, :]])
-naive_norm_2 = sum([x**2 for x in naive_mat_left_eigen[1, :]])
+
+M = naive_mat
+
+
+# naive_mat_left_eigen = np.array(
+#     [
+#         [
+#             naive_mat[1, 0] / (naive_mat[1, 0] + naive_mat[0, 1]),
+#             naive_mat[0, 1] / (naive_mat[1, 0] + naive_mat[0, 1]),
+#         ],
+#         [1, -1],
+#     ]
+# )
+# naive_norm_1 = sum([x**2 for x in naive_mat_left_eigen[0, :]])
+# naive_norm_2 = sum([x**2 for x in naive_mat_left_eigen[1, :]])
 
 
 # solutions[0] = w[1] / np.sum(w)
@@ -213,7 +238,7 @@ ax1.set_yticks(y_ticks)
 ax1.set_yticklabels(y_ticks)
 
 fixed_point_ticks = w / sum(w)
-fixed_point_tick_labels = [r"$w_1 \over w_1 + w_2$", r"$w_2 \over w_1 + w_2$"]
+fixed_point_tick_labels = [r"$p_1 \over p_1 + p_2$", r"$p_2 \over p_1 + p_2$"]
 
 new_y_ticks = np.append(ax1.get_yticks(), solutions)
 # ax1.yaxis.set_ticklabels()
@@ -239,6 +264,7 @@ ax1.set_ylim(bottom=0, top=1)
 
 ax1.set_xlabel("Markov Chain Steps")
 ax1.set_ylabel("Frequency")
+
 
 ax1.hlines(
     solutions[1],
@@ -268,7 +294,6 @@ ax1.plot(t_axis, states)
 
 ### If else
 
-t_end = 5000
 tau = 0
 npr.seed(69420)
 
@@ -352,8 +377,8 @@ ax2.plot(t, c2, label=var_name[1], color="orange")
 
 # ax2.hlines(naive_norm_1, 0, t_end, color="blue")
 # ax2.hlines(naive_norm_2, 0, t_end, color="orange")
-oldsol1 = -naive_mat_left_eigen[0, 0] * n[0]
-oldsol2 = naive_mat_left_eigen[0, 1] * n[1]
+# oldsol1 = -naive_mat_left_eigen[0, 0] * n[0]
+# oldsol2 = naive_mat_left_eigen[0, 1] * n[1]
 
 # ax2.hlines(solutions[1], 0, t_end, color="blue")
 # ax2.hlines(solutions[0], 0, t_end, color="orange")
@@ -368,7 +393,7 @@ plt.tight_layout()
 
 
 file_path = os.path.join(figure_path, f"chain-{w[0]}-{w[1]}")
-# plt.savefig(file_path + ".pdf", format="pdf")
+plt.savefig(file_path + ".pdf", format="pdf")
 
 
 plt.show()

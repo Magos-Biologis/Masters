@@ -5,7 +5,13 @@ from re import I
 from sys import exit
 
 from matplotlib import pyplot as plt
+from matplotlib.pyplot import FuncFormatter
+
+
 import numpy as np
+from numpy import polynomial as npp
+
+# from numpy.polynomial import Polynomial
 from numpy import sum
 
 # import sympy as sy
@@ -35,8 +41,8 @@ w[0] = 0.015
 w[1] = 0.035
 
 
-n[1] = 90
-w[1] = 0.015
+# n[1] = 90
+# w[1] = 0.015
 
 
 q[0] = 0.999
@@ -73,6 +79,9 @@ k_2 = k[1] / n[1]
 # w1w2 = w[0] / w[1]
 # w2w1 = w[1] / w[0]
 
+c1_min = w[1] / k_1
+c2_min = w[0] / k_2
+
 alpha = 1
 c1_0 = n[0] - alpha
 c2_0 = alpha
@@ -99,6 +108,22 @@ char_M2 = M - eig2 * np.identity(2)
 
 state_vec = np.array([w[1] / sum(w), w[0] / sum(w)]) * n
 
+## Polynomial
+
+# coeffs = [w[1] * (cq - 1 + w[0]), k_1 * (cq - 1 + omega_1), 1]
+coeffs = [
+    n[1] * w[1],
+    omega_1 - n[1] * (w[1] / n[0] + k_1),
+    k_1 * ((n[1] / n[0]) - 1),
+]
+
+poly = npp.Polynomial(
+    coef=coeffs,
+    symbol="_c1",
+)
+
+
+roots = poly.roots()
 
 ## Plotting
 
@@ -123,27 +148,6 @@ def dc1(c1, c2):
 def dc2(c1, c2):
     return (omega_2 - k_2 * (c1 + c2)) * c2 + w[0] * c1
 
-
-# ratio = np.divide(dc1, dc2)
-# slope1 = -w[1] / (omega_1 - k_1 * n[0])
-
-# slope1 = c1s * ((w[1]) / (omega_1 - k_1 * cq))
-# slope2 = c2s * ((w[0]) / (omega_2 - k_2 * cq))
-
-dc1_c1 = w[1]
-dc1_c2 = -(omega_1 - k_1 * cq)
-
-dc2_c1 = -(omega_2 - k_2 * cq)
-dc2_c2 = w[0]
-
-f1 = np.array([dc1_c1, dc1_c2])
-f2 = np.array([dc2_c1, dc2_c2])
-
-
-slope1 = dc1_c1 / dc1_c2
-slope2 = dc2_c1 / dc2_c2
-
-# average_slope = np.divide(slope1, slope2)
 
 dc1_U = (omega_1 - k_1 * (c1 + c2)) * c1 + w[1] * c2
 dc2_V = (omega_2 - k_2 * (c1 + c2)) * c2 + w[0] * c1
@@ -200,10 +204,11 @@ ax.streamplot(
     dc1_U,
     dc2_V,
     density=1.5,
-    cmap="viridis",
+    color="k",
+    # cmap="viridis",
     linewidth=lw,
-    # arrowsize=0,
     arrowstyle="->",
+    # arrowsize=0,
     # broken_streamlines=False,
 )
 
@@ -214,20 +219,10 @@ ax.set_ylabel(r"$c_2$")
 ax.set_xlim(*x_lims)
 ax.set_ylim(*y_lims)
 
+
 c1f = omega_1 / k_1
 c2f_b = (omega_1 - k_1 * c1f) / (w[1] - c1f)
-# c1f = -omega_1/k_1
 
-# ax.axline(f1, f2, color="orange")
-
-# ax.axline((n[0], 0), (0, n[1]), color="blue", alpha=0.25)
-# ax.axline(f2, f1, color="cyan")
-# ax.plot(c1s, c1s * slope1)
-# ax.plot(c2s, c2s * slope2)
-
-
-# ratio = np.divide(steps[0, :], steps[1, :])
-# ax.plot(t_array, ratio, label="progression")
 
 sol_alpha = 0.6
 colors = ["red", "blue"]
@@ -261,23 +256,6 @@ def example_plot():
     ax.scatter(outcome2[0, 0], outcome2[0, 1], color=colors[1], alpha=sol_alpha)
 
 
-# example_plot()
-
-
-c2_slope = (-omega_1 + k_1 * c1s) / (1 - k_1)
-# c2_slope = (-k_1) / (1 - k_1)
-
-# ax.axline((0, omega_1 / (1 - k_1)), slope=c2_slope, color="k")
-ax.plot(c2_slope, c2s)
-dc1_f = dc1(*f1)
-dc2_f = dc2(*f2)
-dcf = np.array([dc1_f, dc2_f])
-pd = dcf / sum(dcf) * 100
-
-# dcf = np.array([dc1_f, dc2_f])
-# p0 = (dcf / sum(dcf)) * n
-# p2 = sum
-
 ## Nullcline
 
 
@@ -293,14 +271,12 @@ def c2_sol(c2) -> float:
     return num / den
 
 
-c1_min = w[1] / k_1
-c2_min = w[0] / k_2
-
 c1_sol_array = np.arange(c1_min + 0.01, 100, 0.2)
 c2_sol_array = np.arange(c2_min + 0.01, 100, 0.2)
 
 null_alpha = 0.3
-null_width = 3
+null_width = 2
+
 # colors = ["k", "k"]
 
 ax.plot(
@@ -320,30 +296,109 @@ ax.plot(
     linewidth=null_width,
 )
 
-c2_null = (omega_2 * w[1] - omega_1 * omega_2) / (k_1 * (w[1] - omega_1))
+# ax.plot(
+#     [n[0], 0],
+#     [0, n[1]],
+#     color="k",
+#     label="Conserved sum $c_T$",
+#     # alpha=null_alpha,
+#     linewidth=1,
+# )
+# c2_test = cq - c1s
+# ax.plot(
+#     c1s,
+#     c2_test,
+#     color="k",
+#     label="Conserved sum $c_T$",
+#     # alpha=null_alpha,
+#     linewidth=1,
+# )
 
-# ax.scatter(c1_sol(t_array[1:]), c2_sol(t_array[1:]))
-# ax.scatter(c1_sol(n[0]), c2_sol(n[1]))
+c2_test = n[1] * (1 - c1s / n[0])
+
+origin = np.array([[0, 0], [0, 0]])
+extremes = np.array([[0, n[0]], [n[1], 0]])
+
+points = [[], []]
+margin = 1 / c1.shape[0]
+for i in range(c1.shape[0]):
+    for j in range(c1.shape[1]):
+        c1_norm = c1[i, j] / n[0]
+        c2_norm = c2[i, j] / n[1]
+
+        c_sum = c1_norm + c2_norm
+        # print(c_sum)
+
+        if 1 - margin <= c_sum <= 1 + margin:
+            points[0].append(c1[i, j])
+            points[1].append(c2[i, j])
+        else:
+            continue
 
 
-# ax.vlines([0], *x_lims, color=colors[0])
-# ax.hlines([0], *y_lims, color=colors[1])
+c1_root = [root for root in roots if root > c1_min]
+c2_root = (1 - c1_root / n[0]) * n[1]
 
-# c1_min = n[0] * w[1] / k[0]
-# c2_min = n[1] * w[0] / k[1]
+ax.vlines(
+    [c1_root],
+    *x_lims,
+    color=colors[0],
+    linestyle="--",
+    alpha=null_alpha,
+    zorder=11,
+)
+ax.hlines(
+    [c2_root],
+    *y_lims,
+    color=colors[1],
+    linestyle="--",
+    alpha=null_alpha,
+    zorder=11,
+)
+
+# ax1.yaxis.set_ticklabels()
+
+# solutions =
 
 
-# ax.vlines([c1_min], *x_lims, color=colors[0], linestyles="--", alpha=null_alpha)
-# ax.hlines([c2_min], *y_lims, color=colors[1], linestyles="--", alpha=null_alpha)
+new_x_ticks = np.append(ax.get_xticks(), c1_root)
+new_y_ticks = np.append(ax.get_yticks(), c2_root)
 
-print(f1, "\n", f2)
-print(pd)
-print("\n")
-print(c1_min, "  ", c2_min)
+ax.set_xticks(new_x_ticks)
+ax.set_yticks(new_y_ticks)
+
+
+fixed_point_tick_labels = [r"$c_1^*$", r"$c_2^*$"]
+
+
+def x_format(val, pos):
+    if val == c1_root:
+        return fixed_point_tick_labels[0]
+    else:
+        return int(val)
+
+
+def y_format(val, pos):
+    if val == c2_root:
+        return fixed_point_tick_labels[1]
+    else:
+        return int(val)
+
+
+ax.xaxis.set_major_formatter(FuncFormatter(x_format))
+ax.yaxis.set_major_formatter(FuncFormatter(y_format))
+
+
+plt.rcParams.update(
+    {
+        "axes.labelsize": 15,
+        "axes.titleweight": "bold",
+    }
+)
 
 
 plt.legend()
 plt.tight_layout()
 
 plt.savefig(figure_file + ".pdf", format="pdf")
-plt.show()
+# plt.show()
