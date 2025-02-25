@@ -41,71 +41,72 @@ w[1] = 0.035
 q[0] = 0.999
 q[1] = 0.8
 
+m_0 = 0
+
 omega_1 = k[0] - w[0]
 omega_2 = k[1] - w[1]
 
 k_1 = k[0] / n[0]
 k_2 = k[1] / n[1]
 
-
 c1_min = w[1] / k_1
 c2_min = w[0] / k_2
-
-
-# transition_matrix = sy.Matrix([[1 - w[0], w[0]], [w[1], 1 - w[1]]])
-# init_condition = sy.Matrix([[n_1], [0]])
-#
-# pop_norm = np.sqrt(n[0] ** 2 + n[1] ** 2)
-# n1_wt = n[0] / pop_norm
-# n2_wt = n[1] / pop_norm
-# print(transition_matrix)
-# exit()
-
-ct_1 = n[0] * ((k[0] - 1) / k[0])
-ct_2 = n[1] * ((k[1] - 1) / k[1])
-
-w1w2 = w[0] / w[1]
-w2w1 = w[1] / w[0]
 
 alpha = 0
 c1_0 = n[0] - alpha
 c2_0 = alpha
-m_0 = 0
 
+filename = (
+    "ode_solution"
+    + "_m0"
+    + f"{m_0}"
+    + "_n1"
+    + f"{n[0]}"
+    + "_n2"
+    + f"{n[1]}"
+    + "_w1"
+    + f"{w[0]}"
+    + "_w2"
+    + f"{w[1]}"
+)
 
-# eta_1 = omega_1 - ku1
-# eta_2 = omega_2 - ku2
-# trace = (i_0 * q_1 - omega_2 - omega_1)
-# dete  = (omega_1 - i_0 * q_1) * omega_2 - w[0] * w[1]
-# disc  = trace**2 - dete
 
 dt = 0.01
-t_end = 250
+t_end = 25
+# t_end = 150
 t_array = np.arange(0, t_end, dt)
-steps = np.zeros((len(t_array), 3))
+sol1 = np.zeros((len(t_array), 3))
 
 parameters = [k, w, q, n]
 
-
 cq = sum(n) / len(n)
+
+### Integration
 
 
 def step_function(xs, dt) -> np.ndarray:
-    c_1, c_2, m = xs
-    ct = c_1 + c_2
-    # ct = cq
+    c1, c2, m = xs
+    ct = c1 + c2
 
-    c1_dot = (k[0] * (1 - ct / n[0]) - w[0]) * c_1 + w[1] * c_2 - q[0] * m * c_1
-    c2_dot = (k[1] * (1 - ct / n[1]) - w[1]) * c_2 + w[0] * c_1
-    m_dot = -q[1] * m * c_2 + m_0
+    c1_dot = (k[0] * (1 - ct / n[0]) - w[0]) * c1 + w[1] * c2 - q[0] * m * c1
+    c2_dot = (k[1] * (1 - ct / n[1]) - w[1]) * c2 + w[0] * c1
+    m_dot = -q[1] * m * c2 + m_0
 
     return dt * np.array([c1_dot, c2_dot, m_dot])
 
 
-steps[0, :] = c1_0, c2_0, m_0
-for j, _ in enumerate(t_array):
-    steps[j, :] += steps[j - 1, :]
-    steps[j, :] += step_function(steps[j - 1, :], dt)  # print(steps[j, :])
+def integrate(initial, t_array):
+    steps = np.zeros((len(t_array), 3))
+    steps[0, :] = initial
+    for j, _ in enumerate(t_array):
+        steps[j, :] += steps[j - 1, :]
+        steps[j, :] += step_function(steps[j - 1, :], dt)  # print(steps[j, :])
+
+    return t_array, steps
+
+
+init_conds1 = [c1_0, c2_0, m_0]
+_, sol1 = integrate(init_conds1, t_array)
 
 
 M = np.array(
@@ -143,7 +144,7 @@ dt_zeroes = [c1_fixed, c2_fixed, m_fixed]
 # exit()
 
 
-color_list = ["b", "r", "g"]
+color_list = ["r", "b", "g"]
 name_list = [
     "Non-resistant Type",
     "Resistant Type",
@@ -173,15 +174,15 @@ c2_root = (1 - c1_root / n[0]) * n[1]
 
 solutions = np.array([c1_root, c2_root])
 
+# print(sum(solutions) / n[0] + sum(solutions) / n[1])
+# exit()
+
 ## Plotting
 
 fig, ax = plt.subplots()
 
-# ax.plot(steps.T[0], steps.T[1])
-# ax.plot(t_array, (steps.T[0] / steps.T[1]))
-# ax.hlines(c2_fixed, 0, t_end)
 
-for i, curve in enumerate(steps.T):
+for i, curve in enumerate(sol1.T):
     # break
     if i == 2:
         break
@@ -210,23 +211,14 @@ ax.set_ylim(0, 100)
 # print()
 # exit()
 
-total = steps.T[0] + steps.T[1]
-percent_total = np.divide(steps.T[0], n[0]) + np.divide(steps.T[1], n[1])
-
-# pp(percent_total)
-# exit()
-
-# fixed_point_tick_labels = [
-#     r"$w_1 \over w_1 + w_2$" + f" = {np.round(solutions[0], 3)}",
-#     r"$w_2 \over w_1 + w_2$" + f" = {np.round(solutions[1], 3)}",
-# ]
+total = sol1.T[0] + sol1.T[1]
+percent_total = np.divide(sol1.T[0], n[0]) + np.divide(sol1.T[1], n[1])
 
 fixed_point_tick_labels = [
     r"$c_1^*$",
     r"$c_2^*$",
 ]
 
-# ax1.yaxis.set_ticklabels()
 
 new_y_ticks = np.append(ax.get_yticks(), solutions)
 ax.set_yticks(new_y_ticks)
@@ -246,9 +238,9 @@ ax.yaxis.set_major_formatter(FuncFormatter(fixed_point_format))
 ax.set_xlabel("Time")
 ax.set_ylabel("Count")
 
-plt.legend()
+plt.legend(loc="center right")
 plt.tight_layout()
 
-figure_file = os.path.join(figure_path, "plot.pdf")
-# plt.savefig(figure_file)
+file_path = os.path.join(figure_path, filename)
+plt.savefig(file_path + ".pdf")
 plt.show()
