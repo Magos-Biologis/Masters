@@ -35,7 +35,7 @@ n[1] = 100
 w[0] = 0.035
 w[1] = 0.015
 
-# w[0] = 0.015
+w[0] = 0.015
 n[1] = 90
 
 q[0] = 0.999
@@ -182,7 +182,7 @@ solutions = np.array([c1_root, c2_root])
 
 ## Plotting
 
-fig, ax = plt.subplots()
+fig, axes = plt.subplots(2, 1, sharex=True)
 
 
 for i, curve in enumerate(sol1.T):
@@ -195,18 +195,25 @@ for i, curve in enumerate(sol1.T):
     # zero_line = dt_zeroes[i]
     zero_line = solutions[i]
 
-    ax.hlines(
-        zero_line,
-        0,
-        t_end,
-        label=dt_curve_name,
-        color=color,
-        linestyle="dashed",
-        linewidth=1,
-    )
+    for ax in axes:
+        ax.hlines(
+            zero_line,
+            0,
+            t_end,
+            label=dt_curve_name,
+            color=color,
+            linestyle="dashed",
+            linewidth=1,
+        )
 
-    ax.plot(t_array, curve, label=curve_name, color=color)
+        ax.plot(t_array, curve, label=curve_name, color=color)
 
+
+# for ax in axes:
+
+
+# print()
+# exit()
 
 total = sol1.T[0] + sol1.T[1]
 percent_total = np.divide(sol1.T[0], n[0]) + np.divide(sol1.T[1], n[1])
@@ -216,32 +223,65 @@ fixed_point_tick_labels = [
     r"$c_2^*$",
 ]
 
-ax.set_ylim(0, 100)
-ax.set_xlim(0, t_end)
+axes[0].set_ylim(91, 100)
+axes[1].set_ylim(0, 9)
 
-# new_y_ticks = np.append(ax.get_yticks(), solutions)
-new_y_ticks = np.append([0, 25, 50, 75, 100], solutions)
-ax.set_yticks(new_y_ticks)
+top_y_ticks = np.append([100, 95], solutions[0])
+bot_y_ticks = np.append([0, 5], solutions[1])
+
+axes[0].set_yticks(top_y_ticks)
+axes[1].set_yticks(bot_y_ticks)
 
 
-def fixed_point_format(val, pos):
+def top_format(val, pos):
     if val == solutions[0]:
         return fixed_point_tick_labels[0]
-    elif val == solutions[1]:
+    else:
+        return int(np.round(val, 3))
+
+
+def bot_format(val, pos):
+    if val == solutions[1]:
         return fixed_point_tick_labels[1]
     else:
         return int(np.round(val, 3))
 
 
-ax.yaxis.set_major_formatter(FuncFormatter(fixed_point_format))
+axes[0].yaxis.set_major_formatter(FuncFormatter(top_format))
+axes[1].yaxis.set_major_formatter(FuncFormatter(bot_format))
 
-ax.yaxis.tick_right()
-ax.yaxis.set_label_position("right")
 
-ax.set_xlabel("Time")
-ax.set_ylabel("Count")
+for ax in axes:
+    ax.set_xlim(0, t_end)
 
-plt.legend(loc="center right")
+    ax.yaxis.tick_right()
+    ax.yaxis.set_label_position("right")
+
+
+axes[1].set_xlabel("Time")
+#
+axes[0].spines.bottom.set_visible(False)
+axes[0].xaxis.tick_top()
+axes[0].tick_params("x", colors="white")
+
+axes[1].spines.top.set_visible(False)
+
+
+d = 0.5  # proportion of vertical to horizontal extent of the slanted line
+kwargs = dict(
+    marker=[(-1, -d), (1, d)],
+    markersize=12,
+    linestyle="none",
+    color="k",
+    mec="k",
+    mew=1,
+    clip_on=False,
+)
+
+axes[0].plot([0, 1], [0, 0], transform=axes[0].transAxes, **kwargs)
+axes[1].plot([0, 1], [1, 1], transform=axes[1].transAxes, **kwargs)
+
+axes[0].legend(loc="upper right")
 plt.tight_layout()
 
 file_path = os.path.join(figure_path, filename)
