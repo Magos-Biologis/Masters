@@ -17,8 +17,6 @@ print("")
 figure_env = str(os.getenv("THESIS_FIGURE_PATH"))
 figure_path = os.path.join(figure_env, "ode")
 
-# figure_path = "./figs"
-
 
 ### Variables
 # Growth Constant, same because same cell

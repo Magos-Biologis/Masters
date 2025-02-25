@@ -110,20 +110,19 @@ state_vec = np.array([w[1] / sum(w), w[0] / sum(w)]) * n
 
 ## Polynomial
 
-# coeffs = [w[1] * (cq - 1 + w[0]), k_1 * (cq - 1 + omega_1), 1]
 coeffs = [
     n[1] * w[1],
     omega_1 - n[1] * (w[1] / n[0] + k_1),
     k_1 * ((n[1] / n[0]) - 1),
 ]
-
 poly = npp.Polynomial(
     coef=coeffs,
     symbol="_c1",
 )
-
-
 roots = poly.roots()
+
+c1_root = [root for root in roots if root > c1_min]
+c2_root = (1 - c1_root / n[0]) * n[1]
 
 ## Plotting
 
@@ -345,9 +344,6 @@ for i in range(c1.shape[0]):
         else:
             continue
 
-
-c1_root = [root for root in roots if root > c1_min]
-c2_root = (1 - c1_root / n[0]) * n[1]
 
 ax.vlines(
     [c1_root],
