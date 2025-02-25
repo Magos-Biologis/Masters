@@ -195,6 +195,15 @@ speed = np.sqrt(dc1_U**2 + dc2_V**2)
 lw = 4 * speed / speed.max()
 
 
+plt.rcParams.update(
+    {
+        "axes.labelsize": 20,
+        "xtick.labelsize": 15,
+        "ytick.labelsize": 15,
+        "axes.titleweight": "bold",
+    }
+)
+
 fig, ax = plt.subplots()
 
 
@@ -204,10 +213,11 @@ ax.streamplot(
     dc1_U,
     dc2_V,
     density=1.5,
-    color="k",
-    # cmap="viridis",
+    color="gray",
     linewidth=lw,
     arrowstyle="->",
+    # l=0.7,
+    # cmap="viridis",
     # arrowsize=0,
     # broken_streamlines=False,
 )
@@ -369,6 +379,7 @@ ax.set_yticks(new_y_ticks)
 
 
 fixed_point_tick_labels = [r"$c_1^*$", r"$c_2^*$"]
+# fixed_point_tick_labels = [r"$c_1^* =" + f"{round(c1_root[0], 2)}" + r"$", r"$c_2^* =" + f"{round(c2_root[0], 2)}" + r"$",]
 
 
 def x_format(val, pos):
@@ -389,16 +400,9 @@ ax.xaxis.set_major_formatter(FuncFormatter(x_format))
 ax.yaxis.set_major_formatter(FuncFormatter(y_format))
 
 
-plt.rcParams.update(
-    {
-        "axes.labelsize": 15,
-        "axes.titleweight": "bold",
-    }
-)
-
-
-plt.legend()
+ax.legend(framealpha=1, loc="upper center")
 plt.tight_layout()
+
 
 plt.savefig(figure_file + ".pdf", format="pdf")
 # plt.show()
