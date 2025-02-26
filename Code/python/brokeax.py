@@ -159,26 +159,34 @@ dt_name_list = [
 
 ## Polynomial
 
-coeffs = [
+c1_coeffs = [
     n[1] * w[1],
     omega_1 - n[1] * (w[1] / n[0] + k_1),
     k_1 * ((n[1] / n[0]) - 1),
 ]
-poly = npp.Polynomial(
-    coef=coeffs,
+c2_coeffs = [
+    n[0] * w[0],
+    omega_2 - n[0] * (w[0] / n[1] + k_2),
+    k_2 * ((n[0] / n[1]) - 1),
+]
+
+c1_poly = npp.Polynomial(
+    coef=c1_coeffs,
     symbol="_c1",
 )
-roots = poly.roots()
+c2_poly = npp.Polynomial(
+    coef=c2_coeffs,
+    symbol="_c2",
+)
 
-c1_root = [root for root in roots if root > c1_min]
-c2_root = (1 - c1_root / n[0]) * n[1]
+
+c1_roots = c1_poly.roots()
+c2_roots = c2_poly.roots()
+
+c1_root = [root for root in c1_roots if c1_min < root < c1_max]
+c2_root = [root for root in c2_roots if c2_min < root < c2_max]
 
 solutions = np.array([c1_root, c2_root])
-
-# print(sum(solutions) / n[0] + sum(solutions) / n[1])
-
-# print(sol1.T[0][-1] + sol1.T[1][-1])
-# exit()
 
 ## Plotting
 

@@ -35,8 +35,10 @@ n[1] = 100
 w[0] = 0.035
 w[1] = 0.015
 
-# w[0] = 0.015
-n[1] = 90
+w[0] = 0.015
+w[1] = 0.15
+n[0] = 50
+n[1] = 70
 
 q[0] = 0.999
 q[1] = 0.8
@@ -51,6 +53,10 @@ k_2 = k[1] / n[1]
 
 c1_min = w[1] / k_1
 c2_min = w[0] / k_2
+
+c1_max = omega_1 / k_1
+c2_max = omega_2 / k_2
+
 
 alpha = 0
 c1_0 = n[0] - alpha
@@ -159,19 +165,32 @@ dt_name_list = [
 
 ## Polynomial
 
-coeffs = [
+c1_coeffs = [
     n[1] * w[1],
     omega_1 - n[1] * (w[1] / n[0] + k_1),
     k_1 * ((n[1] / n[0]) - 1),
 ]
-poly = npp.Polynomial(
-    coef=coeffs,
+c2_coeffs = [
+    n[0] * w[0],
+    omega_2 - n[0] * (w[0] / n[1] + k_2),
+    k_2 * ((n[0] / n[1]) - 1),
+]
+
+c1_poly = npp.Polynomial(
+    coef=c1_coeffs,
     symbol="_c1",
 )
-roots = poly.roots()
+c2_poly = npp.Polynomial(
+    coef=c2_coeffs,
+    symbol="_c2",
+)
 
-c1_root = [root for root in roots if root > c1_min]
-c2_root = (1 - c1_root / n[0]) * n[1]
+
+c1_roots = c1_poly.roots()
+c2_roots = c2_poly.roots()
+
+c1_root = [root for root in c1_roots if c1_min < root < c1_max]
+c2_root = [root for root in c2_roots if c2_min < root < c2_max]
 
 solutions = np.array([c1_root, c2_root])
 
@@ -212,15 +231,15 @@ total = sol1.T[0] + sol1.T[1]
 percent_total = np.divide(sol1.T[0], n[0]) + np.divide(sol1.T[1], n[1])
 
 fixed_point_tick_labels = [
-    r"$c_1^*$",
+    "\t" + r"$c_1^*$",
     r"$c_2^*$",
 ]
 
-ax.set_ylim(0, 100)
+ax.set_ylim(0, max(n))
 ax.set_xlim(0, t_end)
 
-# new_y_ticks = np.append(ax.get_yticks(), solutions)
-new_y_ticks = np.append([0, 25, 50, 75, 100], solutions)
+new_y_ticks = np.append(ax.get_yticks(), solutions)
+# new_y_ticks = np.append([0, 25, 50, 75, 100], solutions)
 ax.set_yticks(new_y_ticks)
 
 
@@ -245,5 +264,5 @@ plt.legend(loc="center right")
 plt.tight_layout()
 
 file_path = os.path.join(figure_path, filename)
-# plt.savefig(file_path + ".pdf")
+plt.savefig(file_path + ".pdf")
 plt.show()
