@@ -41,8 +41,9 @@ w[0] = 0.015
 w[1] = 0.035
 
 
-# n[1] = 90
-# w[1] = 0.015
+w[1] = 0.015
+n[1] = 90
+n[0] = 50
 
 
 q[0] = 0.999
@@ -82,6 +83,9 @@ k_2 = k[1] / n[1]
 c1_min = w[1] / k_1
 c2_min = w[0] / k_2
 
+c1_max = omega_1 / k_1
+c2_max = omega_2 / k_2
+
 alpha = 1
 c1_0 = n[0] - alpha
 c2_0 = alpha
@@ -110,19 +114,53 @@ state_vec = np.array([w[1] / sum(w), w[0] / sum(w)]) * n
 
 ## Polynomial
 
-coeffs = [
+
+c1_coeffs = [
     n[1] * w[1],
     omega_1 - n[1] * (w[1] / n[0] + k_1),
     k_1 * ((n[1] / n[0]) - 1),
 ]
-poly = npp.Polynomial(
-    coef=coeffs,
+c2_coeffs = [
+    n[0] * w[0],
+    omega_2 - n[0] * (w[0] / n[1] + k_2),
+    k_2 * ((n[0] / n[1]) - 1),
+]
+
+c1_poly = npp.Polynomial(
+    coef=c1_coeffs,
     symbol="_c1",
 )
-roots = poly.roots()
+c2_poly = npp.Polynomial(
+    coef=c2_coeffs,
+    symbol="_c2",
+)
 
-c1_root = [root for root in roots if root > c1_min]
-c2_root = (1 - c1_root / n[0]) * n[1]
+
+c1_roots = c1_poly.roots()
+c2_roots = c2_poly.roots()
+
+c1_root = [root for root in c1_roots if c1_min < root < c1_max]
+c2_root = [root for root in c2_roots if c2_min < root < c2_max]
+
+
+# print(c1_root, "   ", c2_root)
+# print(c1_max, "   ", c2_max)
+# exit()
+
+# c2_root = (1 - c1_root / n[0]) * n[1]
+
+# coeffs = [
+#     n[1] * w[1],
+#     omega_1 - n[1] * (w[1] / n[0] + k_1),
+#     k_1 * ((n[1] / n[0]) - 1),
+# ]
+# poly = npp.Polynomial(
+#     coef=coeffs,
+#     symbol="_c1",
+# )
+# roots = poly.roots()
+# c1_root = [root for root in roots if root > c1_min]
+# c2_root = (1 - c1_root / n[0]) * n[1]
 
 ## Plotting
 
@@ -346,7 +384,7 @@ for i in range(c1.shape[0]):
 
 
 ax.vlines(
-    [c1_root],
+    c1_root,
     *x_lims,
     color=colors[0],
     linestyle="--",
@@ -354,7 +392,7 @@ ax.vlines(
     zorder=11,
 )
 ax.hlines(
-    [c2_root],
+    c2_root,
     *y_lims,
     color=colors[1],
     linestyle="--",
@@ -392,6 +430,9 @@ def y_format(val, pos):
         return int(val)
 
 
+# print(c2_root)
+
+
 ax.xaxis.set_major_formatter(FuncFormatter(x_format))
 ax.yaxis.set_major_formatter(FuncFormatter(y_format))
 
@@ -400,5 +441,5 @@ ax.legend(framealpha=1, loc="upper center")
 plt.tight_layout()
 
 
-plt.savefig(figure_file + ".pdf", format="pdf")
-# plt.show()
+# plt.savefig(figure_file + ".pdf", format="pdf")
+plt.show()

@@ -242,5 +242,5 @@ plt.legend(loc="center right")
 plt.tight_layout()
 
 file_path = os.path.join(figure_path, filename)
-plt.savefig(file_path + ".pdf")
+# plt.savefig(file_path + ".pdf")
 plt.show()
