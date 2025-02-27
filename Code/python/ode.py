@@ -36,9 +36,9 @@ w[0] = 0.035
 w[1] = 0.015
 
 w[0] = 0.015
-w[1] = 0.15
-n[0] = 50
-n[1] = 70
+w[1] = 0.14
+n[0] = 55
+n[1] = 85
 
 q[0] = 0.999
 q[1] = 0.8
@@ -235,7 +235,7 @@ fixed_point_tick_labels = [
     r"$c_2^*$",
 ]
 
-ax.set_ylim(0, max(n))
+ax.set_ylim(0, np.max(n))
 ax.set_xlim(0, t_end)
 
 new_y_ticks = np.append(ax.get_yticks(), solutions)
