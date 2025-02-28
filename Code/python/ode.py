@@ -260,7 +260,7 @@ ax.yaxis.set_label_position("right")
 ax.set_xlabel("Time")
 ax.set_ylabel("Count")
 
-plt.legend(loc="center right")
+ax.legend(loc="center right")
 plt.tight_layout()
 
 file_path = os.path.join(figure_path, filename)

@@ -5,6 +5,7 @@ from re import I
 from sys import exit
 
 from matplotlib import pyplot as plt
+from matplotlib.figure import figaspect
 from matplotlib.pyplot import FuncFormatter
 
 
@@ -34,17 +35,17 @@ k[0] = 1
 k[1] = 1
 
 # Population cap (purely aesthetic if n₁ = n₂)
-n[0] = 100
-n[1] = 100
+n[0] = 90
+n[1] = 50
 
 w[0] = 0.035
 w[1] = 0.015
 
 
-w[0] = 0.015
-w[1] = 0.14
-n[0] = 55
-n[1] = 85
+# w[0] = 0.015
+# w[1] = 0.14
+# n[0] = 55
+# n[1] = 85
 
 q[0] = 0.999
 q[1] = qm = 0.8
@@ -53,7 +54,7 @@ q[1] = qm = 0.8
 alpha = 1
 c1_0 = n[0] - alpha
 c2_0 = alpha
-m_0 = 0.0
+m_0 = 15.0
 
 figure_file = os.path.join(
     figure_path,
@@ -90,6 +91,8 @@ c2_min = w[0] / k_2
 c1_max = omega_1 / k_1
 c2_max = omega_2 / k_2
 
+w_1 = w[0]
+w_2 = w[1]
 
 cq = sum(n) / len(n)
 
@@ -111,6 +114,7 @@ char_M1 = M - eig1 * np.identity(2)
 char_M2 = M - eig2 * np.identity(2)
 
 state_vec = np.array([w[1] / sum(w), w[0] / sum(w)]) * n
+
 
 ## Polynomial
 
@@ -143,28 +147,18 @@ c1_root = [root for root in c1_roots if c1_min < root < c1_max]
 c2_root = [root for root in c2_roots if c2_min < root < c2_max]
 
 
-## Plotting
-
-x_lims = 0, 100
-y_lims = 0, 100
-
-# x_lims = 0, 1
-# y_lims = 0, 1
-
 c1s = np.arange(0.1, 125, 0.5)
 c2s = np.arange(0.1, 125, 0.5)
-# ct = c1s + c2s
-# ct = n[0]
 
 c1, c2 = np.meshgrid(c1s, c2s)
 
 
 def dc1(c1, c2):
-    return (omega_1 - k_1 * (c1 + c2)) * c1 + w[1] * c2
+    return (omega_1 - k_1 * (c1 + c2)) * c1 + w_2 * c2
 
 
 def dc2(c1, c2):
-    return (omega_2 - k_2 * (c1 + c2)) * c2 + w[0] * c1
+    return (omega_2 - k_2 * (c1 + c2)) * c2 + w_1 * c1
 
 
 dc1_U = (omega_1 - k_1 * (c1 + c2)) * c1 + w[1] * c2
@@ -172,7 +166,7 @@ dc2_V = (omega_2 - k_2 * (c1 + c2)) * c2 + w[0] * c1
 
 
 dt = 0.01
-t_end = 250
+t_end = 30
 t_array = np.arange(0, t_end, dt)
 
 parameters = [k, w, q, n]
@@ -186,8 +180,8 @@ def step_function(xs, dt) -> np.ndarray:
     ct = c_1 + c_2
     # ct = cq
 
-    c1_dot = (k[0] * (1 - ct / n[0]) - w[0]) * c_1 + w[1] * c_2 - q[0] * m * c_1
-    c2_dot = (k[1] * (1 - ct / n[1]) - w[1]) * c_2 + w[0] * c_1
+    c1_dot = (k[0] * (1 - ct / n[0]) - w_1) * c_1 + w_2 * c_2 - q[0] * m * c_1
+    c2_dot = (k[1] * (1 - ct / n[1]) - w_2) * c_2 + w_1 * c_1
     m_dot = -q[1] * m * c_2 + m_0
 
     return dt * np.array([c1_dot, c2_dot, m_dot])
@@ -225,10 +219,78 @@ plt.rcParams.update(
 
 ### Plotting
 
-fig, ax = plt.subplots()
+x_lims = 0, 100
+y_lims = 0, 100
+
+colors = ["red", "blue", "green"]
+name_list = [r"$c_1$", r"$c_2$", r"m"]
+solutions = [c1_root, c2_root]
 
 
-ax.streamplot(
+w, h = figaspect(1 / 3)
+fig, axes = plt.subplots(1, 2, figsize=(w, h))
+
+
+for i, curve in enumerate(outcome1.T):
+    # break
+    # if i == 2:
+    #     break
+    color = colors[i]
+    curve_name = name_list[i]
+
+    # dt_curve_name = dt_name_list[i]
+    # zero_line = solutions[i]
+
+    # axes[1].hlines(
+    #     zero_line,
+    #     0,
+    #     t_end,
+    #     color=color,
+    #     linestyle="dashed",
+    #     linewidth=1,
+    # )
+
+    axes[1].plot(t_array, curve, label=curve_name, color=color)
+
+
+total = outcome1.T[0] + outcome1.T[1]
+percent_total = np.divide(outcome1.T[0], n[0]) + np.divide(outcome1.T[1], n[1])
+
+fixed_point_tick_labels = [
+    "\t" + r"$c_1^*$",
+    r"$c_2^*$",
+]
+
+axes[1].set_ylim(0, np.max(n))
+axes[1].set_xlim(0, t_end)
+
+# new_y_ticks = np.append(axes[1].get_yticks(), solutions)
+new_y_ticks = axes[1].get_yticks()
+# new_y_ticks = np.append([0, 25, 50, 75, 100], solutions)
+axes[1].set_yticks(new_y_ticks)
+
+
+def fixed_point_format(val, pos):
+    if val == solutions[0]:
+        return fixed_point_tick_labels[0]
+    elif val == solutions[1]:
+        return fixed_point_tick_labels[1]
+    else:
+        return int(np.round(val, 3))
+
+
+axes[1].yaxis.set_major_formatter(FuncFormatter(fixed_point_format))
+
+axes[1].yaxis.tick_right()
+axes[1].yaxis.set_label_position("right")
+
+axes[1].set_xlabel("Time")
+axes[1].set_ylabel("Count")
+
+axes[1].legend(loc="upper right")
+
+
+axes[0].streamplot(
     c1,
     c2,
     dc1_U,
@@ -244,22 +306,21 @@ ax.streamplot(
 )
 
 
-ax.set_xlabel(r"$c_1$")
-ax.set_ylabel(r"$c_2$")
+axes[0].set_xlabel(r"$c_1$")
+axes[0].set_ylabel(r"$c_2$")
 
-ax.set_xlim(*x_lims)
-ax.set_ylim(*y_lims)
+axes[0].set_xlim(*x_lims)
+axes[0].set_ylim(*y_lims)
 
 
-c1f = omega_1 / k_1
-c2f_b = (omega_1 - k_1 * c1f) / (w[1] - c1f)
+# c1f = omega_1 / k_1
+# c2f_b = (omega_1 - k_1 * c1f) / (w[1] - c1f)
 
 
 sol_alpha = 0.6
-colors = ["red", "blue"]
 
 
-def example_plot():
+def example_plot(ax):
     ax.plot(
         outcome1[:, 0],
         outcome1[:, 1],
@@ -289,16 +350,24 @@ def example_plot():
 
 ## Nullcline
 
+# axes[0].plot([0, n[1] + m_0], [n[0] - m_0, 0])
+
 
 def c1_sol(c1) -> float:
-    num = -(c1 * (omega_1 - k_1 * c1))
-    den = w[1] - k_1 * c1
+    num = -c1 * (omega_1 - k_1 * c1)
+    den = w_2 - k_1 * c1
     return num / den
 
 
 def c2_sol(c2) -> float:
-    num = -(c2 * (omega_2 - k_2 * c2))
-    den = w[0] - k_2 * c2
+    num = -c2 * (omega_2 - k_2 * c2)
+    den = w_1 - k_2 * c2
+    return num / den
+
+
+def m_sol2(c1, c2) -> float:
+    num = c1 * (omega_1 - k_1 * c1) + c2 * (w_2 - k_1 * c1)
+    den = q[1]
     return num / den
 
 
@@ -311,24 +380,57 @@ null_width = 2
 # colors = ["k", "k"]
 
 
-def plot_null():
-    ax.plot(
-        c1_sol_array,
-        c1_sol(c1_sol_array),
-        label=r"$c_1$ Nullcline",
-        color=colors[0],
-        alpha=null_alpha,
-        linewidth=null_width,
-    )
-    ax.plot(
-        c2_sol(c2_sol_array),
-        c2_sol_array,
-        label=r"$c_2$ Nullcline",
-        color=colors[1],
-        alpha=null_alpha,
-        linewidth=null_width,
-    )
+axes[0].plot(
+    c1_sol_array,
+    c1_sol(c1_sol_array),
+    label=r"$c_1$ Nullcline",
+    color=colors[0],
+    alpha=null_alpha,
+    linewidth=null_width,
+)
 
+# axes[0].plot(
+#     c1_sol_array,
+#     m_sol2(c1_sol_array, c1_sol(c1_sol_array)),
+#     label=r"$c_2$ Nullcline",
+#     color=colors[1],
+#     alpha=null_alpha,
+#     linewidth=null_width,
+# )
+
+
+def m_sol(c2) -> float:
+    num = m_0
+    den = qm * c2
+    return num / den
+
+
+def c2_sol2(c2) -> float:
+    num = c2 * (qm * m_sol(c2) - (omega_2 - k_2 * c2))
+    den = w_1 - k_2 * c2
+    return num / den
+
+
+axes[0].plot(
+    c2_sol(c2_sol_array),
+    c2_sol_array,
+    label=r"$c_2$ Nullcline",
+    color=colors[1],
+    alpha=null_alpha,
+    linewidth=null_width,
+)
+
+axes[0].plot(
+    (m_0 / qm) * (1 / outcome1.T[2]),
+    outcome1.T[1],
+    label=r"$m$ Nullcline",
+    color=colors[2],
+    alpha=null_alpha,
+    linewidth=null_width,
+)
+
+
+def plot_null(ax):
     ax.vlines(
         c1_root,
         *x_lims,
@@ -348,24 +450,6 @@ def plot_null():
 
     ax.legend(framealpha=1, loc="upper center")
 
-
-# ax.plot(
-#     [n[0], 0],
-#     [0, n[1]],
-#     color="k",
-#     label="Conserved sum $c_T$",
-#     # alpha=null_alpha,
-#     linewidth=1,
-# )
-# c2_test = cq - c1s
-# ax.plot(
-#     c1s,
-#     c2_test,
-#     color="k",
-#     label="Conserved sum $c_T$",
-#     # alpha=null_alpha,
-#     linewidth=1,
-# )
 
 c2_test = n[1] * (1 - c1s / n[0])
 
@@ -394,17 +478,20 @@ for i in range(c1.shape[0]):
 # solutions =
 
 
-new_x_ticks = np.append(ax.get_xticks(), c1_root)
-new_y_ticks = np.append(ax.get_yticks(), c2_root)
+# new_x_ticks = np.append(axes[0].get_xticks(), c1_root)
+# new_y_ticks = np.append(axes[0].get_yticks(), c2_root)
 
-ax.set_xticks(new_x_ticks)
-ax.set_yticks(new_y_ticks)
+new_x_ticks = axes[0].get_xticks()
+new_y_ticks = axes[0].get_yticks()
+
+axes[0].set_xticks(new_x_ticks)
+axes[0].set_yticks(new_y_ticks)
 
 
 fixed_point_tick_labels = [r"$c_1^*$", r"$c_2^*$"]
 # fixed_point_tick_labels = [r"$c_1^* =" + f"{round(c1_root[0], 2)}" + r"$", r"$c_2^* =" + f"{round(c2_root[0], 2)}" + r"$",]
 
-plot_null()
+# plot_null(axes[0])
 
 
 def x_format(val, pos):
@@ -421,11 +508,14 @@ def y_format(val, pos):
         return int(val)
 
 
+# print((outcome1.T[0][-1] + outcome1.T[1][-1]) / n[0])
+# print(outcome1.T[0][-1] / n[0] + outcome1.T[1][-1] / n[1])
+
 # print(c2_root)
 
 
-ax.xaxis.set_major_formatter(FuncFormatter(x_format))
-ax.yaxis.set_major_formatter(FuncFormatter(y_format))
+axes[0].xaxis.set_major_formatter(FuncFormatter(x_format))
+axes[0].yaxis.set_major_formatter(FuncFormatter(y_format))
 
 
 plt.tight_layout()
