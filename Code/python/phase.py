@@ -35,16 +35,15 @@ k[1] = 1
 
 # Population cap (purely aesthetic if n₁ = n₂)
 n[0] = 100
-n[1] = 100
-
-w[0] = 0.035
-w[1] = 0.015
-
+n[1] = 90
+# n[1] = 100
 
 w[0] = 0.015
-w[1] = 0.14
-n[0] = 55
-n[1] = 85
+w[1] = 0.015
+
+# w[1] = 0.14
+# n[0] = 55
+# n[1] = 85
 
 q[0] = 0.999
 q[1] = qm = 0.8
@@ -256,7 +255,7 @@ c2f_b = (omega_1 - k_1 * c1f) / (w[1] - c1f)
 
 
 sol_alpha = 0.6
-colors = ["red", "blue"]
+colors = ["b", "r"]
 
 
 def example_plot():

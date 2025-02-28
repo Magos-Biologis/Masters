@@ -151,7 +151,7 @@ dt_zeroes = [c1_fixed, c2_fixed, m_fixed]
 # exit()
 
 
-color_list = ["r", "b", "g"]
+color_list = ["b", "r", "g"]
 name_list = [
     "Non-resistant Type",
     "Resistant Type",

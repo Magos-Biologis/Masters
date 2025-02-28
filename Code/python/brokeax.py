@@ -52,6 +52,9 @@ k_2 = k[1] / n[1]
 c1_min = w[1] / k_1
 c2_min = w[0] / k_2
 
+c1_max = omega_1 / k_1
+c2_max = omega_2 / k_2
+
 alpha = 0
 c1_0 = n[0] - alpha
 c2_0 = alpha
@@ -145,7 +148,7 @@ dt_zeroes = [c1_fixed, c2_fixed, m_fixed]
 # exit()
 
 
-color_list = ["r", "b", "g"]
+color_list = ["b", "r", "g"]
 name_list = [
     "Non-resistant Type",
     "Resistant Type",
