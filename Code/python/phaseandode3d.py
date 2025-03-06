@@ -250,6 +250,7 @@ plt.rcParams.update(
 
 x_lims = 0, 100
 y_lims = 0, 100
+z_lims = 0, 10
 
 colors = ["blue", "red", "green"]
 name_list = [r"$c_1$", r"$c_2$", r"m"]
@@ -258,6 +259,7 @@ solutions = [c1_root, c2_root]
 
 w, h = figaspect(1 / 3)
 fig, axes = plt.subplots(1, 2, figsize=(w, h))
+axes[0] = fig.add_subplot(projection="3d")
 
 
 for i, curve in enumerate(outcome1.T):
@@ -328,27 +330,29 @@ axes[1].set_ylabel("Count")
 axes[1].legend(loc="upper right")
 
 
-axes[0].streamplot(
-    c1,
-    c2,
-    dc1_U,
-    dc2_V,
-    density=1.5,
-    color="gray",
-    linewidth=lw,
-    arrowstyle="->",
-    # l=0.7,
-    # cmap="viridis",
-    # arrowsize=0,
-    # broken_streamlines=False,
-)
+# axes[0].streamplot(
+#     c1,
+#     c2,
+#     dc1_U,
+#     dc2_V,
+#     density=1.5,
+#     color="gray",
+#     linewidth=lw,
+#     arrowstyle="->",
+#     # l=0.7,
+#     # cmap="viridis",
+#     # arrowsize=0,
+#     # broken_streamlines=False,
+# )
 
 
 axes[0].set_xlabel(r"$c_1$")
 axes[0].set_ylabel(r"$c_2$")
+axes[0].set_zlabel(r"$m$")
 
 axes[0].set_xlim(*x_lims)
 axes[0].set_ylim(*y_lims)
+axes[0].set_zlim(*z_lims)
 
 
 # c1f = omega_1 / k_1
@@ -440,13 +444,14 @@ null_width = 2
 
 axes[0].plot(
     c1s,
-    # c1_sol(c1s, m_0),
-    c1_sol(c1s, m_sol(c2s)),
+    c1_sol(c1s, m),
+    m,
     label=r"$c_2$ Nullcline",
     color=colors[1],
     alpha=null_alpha,
     linewidth=null_width,
 )
+
 axes[0].plot(
     c2_sol(c2s),
     c2s,
@@ -457,18 +462,21 @@ axes[0].plot(
 )
 
 
-# axes[0].plot(
-#     outcome1.T[0],
-#     outcome1.T[1],
-#     label=r"Solution 1",
-#     color="k",
-# )
-# axes[0].plot(
-#     outcome2.T[0],
-#     outcome2.T[1],
-#     label=r"Solution 2",
-#     color="k",
-# )
+axes[0].plot(
+    outcome1.T[0],
+    outcome1.T[1],
+    outcome1.T[2],
+    label=r"Solution 1",
+    color="b",
+)
+
+axes[0].plot(
+    outcome2.T[0],
+    outcome2.T[1],
+    outcome2.T[2],
+    label=r"Solution 2",
+    color="r",
+)
 
 
 def c1_sol2(c1) -> float:
@@ -480,14 +488,11 @@ def c1_sol2(c1) -> float:
     # den = n[0] * w_2 - c1 * k[0]
 
 
-def pop_curve():
-    c1 = n[0] - m_0 * q[0]
-    c2 = n[1]
-
-    return [c1, 0], [0, c2]
-
-
-axes[0].plot(*pop_curve())
+# axes[0].scatter(
+#     omega_1 / k[0],
+#     c1_sol2(omega_1 / k[0]),
+#     linewidth=2,
+# )
 
 # pp(c1)
 # pp(c2)

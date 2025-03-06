@@ -1,11 +1,11 @@
 #!./.venv/bin/python
 import os
 from pprint import pprint as pp
-from re import I
 from sys import exit
 
+import matplotlib as mpl
 from matplotlib import pyplot as plt
-from matplotlib.pyplot import FuncFormatter
+from matplotlib.pyplot import FuncFormatter, figure
 
 
 import numpy as np
@@ -19,7 +19,11 @@ from numpy import sum
 print("")
 
 
-figure_path = str(os.getenv("THESIS_FIGURE_PATH"))
+figure_env = str(os.getenv("THESIS_FIGURE_PATH"))
+phase_path = os.path.join(figure_env, "phase")
+
+
+file_name = "phaseplane"
 # figure_path = "./figs"
 
 
@@ -41,9 +45,12 @@ n[1] = 90
 w[0] = 0.015
 w[1] = 0.015
 
+# w[1] = 0.035
+
 # w[1] = 0.14
 # n[0] = 55
 # n[1] = 85
+
 
 q[0] = 0.999
 q[1] = qm = 0.8
@@ -54,10 +61,8 @@ c1_0 = n[0] - alpha
 c2_0 = alpha
 m_0 = 0.0
 
-figure_file = os.path.join(
-    figure_path,
-    "nomed_phaseplane"
-    + "_m0"
+file_addendum = (
+    "_m0"
     + f"{m_0}"
     + "_n1"
     + f"{n[0]}"
@@ -66,8 +71,9 @@ figure_file = os.path.join(
     + "_w1"
     + f"{w[0]}"
     + "_w2"
-    + f"{w[1]}",
+    + f"{w[1]}"
 )
+file_name += file_addendum
 
 
 pop_norm = np.sqrt(n[0] ** 2 + n[1] ** 2)
@@ -152,10 +158,13 @@ y_lims = 0, 100
 
 c1s = np.arange(0.1, 125, 0.5)
 c2s = np.arange(0.1, 125, 0.5)
-# ct = c1s + c2s
-# ct = n[0]
-
 c1, c2 = np.meshgrid(c1s, c2s)
+
+
+resolution = c1.shape[0]
+c1s = np.linspace(c1_min + 0.001, c1_max - 0.001, resolution)
+c2s = np.linspace(c2_min + 0.001, c2_max - 0.001, resolution)
+m = np.linspace(0.0, m_0 + k[1], resolution)
 
 
 def dc1(c1, c2):
@@ -215,16 +224,29 @@ lw = 4 * speed / speed.max()
 plt.rcParams.update(
     {
         "axes.labelsize": 20,
+        "axes.titleweight": "bold",
+        # "axes.titlecolor": "white",
         "xtick.labelsize": 15,
         "ytick.labelsize": 15,
-        "axes.titleweight": "bold",
+        # "xtick.labelcolor": "white",
+        # "ytick.labelcolor": "white",
+        # "savefig.facecolor": "#c0c0ca",
     }
 )
 
+# norm = mpl.colors.Normalize(vmin=lw.min(), vmax=lw.max())
+norm = mpl.colors.LogNorm(vmin=lw.min(), vmax=lw.max())
 
 ### Plotting
 
+
 fig, ax = plt.subplots()
+
+plt.style.use("bmh")
+# ax.set_facecolor("#c0c0ca")
+
+# ax.tick_params(color="white")
+# ax.spines["all"].set_color("white")
 
 
 ax.streamplot(
@@ -232,19 +254,25 @@ ax.streamplot(
     c2,
     dc1_U,
     dc2_V,
-    density=1.5,
-    color="gray",
-    # linewidth=lw,
+    density=1.7,
+    linewidth=lw,
     arrowstyle="->",
-    # l=0.7,
-    # cmap="viridis",
+    color="black",
+    # color=lw,
+    # norm=norm,
+    # cmap="gist_heat_r",
     # arrowsize=0,
+    # density=0.7,
     # broken_streamlines=False,
 )
 
 
-ax.set_xlabel(r"$c_1$")
-ax.set_ylabel(r"$c_2$")
+ax.set_xlabel(
+    r"$c_1$",
+)
+ax.set_ylabel(
+    r"$c_2$",
+)
 
 ax.set_xlim(*x_lims)
 ax.set_ylim(*y_lims)
@@ -304,7 +332,7 @@ def c2_sol(c2) -> float:
 c1_sol_array = np.arange(c1_min + 0.01, 100, 0.2)
 c2_sol_array = np.arange(c2_min + 0.01, 100, 0.2)
 
-null_alpha = 0.3
+null_alpha = 0.9
 null_width = 2
 
 # colors = ["k", "k"]
@@ -312,16 +340,16 @@ null_width = 2
 
 def plot_null():
     ax.plot(
-        c1_sol_array,
-        c1_sol(c1_sol_array),
+        c2_sol(c2_sol_array),
+        c2_sol_array,
         label=r"$c_1$ Nullcline",
         color=colors[0],
         alpha=null_alpha,
         linewidth=null_width,
     )
     ax.plot(
-        c2_sol(c2_sol_array),
-        c2_sol_array,
+        c1_sol_array,
+        c1_sol(c1_sol_array),
         label=r"$c_2$ Nullcline",
         color=colors[1],
         alpha=null_alpha,
@@ -333,7 +361,7 @@ def plot_null():
         *x_lims,
         color=colors[0],
         linestyle="--",
-        alpha=null_alpha,
+        alpha=sol_alpha,
         zorder=11,
     )
     ax.hlines(
@@ -341,12 +369,21 @@ def plot_null():
         *y_lims,
         color=colors[1],
         linestyle="--",
-        alpha=null_alpha,
+        alpha=sol_alpha,
         zorder=11,
     )
 
     ax.legend(framealpha=1, loc="upper center")
 
+
+def pop_curve():
+    c1 = n[0] - m_0 * q[0]
+    c2 = n[1]
+
+    return [c1, 0], [0, c2]
+
+
+# ax.plot(*pop_curve())
 
 # ax.plot(
 #     [n[0], 0],
@@ -427,8 +464,9 @@ ax.xaxis.set_major_formatter(FuncFormatter(x_format))
 ax.yaxis.set_major_formatter(FuncFormatter(y_format))
 
 
-plt.tight_layout()
+# plt.tight_layout()
 
 
-# plt.savefig(figure_file + ".pdf", format="pdf")
-plt.show()
+figure_file = os.path.join(phase_path, file_name)
+plt.savefig(figure_file + ".pdf", format="pdf")
+# plt.show()

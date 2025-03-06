@@ -34,11 +34,12 @@ n[0] = 100
 n[1] = 100
 
 
+w[0] = 0.7
+w[1] = 0.4
+
 w[0] = 0.015
 w[1] = 0.035
 
-w[0] = 0.7
-w[1] = 0.4
 
 q[0] = 0.999
 q[1] = 0.8
@@ -56,16 +57,16 @@ om2 = k[1] - w[1]
 # t_array = np.arange(0, t_end, dt)
 # steps = np.zeros((len(t_array), 3))
 
-var_name = [r"$x$", r"$y$"]
+var_name = [r"$c_1$", r"$c_2$"]
 
 ## Markov Matrix multiplication
-# state_end = 150
 state_end = 3
+state_end = 150
 dt = 1
 
 ## Simulated Markov process
 t_end = 1500
-# t_end = 25000
+t_end = 25000
 
 a = 1
 c1_0 = n[0] - a
@@ -231,6 +232,23 @@ for t in t_axis:
 
 fig, ax1 = plt.subplots()
 
+plt.rcParams.update(
+    {
+        "axes.labelsize": 20,
+        "axes.titleweight": "bold",
+        # "axes.titlecolor": "white",
+        "xtick.labelsize": 15,
+        "ytick.labelsize": 15,
+        # "xtick.labelcolor": "white",
+        # "ytick.labelcolor": "white",
+        # "savefig.facecolor": "#c0c0ca",
+    }
+)
+
+
+plt.style.use("bmh")
+# ax1.set_facecolor("#c0c0ca")
+
 
 # ax1.set_xticks(np.arange(0, state_end + dt, 1))
 y_ticks = np.arange(0, 1.1, 0.25)
@@ -372,8 +390,8 @@ ax2 = ax1.twiny()
 ax2.set_xlabel("Simulated Markov Steps")
 
 
-ax2.plot(t, c1, label=var_name[0], color="blue")
-ax2.plot(t, c2, label=var_name[1], color="orange")
+ax2.plot(t, c1, label=var_name[0], color=color_list[0])
+ax2.plot(t, c2, label=var_name[1], color=color_list[1])
 
 # ax2.hlines(naive_norm_1, 0, t_end, color="blue")
 # ax2.hlines(naive_norm_2, 0, t_end, color="orange")

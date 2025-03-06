@@ -41,7 +41,7 @@ n[1] = 90
 q[0] = 0.999
 q[1] = 0.8
 
-m_0 = 0
+m_0 = 0.0
 
 omega_1 = k[0] - w[0]
 omega_2 = k[1] - w[1]
@@ -194,6 +194,26 @@ solutions = np.array([c1_root, c2_root])
 ## Plotting
 
 fig, axes = plt.subplots(2, 1, sharex=True)
+
+plt.rcParams.update(
+    {
+        "axes.labelsize": 20,
+        "axes.titleweight": "bold",
+        # "axes.titlecolor": "white",
+        "xtick.labelsize": 15,
+        "ytick.labelsize": 15,
+        # "xtick.labelcolor": "white",
+        # "ytick.labelcolor": "white",
+        # "savefig.facecolor": "#c0c0ca",
+    }
+)
+
+
+plt.style.use("bmh")
+# axes[0].set_facecolor("#c0c0ca")
+# axes[1].set_facecolor("#c0c0ca")
+#
+# axes[0].tick_params("x", color="#c0c0ca")
 
 
 for i, curve in enumerate(sol1.T):

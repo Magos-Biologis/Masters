@@ -1,0 +1,530 @@
+\documentclass[aspectratio=169]{RUCPresentation}
+
+%\usepackage{pgfforeach}
+% \usepackage{foreach}
+
+\usepackage{MyMath}
+% \usepackage{animate}
+
+\usepackage{siunitx}
+
+\usepackage{tikz}
+\usetikzlibrary{shapes, arrows, positioning, calc}
+\usetikzlibrary{overlay-beamer-styles}
+
+
+\def\k{\raisebox{1ex}{\rotatebox{180}{k}}}
+% \newsavebox\tempboxbeamer
+
+% \usetheme{Warsaw}
+\usetheme{RUCTHEME}
+
+
+% Defining a new coordinate system for the page:
+%
+% --------------------------
+% |(-1,1)    (0,1)    (1,1)|
+% |                        |
+% |(-1,0)    (0,0)    (1,0)|
+% |                        |
+% |(-1,-1)   (0,-1)  (1,-1)|
+% --------------------------
+
+% For beamer title
+\newcommand\makebeamertitle{\frame{\maketitle}}%
+
+% For sections?
+\graphicspath{{./images/}{../Thesis/images/phase/}{../Thesis/images/ode/}{../Thesis/images/markov/}}
+
+
+\title{%
+    Applying Fokker-Planck to analyze bacterial populations exhibiting hetero-resistence properties%
+}
+\title{%
+    Understanding statistical distributions hetero-resistant bacterial populations through%
+    fokker-planck or generalized statistical manifold%
+}
+\subtitle{  Mathematical\ \ Bioscience MSc }
+% \newline supervisor: Morten Anderson}
+
+\author{Anakin}
+
+%\mode<presentation>
+
+\begin{document}
+
+
+\makebeamertitle
+
+
+\section{Motivation}
+
+
+\begin{frame}{Heteroresistence}
+
+    \begin{columns}
+
+        \column{0.5\framewidth}
+        \vspace{4em}
+
+        \begin{itemize}
+            \item Bacteria can exhibit antibiotic resistences
+            \item The mechanism is not as black and white as it seems
+            \item High fitness cost as trait increases in quantity
+            \item Can avoid bacterial anti-biotic resistance screening
+        \end{itemize}
+
+
+        \column{0.5\framewidth}
+        
+    \end{columns}
+
+    \begin{tikzpicture}[overlay, remember picture]
+        \coordinate (s) at (frame cs:0.1,0.5);
+        \coordinate (e) at (frame cs:0.55,0.5);
+
+        \draw (s) to (e);
+
+        \path (s) to node[pos=0.3, sloped] (h1) {} (e);
+        \path (s) to node[pos=0.7, sloped] (h2) {} (e);
+
+        \path (s) to node[pos=0.1, sloped] (t11) {} (e);
+        \path (s) to node[pos=0.25, sloped] (t21) {} (e);
+
+        \path (s) to node[pos=0.9, sloped] (t12) {} (e);
+        \path (s) to node[pos=0.75, sloped] (t22) {} (e);
+
+
+        \draw[line width = 6, color=red] (h1) to (h2);
+
+        \draw[line width = 4] (t11) to (t21);
+        \draw[line width = 4] (t12) to (t22);
+
+        \node[anchor = south east] at (s) {5'};
+        \node[anchor = south west] at (e) {3'};
+
+    \end{tikzpicture}
+
+    \begin{tikzpicture}[overlay, remember picture]
+        \coordinate (s) at (frame cs:0.1,0);
+        \coordinate (e) at (frame cs:0.55,0);
+        \coordinate (s2) at (frame cs:0.40,0);
+        \coordinate (e2) at (frame cs:0.85,0);
+
+        \draw (s) to (e);
+        \draw (e) to (e2);
+
+        \path (s) to node[pos=0.3, sloped] (h1) {} (e);
+        \path (s) to node[pos=0.7, sloped] (h2) {} (e);
+
+
+        \path (s) to node[pos=0.1, sloped] (t11) {} (e);
+        \path (s) to node[pos=0.25, sloped] (t21) {} (e);
+
+        \path (s) to node[pos=0.9, sloped] (t12) {} (e);
+        \path (s) to node[pos=0.75, sloped] (t22) {} (e);
+
+
+        \draw[line width = 6, color=red] (h1) to (h2);
+
+        \draw[line width = 4] (t11) to (t21);
+        \draw[line width = 4] (t12) to (t22);
+
+
+        \path (s2) to node[pos=0.3, sloped] (h3) {} (e2);
+        \path (s2) to node[pos=0.7, sloped] (h4) {} (e2);
+
+        \path (s2) to node[pos=0.9, sloped] (t13) {} (e2);
+        \path (s2) to node[pos=0.75, sloped] (t23) {} (e2);
+
+
+        \draw[line width = 6, color=red] (h3) to (h4);
+
+        \draw[line width = 4] (t13) to (t23);
+
+        \node[anchor = south east] at (s) {5'};
+        \node[anchor = south west] at (e2) {3'};
+
+    \end{tikzpicture}
+
+    \begin{tikzpicture}[overlay, remember picture]
+        \coordinate (s) at (frame cs:0.1,-0.5);
+        \coordinate (e) at (frame cs:0.55,-0.5);
+
+        \draw (s) to (e);
+
+        \path (s) to node[pos=0.3, sloped] (h1) {} (e);
+        \path (s) to node[pos=0.7, sloped] (h2) {} (e);
+
+        \path (s) to node[pos=0.1, sloped] (t11) {} (e);
+        \path (s) to node[pos=0.25, sloped] (t21) {} (e);
+
+        \path (s) to node[pos=0.9, sloped] (t12) {} (e);
+        \path (s) to node[pos=0.75, sloped] (t22) {} (e);
+
+
+        \draw[line width = 6, color=red] (h1) to (h2);
+
+        \draw[line width = 4] (t11) to (t21);
+        \draw[line width = 4] (t12) to (t22);
+
+        \begin{scope}[node distance=5mm]
+        \node (p1) [above=of t11] {};
+        \node (p2) [below=of t11] {};
+
+        \node (p3) [above=of t12] {};
+        \node (p4) [below=of t12] {};
+
+        \end{scope}
+
+        \begin{scope}[node distance=0mm]
+            \node [right= of p4] {n};
+        \end{scope}
+
+        \draw (p1) to[bend right] (p2);
+        \draw (p3) to[bend left] (p4);
+
+
+        \node[anchor = south east] at (s) {5'};
+        \node[anchor = south west] at (e) {3'};
+
+    \end{tikzpicture}
+
+    \begin{tikzpicture}[overlay, remember picture, shorten >= 7, shorten <= 7, thick]
+        \draw[->] (frame cs:0.3,0.0) to[bend right] node[midway,anchor = west] {$\times n$} (frame cs:0.3,-0.5) ;
+        \draw[->] (frame cs:0.3,0.5) to[bend right] node[midway,anchor = west] {$\times 2$} (frame cs:0.3,0) ;
+    \end{tikzpicture}
+
+
+\end{frame}
+
+
+\section{Plan, kinda}
+\begin{frame}{General plan}
+    \begin{enumerate}
+        \item Analyze an ODE system for baseline comaparison
+        \item Reformulate the system into stochastic system
+        \item Fokker-Planck
+        \item Compare against data from building 28
+            \begin{enumerate}
+                \item Data is not yet made due to experimental blunders
+            \end{enumerate}
+    \end{enumerate}
+\end{frame}
+
+\begin{frame}{ODE system}
+
+\begin{tikzpicture}[remember picture, overlay, thick, shorten >=2pt]
+        \node[draw=black, circle] (c1) at (frame cs:0.4, 0.2) {\(c_1\)};
+        \node[draw=black, circle] (c2) at (frame cs:0.8, 0.2) {\(c_2\)};
+
+        \node[draw=black] (m) at (frame cs:0.4, -0.4) {\(m\)};
+
+
+        \draw[->] (c2) [bend left]to node[midway, below] {\(w_2\)} (c1);
+        \draw[->] (c1) [bend left]to node[midway, above] {\(w_1\)} (c2);
+
+        \draw[->] (c1)  [loop left]to node[midway, left]  {\(k_1\)} (c1);
+        \draw[->] (c2) [loop right]to node[midway, right] {\(k_2\)} (c2);
+
+        \draw[-|] (m) to node[pos=0.35] (mm) {} (c1);
+        \draw[-|] (c2) [bend left, out=65, in=155]to node[midway,below] {\(q_m\)} (mm);
+
+        \node[left] at (mm) {\(q_1\)};
+\end{tikzpicture}
+
+
+\begin{columns}
+    \column{0.7\framewidth}
+    \vspace {1em}
+    \begin{itemize}
+        \item Simple system of coupled odes
+        \item Based off of a compartment model
+    \end{itemize}
+    \vspace {1em}
+
+    \begin{system} 
+        \ode{c_1} &= k_1 c_1\left({n_1 - c_t \over n_1}\right) - w_1 c_1 + w_2 c_2 - q_1 m c_1 \nonumber \\
+        \ode{c_2} &= k_2 c_2\left({n_2 - c_t \over n_2}\right) - w_2 c_2 + w_1 c_1\nonumber\\
+        \ode{m}   &= m_0 - q_m m c_2 \nonumber
+    \end{system} 
+
+    \column{0.3\framewidth}
+\end{columns}
+
+    
+\end{frame}
+
+
+\begin{frame}{Fokker-Planck}
+
+    \begin{itemize}
+        \item The \emph{Fokker-Planck equation}
+            \begin{equation*}
+                \pde*[t] P\of{x,t} = 
+                -\pde*[x] \br{a^{(1)}_t \of x \cdot P\of{x,t}} + 
+                {1 \over 2} \pde*[x]^2 \br{a^{(2)}_t \of x\cdot P\of{x,t}}
+            \end{equation*}
+
+        \item Interestingly, all fokker-planck equations must fufill the markov property
+        \item Probability distribution as a partial differential equation
+        \item Can be defined analytically or numerically
+    \end{itemize}
+    
+\end{frame}
+
+\begin{frame}{Markov Chains}
+
+    \begin{columns}
+        \column{0.5\framewidth}
+        \begin{itemize}
+            \item The probability of transitioning from any state to any other 
+                state must not be influence by previous states
+            \item Time discrete lends well to cells
+            \item The steady state is defined as \(\vec{\pi} M = \vec{\pi}\)
+        \end{itemize}
+        \column{0.5\framewidth}
+        
+    \end{columns}
+
+\begin{tikzpicture}[thick,overlay, remember picture]
+    \node[draw=black, circle, minimum width = 1cm] (c1) at (frame cs:0.3,0.2) {$x$};
+    \node[draw=black, circle, minimum width = 1cm] (c2) at (frame cs:0.6,-0.2) {$y$};
+
+    \begin{scope}[shorten >= 2pt]
+        \draw[->] (c1) to[bend left] node[midway, anchor=south west] {\(p_1\)} (c2);
+        \draw[->] (c2) to[bend left] node[midway, anchor=north east] {\(p_2\)} (c1);
+
+        \draw[->] (c1) [loop left]to  node[midway] {\(1-p_1\)} (c1);
+        \draw[->] (c2) [loop right]to node[midway] {\(1-p_2\)} (c2);
+    \end{scope}
+
+    \node at (frame cs:0.4,-0.6) { \(M = \left[
+                    \begin{matrix}
+                        P\of{x\to x} & P\of{x\to y} \\
+                        P\of{y\to x} & P\of{y\to y}
+                    \end{matrix}
+                \right]
+                = 
+                \left[
+                    \begin{matrix}
+                        1-p_1 & p_1 \\ p_2 & 1-p_2
+                    \end{matrix}
+                \right]\) };
+\end{tikzpicture}
+    
+\end{frame}
+
+\section{Analytical Examples}
+
+\def\cfp#1{c_#1^*}
+\begin{frame}{Analytical Solution}
+
+    \begin{columns}[T]
+        \column{0.5\framewidth}
+    \begin{alertblock}{Notation}
+        We denote \(\omega_{i} := k_i-w_i\) and
+        \(\k_{i} := \rfrac{k_i}{n_i}\) for all \(i\in \left\{1,2\right\}\).
+    \end{alertblock}
+
+        Solving \(\ode* m = 0\) under the assumption that \(m_0=0\),
+        \begin{equation*}
+            \ode* m = -q_m m c_2 = 0 \implies 
+            \begin{cases}
+                m\of t = 0 \\
+                c_2\of t = 0
+            \end{cases}
+        \end{equation*}
+        as \(c_2 \neq 0\), \(m=0\) for the when \(m_0=0\).
+
+        \column{0.5\framewidth}
+        \begin{system}
+            \ode* c_1 &= c_1 \pa{\omega_{1} - \k_{1} c_1} + c_2\pa{w_2 - \k_{1} c_1}\nonumber\\
+            \ode* c_2 &= c_1\pa{w_1 - \k_{2} c_2} + c_2 \pa{\omega_{2} - \k_{2} c_2}\nonumber
+        \end{system}
+
+        
+helping us in order to find our nullclines.
+\begin{align*}
+    c_2 &= -{ c_1 \pa{ \omega_{1} - \k_{1} c_1} \over w_2 - \k_{1} c_1 }
+    \intertext{Similarly, solving for \(c_1\) from \(\ode* c_2\) results in} 
+    -{c_2\pa{\omega_{2} - \k_{2} c_2} \over w_1 - \k_{2}c_2} &= c_1
+\end{align*}
+    \end{columns}
+
+\end{frame}
+
+\begin{frame}{Analytical Solution}
+
+
+
+        \begin{itemize}
+            \item Any solution must have a balance
+
+            \item We can define a level set in the phase space,
+                \begin{align*} 
+                    c_T
+            &=
+            \left\{
+                \pa{c_1, c_2} \Big| {c_1 \over n_1}  + {c_2 \over n_2} = 1
+            \right\} \\
+            \implies
+                    c_2 &= n_2\pa{1 - {c_1 \over n_1}}
+                \end{align*}
+
+        \end{itemize}
+
+        \begin{itemize}
+            \item Therefor, we find the point of intersection
+                \begin{align*}
+                    n_2\pa{1 - {c_1 \over n_1}}  &= 
+                    -{c_1\pa{\omega_{1} - \k_{1} c_1} \over w_2 - \k_{1}c_1} 
+                \end{align*}
+        \end{itemize}
+
+
+\end{frame}
+
+\begin{frame}{Analytical Solution}
+    Which simplifies to solving the polynomial
+    \begin{align*} 
+        \k_1\pa{{n_2 \over n_1}-1} c_1^2 
+        - \pa{\omega_{1} - n_2\pa{{w_2 \over n_1} + \k_1}} c_1
+        + n_2 w_2
+            &= 0 & c_1\in ]w_2/\k_{1}, \omega_1/\k_1[
+            \intertext{by symmetry,} 
+            \k_2\pa{{n_1 \over n_2}-1} c_2^2 
+            - \pa{\omega_{2} - n_1\pa{{w_1 \over n_2} + \k_2}} c_2
+            + n_1 w_1
+            &= 0 & c_2\in ]w_1/\k_{2}, \omega_2/\k_2[ 
+    \end{align*}
+
+    Resulting in our analytically defined fixed points of \(\vec{p}_1:=\pa{\cfp 1, \cfp 2, 0}\),
+\end{frame}
+
+\begin{frame}{Analytical Solution Examples}
+    \begin{tikzpicture}[remember picture, overlay]
+        \node (image1) at (frame cs:-0.5,0) {
+                \includegraphics[width=0.55\framewidth]
+                {ode_solution_m00.0_n155.0_n285.0_w10.015_w20.14.pdf}
+            };
+        \node (image2) at (frame cs:0.5,0) {
+                \includegraphics[width=0.55\framewidth]
+                {phaseplane_m00.0_n155.0_n285.0_w10.015_w20.14.pdf}
+            };
+    \end{tikzpicture}
+\end{frame}
+
+\begin{frame}{Analytical Solution Examples}
+    \begin{tikzpicture}[remember picture, overlay]
+        \node (image1) at (frame cs:-0.5,0) {
+                \includegraphics[width=0.55\framewidth]
+                {ode_solution_m00.0_n1100.0_n290.0_w10.015_w20.015.pdf}
+            };
+        \node (image2) at (frame cs:0.5,0) {
+                \includegraphics[width=0.55\framewidth]
+                {phaseplane_m00.0_n1100.0_n290.0_w10.015_w20.015.pdf}
+            };
+    \end{tikzpicture}
+\end{frame}
+
+
+
+\begin{frame}{Basic Markov Chain Solution}
+    Finding the stationary distribution of a markov chain in the simplest case is done as,
+\begin{align*}
+    \vec{\pi} M = \vec{\pi} 
+    &\implies \pa{\vec{\pi}M}^{\mathrm{T}} = \vec{\pi}^{\mathrm{T}} \\
+    % &\implies \pa{M^{\mathrm{T}}\vec{\pi}^{\mathrm{T}}-\vec{\pi}^{\mathrm{T}}}
+    % =\pa{M^{\mathrm{T}}-I} \vec{\pi}^{\mathrm{T}}= 0 \\
+    &\implies \left[
+        \begin{matrix}
+            1-p_1 - 1 & p_2 \\
+            p_1 & 1-p_2 -1
+        \end{matrix}
+    \right]
+    \left[
+        \begin{matrix}
+            x \\ y
+        \end{matrix}
+    \right]
+    =
+    \left[
+        \begin{matrix}
+            0 \\ 0
+        \end{matrix}
+    \right]\\
+    &\implies \left[
+        \begin{matrix}
+            -p_1 & p_2 \\
+            p_1 & -p_2
+        \end{matrix}
+    \right]
+    \left[
+        \begin{matrix}
+            x \\ y
+        \end{matrix}
+    \right]
+    =
+    \left[
+        \begin{matrix}
+            -p_1 x + p_2 y \\
+             p_1 x - p_2 y
+        \end{matrix}
+    \right]
+    =
+    \left[
+        \begin{matrix}
+            0 \\ 0
+        \end{matrix}
+    \right]
+\end{align*}
+
+Which we solve and normalize to get the state vector, \(\vec{\pi}\),
+with respect to the simple system
+\begin{equation*}
+    \vec{\pi}
+    =
+    \left[
+        \begin{matrix}
+            \cfrac{p_2}{p_2 + p_2} & \cfrac{p_1}{p_1 + p_2}
+        \end{matrix}
+    \right] 
+\end{equation*}
+\end{frame}
+
+\begin{frame}{Basic Markov Chain Results}
+
+    \begin{tikzpicture}[remember picture, overlay]
+        \node (image1) at (frame cs:-0.5,0) {
+                \includegraphics[width=0.55\framewidth]
+                {chain-0.7-0.4.pdf}
+            };
+        \node (image2) at (frame cs:0.5,0) {
+                \includegraphics[width=0.55\framewidth]
+                {chain-0.015-0.035.pdf}
+                %{phaseplane_m00.0_n1100.0_n290.0_w10.015_w20.015.pdf}
+            };
+    \end{tikzpicture}
+
+\end{frame}
+
+\section{RQ}
+\begin{frame}{Intro}
+
+    So the likely research question is
+    \begin{block}{RQ}
+        How applicable is the Fokker-Planck equation to understanding the dynamics
+        of sub populations of hetero-resistent bacteria in a colony.
+    \end{block}
+
+\end{frame}
+
+
+\section{End}
+\begin{frame}{Questions?}
+    \large Questions?
+\end{frame}
+
+
+\end{document}

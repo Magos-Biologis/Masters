@@ -17,6 +17,7 @@ print("")
 figure_env = str(os.getenv("THESIS_FIGURE_PATH"))
 figure_path = os.path.join(figure_env, "ode")
 
+file_name = "ode_solution"
 
 ### Variables
 # Growth Constant, same because same cell
@@ -30,12 +31,11 @@ k[1] = 2
 
 # Population cap (purely aesthetic if n₁ = n₂)
 n[0] = 100
-n[1] = 100
-
-w[0] = 0.035
-w[1] = 0.015
+n[1] = 90
 
 w[0] = 0.015
+w[1] = 0.015
+
 w[1] = 0.14
 n[0] = 55
 n[1] = 85
@@ -43,7 +43,7 @@ n[1] = 85
 q[0] = 0.999
 q[1] = 0.8
 
-m_0 = 0
+m_0 = 0.0
 
 omega_1 = k[0] - w[0]
 omega_2 = k[1] - w[1]
@@ -62,9 +62,8 @@ alpha = 0
 c1_0 = n[0] - alpha
 c2_0 = alpha
 
-filename = (
-    "ode_solution"
-    + "_m0"
+filename_addendum = (
+    "_m0"
     + f"{m_0}"
     + "_n1"
     + f"{n[0]}"
@@ -75,6 +74,8 @@ filename = (
     + "_w2"
     + f"{w[1]}"
 )
+
+file_name += filename_addendum
 
 
 dt = 0.01
@@ -199,9 +200,27 @@ solutions = np.array([c1_root, c2_root])
 # print(sol1.T[0][-1] + sol1.T[1][-1])
 # exit()
 
+
 ## Plotting
 
 fig, ax = plt.subplots()
+
+plt.rcParams.update(
+    {
+        "axes.labelsize": 20,
+        "axes.titleweight": "bold",
+        # "axes.titlecolor": "white",
+        "xtick.labelsize": 15,
+        "ytick.labelsize": 15,
+        # "xtick.labelcolor": "white",
+        # "ytick.labelcolor": "white",
+        # "savefig.facecolor": "#c0c0ca",
+    }
+)
+
+
+plt.style.use("bmh")
+# ax.set_facecolor("#c0c0ca")
 
 
 for i, curve in enumerate(sol1.T):
@@ -263,6 +282,6 @@ ax.set_ylabel("Count")
 ax.legend(loc="center right")
 plt.tight_layout()
 
-file_path = os.path.join(figure_path, filename)
+file_path = os.path.join(figure_path, file_name)
 plt.savefig(file_path + ".pdf")
 plt.show()
