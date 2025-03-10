@@ -168,15 +168,15 @@ m = np.linspace(0.0, m_0 + k[1], resolution)
 
 
 def dc1(c1, c2):
-    return (omega_1 - k_1 * (c1 + c2)) * c1 + w[1] * c2
+    return (k[0] * (1 - (c1 + c2) / n[0]) - w[0]) * c1 + w[1] * c2
 
 
 def dc2(c1, c2):
-    return (omega_2 - k_2 * (c1 + c2)) * c2 + w[0] * c1
+    return (k[1] * (1 - (c1 + c2) / n[1]) - w[1]) * c2 + w[0] * c1
 
 
-dc1_U = (omega_1 - k_1 * (c1 + c2)) * c1 + w[1] * c2
-dc2_V = (omega_2 - k_2 * (c1 + c2)) * c2 + w[0] * c1
+dc1_U = dc1(c1, c2)
+dc2_V = dc2(c1, c2)
 
 
 dt = 0.01
@@ -469,4 +469,4 @@ ax.yaxis.set_major_formatter(FuncFormatter(y_format))
 
 figure_file = os.path.join(phase_path, file_name)
 plt.savefig(figure_file + ".pdf", format="pdf")
-# plt.show()
+plt.show()
