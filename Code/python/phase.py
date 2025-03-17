@@ -47,9 +47,9 @@ w[1] = 0.015
 
 # w[1] = 0.035
 
-# w[1] = 0.14
-# n[0] = 55
-# n[1] = 85
+w[1] = 0.14
+n[0] = 55
+n[1] = 85
 
 
 q[0] = 0.999
@@ -469,4 +469,4 @@ ax.yaxis.set_major_formatter(FuncFormatter(y_format))
 
 figure_file = os.path.join(phase_path, file_name)
 plt.savefig(figure_file + ".pdf", format="pdf")
-plt.show()
+# plt.show()
