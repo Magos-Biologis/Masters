@@ -34,8 +34,7 @@ n = np.zeros(2)
 w = np.zeros(2)
 q = np.zeros(2)
 
-k[0] = 1
-k[1] = 1
+k[:] = 2
 
 # Population cap (purely aesthetic if n₁ = n₂)
 n[0] = 100
@@ -47,9 +46,9 @@ w[1] = 0.015
 
 # w[1] = 0.035
 
-w[1] = 0.14
-n[0] = 55
-n[1] = 85
+# w[1] = 0.14
+# n[0] = 55
+# n[1] = 85
 
 
 q[0] = 0.999
@@ -61,9 +60,13 @@ c1_0 = n[0] - alpha
 c2_0 = alpha
 m_0 = 0.0
 
-file_addendum = (
+filename_addendum = (
     "_m0"
     + f"{m_0}"
+    + "_k1"
+    + f"{k[0]}"
+    + "_k2"
+    + f"{k[1]}"
     + "_n1"
     + f"{n[0]}"
     + "_n2"
@@ -73,7 +76,6 @@ file_addendum = (
     + "_w2"
     + f"{w[1]}"
 )
-file_name += file_addendum
 
 
 pop_norm = np.sqrt(n[0] ** 2 + n[1] ** 2)

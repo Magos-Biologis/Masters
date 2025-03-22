@@ -21,51 +21,61 @@ figure_path = os.path.join(figure_env, "ode")
 file_name = "ode_solution"
 
 ### Variables
-m = 4
-
+m = 2
+ran = range(m)
 
 # Growth Constant, same because same cell
-k = np.zeros(m)
 n = np.zeros(m)
-q = np.zeros(m)
+k = np.empty_like(n)
+w = np.empty_like(n)
+q = np.empty_like(n)
+
 
 W = np.zeros((m, m))
-K = np.zeros((m, m))
+K = np.empty_like(W)
 
 
-k[:] = 2
+"""
+So that the 'most resistant' state has a third of the capacity.
+And that when i = m, we get to that state
+"""
 
-n[:] = 100
+n1 = 100
+cell_final = (n1 / 3) * (2 / (m - 1))  # ∀ m ≠ 1 ∈ ℕ
+# n[:] = [n1 - i * cell_final for i in ran]  # range(1, m + 1)]
+#
+# exit(print(n))
+
+
+k[:] = 0.2  ### Same growth rate does change outcome
+n[:] = [n1 - i * 10 for i in ran]
+# n[:] = n1
+w[:] = 0.015
+
+# print([i for i in range(1, m + 1)])
+# print(n)
+# exit()
+
 
 W[:, :] = 0.015
+for i in ran:
+    W[i, i] = k[i]
+    # for j in ran:
+    #     K[i, j] = np.divide(k[i], n[j])
+
 
 # print(W)
 # exit()
 
-npr.seed(1984)
-init_cond = npr.randint(0, 100 + 1, m)
+# npr.seed(1984)
+# init_cond = npr.randint(0, 100 + 1, m)
+init_cond = [100] + [0 for _ in range(m - 1)]
 
-# print(k)
+# print(init_cond)
 # exit()
-# k[0] = 2
-# k[1] = 2
-# Population cap (purely aesthetic if n₁ = n₂)
-# n[1] = 100
-# q[0] = 0.999
-# q[1] = 0.8
-# m_0 = 0.0
-# omega_1 = k[0] - w[0]
-# omega_2 = k[1] - w[1]
 
 
 # for
-ran = range(m)
-
-for i in ran:
-    W[i, i] = k[i]
-K = [k[i] / n[j] for i in ran for j in ran]
-
-
 # k_1 = k[0] / n[0]
 # k_2 = k[1] / n[1]
 #
@@ -76,9 +86,9 @@ K = [k[i] / n[j] for i in ran for j in ran]
 # c2_max = omega_2 / k_2
 
 
-alpha = 0
-c1_0 = n[0] - alpha
-c2_0 = alpha
+# alpha = 0
+# c1_0 = n[0] - alpha
+# c2_0 = alpha
 
 # filename_addendum = (
 #     "_m0"
@@ -97,9 +107,9 @@ c2_0 = alpha
 
 
 dt = 0.01
-t_end = 50
+# t_end = 50
 # t_end = 150
-# t_end = 250
+t_end = 250
 t_array = np.arange(0, t_end, dt)
 
 
@@ -110,15 +120,23 @@ t_array = np.arange(0, t_end, dt)
 
 
 ### Integration
-def step_function(xs, dt) -> np.ndarray:
+def step_function(xs) -> np.ndarray:
     step = np.empty_like(xs)
+    ran = range(len(step))
     ct = sum(xs)
 
-    for i, _ in enumerate(step):
-        transitions = sum([W[j, i] * xs[j] - W[i, j] * xs[i] for j, _ in enumerate(step)])
-        step[i] = (k[i] * (1 - ct / n[i])) * xs[i] + transitions
+    for i in ran:
+        transitions = sum(
+            [
+                W[j, i] * xs[j] - W[i, j] * xs[i]
+                if i != j
+                else (k[i] - (k[i] / n[i]) * ct) * xs[i]
+                for j in ran
+            ]
+        )
+        step[i] = transitions
 
-    return dt * step
+    return step
 
 
 def integrate(initial, t_array):
@@ -127,12 +145,30 @@ def integrate(initial, t_array):
 
     for j, _ in enumerate(t_array):
         steps[:, j] += steps[:, j - 1]
-        steps[:, j] += step_function(steps[:, j - 1], dt)  # print(steps[j, :])
+        steps[:, j] += dt * step_function(steps[:, j - 1])  # print(steps[j, :])
 
         print(steps[:, j])
 
     return t_array, steps
 
+
+# def step_function(xs) -> np.ndarray:
+#     step = np.empty_like(xs)
+#     c1, c2 = xs
+#     ct = c1 + c2
+#     step[0] = (k[0] * (1 - ct / n[0])) * c1 - w[0] * c1 + w[1] * c2
+#     step[1] = (k[1] * (1 - ct / n[1])) * c2 - w[1] * c2 + w[0] * c1
+#     return step
+#
+#
+# def integrate(initial, t_array):
+#     steps = np.zeros((len(t_array), len(initial)))
+#     steps[0, :] = initial
+#     for j, _ in enumerate(t_array):
+#         steps[j, :] += steps[j - 1, :]
+#         steps[j, :] += dt * step_function(steps[j - 1, :])  # print(steps[j, :])
+#     return t_array, steps
+#
 
 _, sol1 = integrate(init_cond, t_array)
 
@@ -272,8 +308,9 @@ plt.style.use("bmh")
 for i, curve in enumerate(sol1):
     ax.plot(t_array, curve)
 
+print(sol1.T[-1])
 
-total = sum(sol1[:])
+# total = sum(sol1[-1])
 
 # print(total)
 # exit()

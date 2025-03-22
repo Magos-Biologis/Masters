@@ -26,23 +26,23 @@ n = np.zeros(2)
 w = np.zeros(2)
 q = np.zeros(2)
 
-k[0] = 2
-k[1] = 2
+k[:] = 2
 
 # Population cap (purely aesthetic if n₁ = n₂)
-n[0] = 100
-n[1] = 90
+n[0] = 100.0
+n[1] = 90.0
 
 w[0] = 0.015
 w[1] = 0.015
 
-w[1] = 0.14
-n[0] = 55
-n[1] = 85
+# w[1] = 0.14
+# n[0] = 55
+# n[1] = 85
 
-q[0] = 0.999
-q[1] = 0.8
+# q[0] = 0.999
+# q[1] = 0.8
 
+q[:] = 0
 m_0 = 0.0
 
 omega_1 = k[0] - w[0]
@@ -65,6 +65,10 @@ c2_0 = alpha
 filename_addendum = (
     "_m0"
     + f"{m_0}"
+    + "_k1"
+    + f"{k[0]}"
+    + "_k2"
+    + f"{k[1]}"
     + "_n1"
     + f"{n[0]}"
     + "_n2"
@@ -83,7 +87,7 @@ t_end = 25
 # t_end = 50
 # t_end = 150
 t_array = np.arange(0, t_end, dt)
-sol1 = np.zeros((len(t_array), 3))
+# sol1 = np.zeros((len(t_array), 3))
 
 parameters = [k, w, q, n]
 
@@ -92,15 +96,17 @@ cq = sum(n) / len(n)
 ### Integration
 
 
-def step_function(xs, dt) -> np.ndarray:
+def step_function(xs) -> np.ndarray:
+    step = np.empty_like(xs)
+
+    ct = sum(xs[0:2])
     c1, c2, m = xs
-    ct = c1 + c2
 
-    c1_dot = (k[0] * (1 - ct / n[0]) - w[0]) * c1 + w[1] * c2 - q[0] * m * c1
-    c2_dot = (k[1] * (1 - ct / n[1]) - w[1]) * c2 + w[0] * c1
-    m_dot = -q[1] * m * c2 + m_0
+    step[0] = (k[0] * (1 - ct / n[0])) * c1 - w[0] * c1 + w[1] * c2 - q[0] * m * c1
+    step[1] = (k[1] * (1 - ct / n[1])) * c2 - w[1] * c2 + w[0] * c1
+    step[2] = -q[1] * m * c2 + m_0
 
-    return dt * np.array([c1_dot, c2_dot, m_dot])
+    return step
 
 
 def integrate(initial, t_array):
@@ -108,7 +114,7 @@ def integrate(initial, t_array):
     steps[0, :] = initial
     for j, _ in enumerate(t_array):
         steps[j, :] += steps[j - 1, :]
-        steps[j, :] += step_function(steps[j - 1, :], dt)  # print(steps[j, :])
+        steps[j, :] += dt * step_function(steps[j - 1, :])  # print(steps[j, :])
 
     return t_array, steps
 
@@ -136,12 +142,10 @@ probability_ticks = w / sum(w)
 # print(solutions)
 
 
-c1_fixed = n[0]
-c2_fixed = (1 - (w[0] / w[1])) * n[1]
-m_fixed = m_0 / q[1]
-
-
-dt_zeroes = [c1_fixed, c2_fixed, m_fixed]
+# c1_fixed = n[0]
+# c2_fixed = (1 - (w[0] / w[1])) * n[1]
+# m_fixed = m_0 / q[1]
+# dt_zeroes = [c1_fixed, c2_fixed, m_fixed]
 
 # total = steps[:, 0] + steps[:, 1]
 # steps[:, 0] = steps[:, 0] / total
@@ -158,10 +162,11 @@ name_list = [
     "Resistant Type",
     "Antibiotic",
 ]
+
 dt_name_list = [
     r"$c_1$ fixed point at $c_1^*$",  # {c1_fixed}",
     r"$c_2$ fixed point at $c_2^*$",  # {c2_fixed}",
-    f"$m$ fixed point at {m_fixed}",
+    # f"$m$ fixed point at {m_fixed}",
 ]
 
 ## Polynomial
@@ -229,7 +234,7 @@ for i, curve in enumerate(sol1.T):
         break
     color = color_list[i]
     curve_name = name_list[i]
-    dt_curve_name = dt_name_list[i]
+    # dt_curve_name = dt_name_list[i]
     # zero_line = dt_zeroes[i]
     zero_line = solutions[i]
 
@@ -237,7 +242,7 @@ for i, curve in enumerate(sol1.T):
         zero_line,
         0,
         t_end,
-        label=dt_curve_name,
+        # label=dt_curve_name,
         color=color,
         linestyle="dashed",
         linewidth=1,
@@ -283,5 +288,7 @@ ax.legend(loc="center right")
 plt.tight_layout()
 
 file_path = os.path.join(figure_path, file_name)
-plt.savefig(file_path + ".pdf")
+# plt.savefig(file_path + ".pdf")
+
+print(sol1[-1])
 plt.show()

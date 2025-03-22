@@ -59,10 +59,13 @@ alpha = 0
 c1_0 = n[0] - alpha
 c2_0 = alpha
 
-filename = (
-    "ode_solution"
-    + "_m0"
+filename_addendum = (
+    "_m0"
     + f"{m_0}"
+    + "_k1"
+    + f"{k[0]}"
+    + "_k2"
+    + f"{k[1]}"
     + "_n1"
     + f"{n[0]}"
     + "_n2"
@@ -317,4 +320,4 @@ plt.tight_layout()
 
 file_path = os.path.join(figure_path, filename)
 plt.savefig(file_path + ".pdf")
-plt.show()
+# plt.show()
