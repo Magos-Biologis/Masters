@@ -46,9 +46,9 @@ w[1] = 0.015
 
 # w[1] = 0.035
 
-# w[1] = 0.14
-# n[0] = 55
-# n[1] = 85
+w[1] = 0.14
+n[0] = 55
+n[1] = 85
 
 
 q[0] = 0.999
@@ -76,6 +76,8 @@ filename_addendum = (
     + "_w2"
     + f"{w[1]}"
 )
+
+file_name += filename_addendum
 
 
 pop_norm = np.sqrt(n[0] ** 2 + n[1] ** 2)

@@ -35,9 +35,9 @@ n[1] = 90.0
 w[0] = 0.015
 w[1] = 0.015
 
-# w[1] = 0.14
-# n[0] = 55
-# n[1] = 85
+w[1] = 0.14
+n[0] = 55
+n[1] = 85
 
 # q[0] = 0.999
 # q[1] = 0.8
@@ -288,7 +288,7 @@ ax.legend(loc="center right")
 plt.tight_layout()
 
 file_path = os.path.join(figure_path, file_name)
-# plt.savefig(file_path + ".pdf")
+plt.savefig(file_path + ".pdf")
 
-print(sol1[-1])
-plt.show()
+# print(sol1[-1])
+# plt.show()

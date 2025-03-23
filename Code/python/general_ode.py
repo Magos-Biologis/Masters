@@ -3,6 +3,8 @@ import os
 from pprint import pprint as pp
 from sys import exit
 
+from itertools import product
+
 import numpy as np
 from numpy import polynomial as npp
 from numpy import random as npr
@@ -64,12 +66,9 @@ for i in ran:
     #     K[i, j] = np.divide(k[i], n[j])
 
 
-# print(W)
-# exit()
+## uses pythonic list operations to make a variable length starting condition
+init_cond = [100] + [0] * (m - 1)
 
-# npr.seed(1984)
-# init_cond = npr.randint(0, 100 + 1, m)
-init_cond = [100] + [0 for _ in range(m - 1)]
 
 # print(init_cond)
 # exit()
@@ -81,7 +80,6 @@ init_cond = [100] + [0 for _ in range(m - 1)]
 #
 # c1_min = W[1] / k_1
 # c2_min = W[0] / k_2
-
 # c1_max = omega_1 / k_1
 # c2_max = omega_2 / k_2
 

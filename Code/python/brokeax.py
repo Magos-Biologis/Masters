@@ -17,6 +17,8 @@ print("")
 figure_env = str(os.getenv("THESIS_FIGURE_PATH"))
 figure_path = os.path.join(figure_env, "ode")
 
+file_name = "ode_solution"
+
 
 ### Variables
 # Growth Constant, same because same cell
@@ -75,6 +77,7 @@ filename_addendum = (
     + "_w2"
     + f"{w[1]}"
 )
+file_name += filename_addendum
 
 
 dt = 0.01
@@ -318,6 +321,6 @@ axes[1].plot([0, 1], [1, 1], transform=axes[1].transAxes, **kwargs)
 axes[0].legend(loc="upper right")
 plt.tight_layout()
 
-file_path = os.path.join(figure_path, filename)
+file_path = os.path.join(figure_path, file_name)
 plt.savefig(file_path + ".pdf")
 # plt.show()
