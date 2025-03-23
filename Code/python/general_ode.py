@@ -9,6 +9,8 @@ import numpy as np
 from numpy import polynomial as npp
 from numpy import random as npr
 
+# from numba import njit
+
 
 from matplotlib import pyplot as plt
 from matplotlib.pyplot import FuncFormatter
@@ -84,23 +86,6 @@ init_cond = [100] + [0] * (m - 1)
 # c2_max = omega_2 / k_2
 
 
-# alpha = 0
-# c1_0 = n[0] - alpha
-# c2_0 = alpha
-
-# filename_addendum = (
-#     "_m0"
-#     + f"{m_0}"
-#     + "_n1"
-#     + f"{n[0]}"
-#     + "_n2"
-#     + f"{n[1]}"
-#     + "_w1"
-#     + f"{w[0]}"
-#     + "_w2"
-#     + f"{w[1]}"
-# )
-
 # file_name += filename_addendum
 
 
@@ -116,23 +101,39 @@ t_array = np.arange(0, t_end, dt)
 
 # cq = sum(n) / len(n)
 
+# import time
+# time_start = time.perf_counter()
+
 
 ### Integration
+
+# def step_function(xs) -> np.ndarray:
+#     step = np.empty_like(xs)
+#     ran = range(len(step))
+#     ct = sum(xs)
+#     for i in ran:
+#         transitions = sum(
+#             [
+#                 W[j, i] * xs[j] - W[i, j] * xs[i]
+#                 if i != j
+#                 else (k[i] - (k[i] / n[i]) * ct) * xs[i]
+#                 for j in ran
+#             ]
+#         )
+#         step[i] = transitions
+#     return step
+
+
 def step_function(xs) -> np.ndarray:
-    step = np.empty_like(xs)
+    step = np.zeros_like(xs)
     ran = range(len(step))
     ct = sum(xs)
 
-    for i in ran:
-        transitions = sum(
-            [
-                W[j, i] * xs[j] - W[i, j] * xs[i]
-                if i != j
-                else (k[i] - (k[i] / n[i]) * ct) * xs[i]
-                for j in ran
-            ]
-        )
-        step[i] = transitions
+    for i, j in product(ran, ran):
+        if i != j:
+            step[i] += W[j, i] * xs[j] - W[i, j] * xs[i]
+        else:
+            step[i] += k[i] * xs[i] - (k[i] / n[i]) * ct * xs[i]
 
     return step
 
@@ -145,11 +146,15 @@ def integrate(initial, t_array):
         steps[:, j] += steps[:, j - 1]
         steps[:, j] += dt * step_function(steps[:, j - 1])  # print(steps[j, :])
 
-        print(steps[:, j])
+        # print(steps[:, j])
 
     return t_array, steps
 
 
+# time_end = time.perf_counter()
+#
+# print(time_end)
+# exit()
 # def step_function(xs) -> np.ndarray:
 #     step = np.empty_like(xs)
 #     c1, c2 = xs
@@ -318,8 +323,6 @@ print(sol1.T[-1])
 #     r"$c_2^*$",
 # ]
 
-ax.set_ylim(0, np.max(n))
-ax.set_xlim(0, t_end)
 
 # new_y_ticks = np.append(ax.get_yticks(), solutions)
 # new_y_ticks = np.append([0, 25, 50, 75, 100], solutions)
@@ -333,9 +336,8 @@ ax.set_xlim(0, t_end)
 #         return fixed_point_tick_labels[1]
 #     else:
 #         return int(np.round(val, 3))
-
-
 # ax.yaxis.set_major_formatter(FuncFormatter(fixed_point_format))
+
 
 ax.yaxis.tick_right()
 ax.yaxis.set_label_position("right")
@@ -348,4 +350,4 @@ plt.tight_layout()
 
 # file_path = os.path.join(figure_path, file_name)
 # plt.savefig(file_path + ".pdf")
-plt.show()
+# plt.show()

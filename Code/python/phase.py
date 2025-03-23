@@ -34,7 +34,7 @@ n = np.zeros(2)
 w = np.zeros(2)
 q = np.zeros(2)
 
-k[:] = 2
+k[:] = 0.2
 
 # Population cap (purely aesthetic if n₁ = n₂)
 n[0] = 100
@@ -46,9 +46,9 @@ w[1] = 0.015
 
 # w[1] = 0.035
 
-w[1] = 0.14
-n[0] = 55
-n[1] = 85
+# w[1] = 0.14
+# n[0] = 55
+# n[1] = 85
 
 
 q[0] = 0.999

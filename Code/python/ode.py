@@ -26,7 +26,7 @@ n = np.zeros(2)
 w = np.zeros(2)
 q = np.zeros(2)
 
-k[:] = 2
+k[:] = 0.2
 
 # Population cap (purely aesthetic if n₁ = n₂)
 n[0] = 100.0
@@ -35,9 +35,9 @@ n[1] = 90.0
 w[0] = 0.015
 w[1] = 0.015
 
-w[1] = 0.14
-n[0] = 55
-n[1] = 85
+# w[1] = 0.14
+# n[0] = 55
+# n[1] = 85
 
 # q[0] = 0.999
 # q[1] = 0.8
@@ -83,8 +83,8 @@ file_name += filename_addendum
 
 
 dt = 0.01
-t_end = 25
-# t_end = 50
+# t_end = 25
+t_end = 50
 # t_end = 150
 t_array = np.arange(0, t_end, dt)
 # sol1 = np.zeros((len(t_array), 3))
