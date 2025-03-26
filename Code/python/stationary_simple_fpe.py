@@ -8,15 +8,20 @@ import matplotlib.pyplot as plt
 
 
 figure_env: str | None = os.getenv("THESIS_FIGURE_PATH")
-figure_dir = os.path.join(figure_env, "fpe")
+figure_dir: str | None = os.path.join(figure_env, "fpe")
 
 file_name = "simple_fde"
 
-k_1 = 1
-k_2 = 1
-n_T = 1000
+k_11 = 1
+k_21 = 1
 
-file_name += "_" + f"k1{k_1}" + "_" + f"k2{k_2}" + "_" + f"n{n_T}"
+k_12 = 1
+k_22 = 2
+
+n_T1 = 1
+n_T2 = 1
+
+file_name += "_" + f"k1{k_11}" + "_" + f"k2{k_21}" + "_" + f"n{n_T1}"
 
 a = 0
 b = 1
@@ -34,28 +39,35 @@ def integrand(x_prime, k1, k2, nT):
     return A(x_prime, k1, k2) / B(x_prime, k1, k2, nT)
 
 
-def unnormalized_ps(x):
-    integral, _ = sy.integrate.quad(integrand, a, x)
-    return np.exp(2 * integral) / B(x, k_1, k_2, n_T)
+def unnormalized_ps(x, k1, k2, nT):
+    integral, _ = sy.integrate.quad(integrand, a, x, args=(k1, k2, nT))
+    return np.exp(2 * integral) / B(x, k1, k2, nT)
 
 
-normalization_integral, _ = sy.integrate.quad(unnormalized_ps, a, b)
-N = 1 / normalization_integral  # N ensures that the total probability is 1
+# normalization_integral, _ = sy.integrate.quad(unnormalized_ps, a, b, args=(k_1, k_2, n_T))
+# N = 1 / normalization_integral  # N ensures that the total probability is 1
 
 
 # Define the normalized steady state distribution
-def ps(x):
-    return N * unnormalized_ps(x)
+def ps(x, k1, k2, nT):
+    normalization_integral, _ = sy.integrate.quad(
+        unnormalized_ps, a, b, args=(k1, k2, nT)
+    )
+    N = 1 / normalization_integral  # N ensures that the total probability is 1
+
+    return N * unnormalized_ps(x, k1, k2, nT)
 
 
 x_vals = np.linspace(a, b, 400)
-ps_vals = np.array([ps(x) for x in x_vals])
+ps_vals1 = np.array([ps(x, k_11, k_21, n_T1) for x in x_vals])
+ps_vals2 = np.array([ps(x, k_12, k_22, n_T2) for x in x_vals])
 
 # figsize=(8, 5)
 fig, ax = plt.subplots()
 
 plt.style.use("bmh")
-ax.plot(x_vals, ps_vals, label="$p_s(x)$")
+ax.plot(x_vals, ps_vals1, label="$p_s(x)$ with $k_1 = k_2$", alpha=0.7)
+ax.plot(x_vals, ps_vals2, label="$p_s(x)$ with $k_1 < k_2$", alpha=0.7)
 
 ax.set_ylim(bottom=0)
 ax.set_xlim(0, 1)
@@ -64,9 +76,9 @@ ax.set_xticks(np.linspace(0, 1, 11))
 ax.set_xlabel("$x$")
 ax.set_ylabel("$p_s(x)$")
 
-# plt.legend()
+plt.legend()
 
 figure = os.path.join(figure_dir, file_name)
 
-plt.savefig(figure + ".pdf")
-# plt.show()
+# plt.savefig(figure + ".pdf")
+plt.show()
