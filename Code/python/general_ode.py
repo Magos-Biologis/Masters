@@ -25,6 +25,7 @@ figure_path = os.path.join(figure_env, "ode")
 file_name = "ode_solution"
 
 ### Variables
+# m = 6
 m = 2
 ran = range(m)
 
@@ -44,15 +45,24 @@ So that the 'most resistant' state has a third of the capacity.
 And that when i = m, we get to that state
 """
 
-n1 = 100
-cell_final = (n1 / 3) * (2 / (m - 1))  # ∀ m ≠ 1 ∈ ℕ
-# n[:] = [n1 - i * cell_final for i in ran]  # range(1, m + 1)]
+# k1 = 0.2
+# n1 = 100
 #
-# exit(print(n))
+# n_final = (n1 / 3) * (2 / (m - 1))  # ∀ m ≠ 1 ∈ ℕ
+# k_final = (k1 / 3) * (2 / (m - 1))  # ∀ m ≠ 1 ∈ ℕ
+#
+# n[:] = [n1 - i * n_final for i in ran]  # range(1, m + 1)]
+# k[:] = [k1 - i * k_final for i in ran]
 
 
-k[:] = 0.2  ### Same growth rate does change outcome
-n[:] = [n1 - i * 10 for i in ran]
+#
+# print(n)
+# print(k)
+# exit()
+
+
+# k[:] = 0.2  ### Same growth rate does change outcome
+# n[:] = [n1 - i * 10 for i in ran]
 # n[:] = n1
 w[:] = 0.015
 
@@ -69,11 +79,15 @@ for i in ran:
 
 
 ## uses pythonic list operations to make a variable length starting condition
-init_cond = [100] + [0] * (m - 1)
+# init_cond = [100] + [0] * (m - 1)
+
+## The non-pythonic way
+init_cond = np.zeros(m)
+init_cond[0] = 100
 
 
-# print(init_cond)
-# exit()
+print(init_cond)
+exit()
 
 
 # for
@@ -102,6 +116,7 @@ t_array = np.arange(0, t_end, dt)
 # cq = sum(n) / len(n)
 
 # import time
+#
 # time_start = time.perf_counter()
 
 
@@ -152,6 +167,9 @@ def integrate(initial, t_array):
 
 
 # time_end = time.perf_counter()
+# print("The difference is ", time_end - time_start)
+# exit()
+
 #
 # print(time_end)
 # exit()
@@ -339,6 +357,9 @@ print(sol1.T[-1])
 # ax.yaxis.set_major_formatter(FuncFormatter(fixed_point_format))
 
 
+ax.set_ylim(0, n1)
+ax.set_xlim(0, t_end)
+
 ax.yaxis.tick_right()
 ax.yaxis.set_label_position("right")
 
@@ -350,4 +371,4 @@ plt.tight_layout()
 
 # file_path = os.path.join(figure_path, file_name)
 # plt.savefig(file_path + ".pdf")
-# plt.show()
+plt.show()
