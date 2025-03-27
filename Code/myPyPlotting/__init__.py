@@ -13,6 +13,7 @@ import numpy as np
 # import pprint
 
 
+@dataclass
 class parameter_types:
     m: int
 
@@ -54,7 +55,9 @@ class parameter_class(parameter_types):
             self.K[i, j] = self.k[i] / self.n[j]
 
 
-test = parameter_class(1, 2, 3, 4, 5)
+# test = parameter_class(1, 2, 3, 4, 5)
+test = parameter_types(1, 2, 3, 4, 5, 6)
+# test2 = parameter_class(test)
 print(test)
 exit()
 
