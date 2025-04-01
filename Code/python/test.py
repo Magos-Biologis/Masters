@@ -1,6 +1,13 @@
 #!./.venv/bin/python
-import enum
+from numba import njit
 from pylab import *
+
+
+b = 20
+
+
+alpha = 1
+beta = 2 * b
 
 
 k_1 = 1
@@ -18,52 +25,28 @@ def B(x):
     return (1 / n) * (k_2 + (k_1 - k_2) * x)
 
 
-# def exponent(y):
-#     num = (
-#         2 * k_1 * k_2 * log(abs((k_2 - k_1) * y - k_2))
-#         + (k_2**2 - k_1**2) * y
-#         - 2 * k_1 * k_2 * log(abs(k_2))
-#         + 2 * k_1 * k_2 * log(k_2 - k_1)
-#         - 2 * k_1 * log(k_1 - k_2) * k_2
-#     )
-#     den = (k_2 - k_1) ** 2
-#
-#     return num / den
+@njit
+def stationary_p(x, b):
+    top = exp(-2 * x) * (b + x) ** (4 * b - 1)
+    return top / x
 
 
-# t_array = linspace(0, 1, 1000)
-dx = 0.01
-x_array = arange(0, 1, dx)
+@njit
+def p_s(x, b, k1, k2):
+    top = exp(-2 * x) * (b + x) ** (4 * alpha - 1)
+    return top / x
 
 
-def step_function(x) -> ndarray:
-    step = A(x) / B(x)
-
-    return step
-
-
-def integra(x):
-    steps = zeros_like(x)
-    steps[0] = 0
-    for j, _ in enumerate(x_array):
-        steps[j] += steps[j - 1]
-        steps[j] += dx * step_function(steps[j - 1])  # print(steps[j, :])
-
-    return steps
+# def function(x):
+#     output = empty_like(x)
+#     for i, x in enumerate(x):
+#         output[i] = B(x) ** (-1) * exp(2 * internal_results[i])
+#     return output
 
 
-internal_results = integra(x_array)
-
-
-def function(x):
-    output = empty_like(x)
-    for i, x in enumerate(x):
-        output[i] = B(x) ** (-1) * exp(2 * internal_results[i])
-
-    return output
-
-
-results = function(x_array)
+x_array = np.linspace(alpha, beta, 1000)
+# results = stationary_p(x_array, b)
+results = p_s(x_array, b, k_1, k_2)
 
 plot(x_array, results)
 show()

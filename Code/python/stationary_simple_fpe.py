@@ -4,6 +4,8 @@ import numpy as np
 import scipy as sy
 import matplotlib.pyplot as plt
 
+from numba import njit
+
 # from scipy.integrate import quad
 
 
@@ -13,7 +15,7 @@ figure_dir: str | None = os.path.join(figure_env, "fpe")
 file_name = "simple_fde"
 
 k_11 = 1
-k_21 = 1
+k_21 = 3
 
 k_12 = 1
 k_22 = 1
@@ -41,9 +43,22 @@ def integrand(x_prime, k1, k2, nT):
     return A(x_prime, k1, k2) / B(x_prime, k1, k2, nT)
 
 
+@njit
+def integrand_two(x, k1, k2, nT):
+    num = nT * (
+        2 * k1 * k2 * np.log(k2)
+        - 2 * k1 * k2 * np.log(k2 + (k1 - k2) * x)
+        + x * k1**2
+        - x * k2**2
+    )
+    den = (k1 - k2) ** 2
+    return num / den
+
+
 def unnormalized_ps(x, k1, k2, nT):
     integral, _ = sy.integrate.quad(integrand, a, x, args=(k1, k2, nT))
     return np.exp(2 * integral) / B(x, k1, k2, nT)
+    # return np.exp(2 * integrand_two(x, k1, k2, nT)) / B(x, k1, k2, nT)
 
 
 # normalization_integral, _ = sy.integrate.quad(unnormalized_ps, a, b, args=(k_1, k_2, n_T))
@@ -80,11 +95,13 @@ ax.set_xticks(np.linspace(0, 1, 11))
 ax.set_xlabel("$x$")
 ax.set_ylabel("$p_s(x)$")
 
-ax.vlines([k_21 / (k_11 + k_21)], ymin=0, ymax=100, linestyles="dashed", alpha=0.4)
+ax.vlines(
+    [k_21 / (k_11 + k_21)], ymin=0, ymax=100, linestyles="dashed", alpha=0.4, color="k"
+)
 
 plt.legend(loc="upper left")
 
 figure = os.path.join(figure_dir, file_name)
 
 plt.savefig(figure + ".pdf")
-# plt.show()
+plt.show()
