@@ -3,15 +3,15 @@ from numba import njit
 from pylab import *
 
 
-b = 20
+b = 100
 
 
 alpha = 1
-beta = 2 * b
+beta = 10
 
 
-k_1 = 1
-k_2 = 1
+k_1 = 0.1
+k_2 = 0.2
 
 
 n = 10
@@ -33,7 +33,7 @@ def stationary_p(x, b):
 
 @njit
 def p_s(x, b, k1, k2):
-    top = exp(-2 * x) * (b + x) ** (4 * alpha - 1)
+    top = exp(-2 * x) * (k2 * b + k1 * x) ** ((4 * k1 * alpha) / k2 - 1)
     return top / x
 
 
