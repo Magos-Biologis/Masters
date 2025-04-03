@@ -50,21 +50,9 @@ class ODEModel:
         ran = range(self.p.m)
         # ones_matrix = np.ones((self.p.m, self.p.m))
 
-        self.p.k = (
-            np.ones(shape=self.p.m, dtype=np.float64)[:] * self.p.k
-            if type(self.p.k) is not np.ndarray[tuple[self.p.m], np.dtype[np.float64]]
-            else self.p.k
-        )
-        self.p.n = (
-            np.ones(shape=self.p.m, dtype=np.float64)[:] * self.p.n
-            if type(self.p.n) is not np.ndarray[tuple[self.p.m], np.dtype[np.float64]]
-            else self.p.n
-        )
-        self.p.q = (
-            np.ones(shape=self.p.m, dtype=np.float64)[:] * self.p.q
-            if type(self.p.q) is not np.ndarray[tuple[self.p.m], np.dtype[np.float64]]
-            else self.p.q
-        )
+        self.p.k = self.__size_verification(self.p.k, self.p.m)
+        self.p.n = self.__size_verification(self.p.n, self.p.m)
+        self.p.q = self.__size_verification(self.p.q, self.p.m)
 
         ones_no_diag = np.ones((self.p.m, self.p.m)) - np.diag(np.ones(self.p.m))
         self.p.w = np.multiply(ones_no_diag, self.p.w)
@@ -75,31 +63,43 @@ class ODEModel:
             if type(self.p.W) is None
             else np.array([[self.p.k[i] / self.p.n[j] for j in ran] for i in ran])
         )
+        # self.__test()
 
-        def __set_matrices(self, K, W) -> None:  # np.ndarray:
-            pass
+    def __set_matrices(self, K, W) -> None:  # np.ndarray:
+        pass
 
-        def __step_function(self, xs) -> np.ndarray:
-            step = np.zeros_like(xs)
-            ran = range(len(step))
-            ct = sum(xs)
+    def __step_function(self, xs) -> np.ndarray:
+        step = np.zeros_like(xs)
+        ran = range(len(step))
+        ct = sum(xs)
 
-            for i, j in itertools.product(ran, repeat=2):
-                if i != j:
-                    step[i] += self.p.W[j, i] * xs[j] - self.p.W[i, j] * xs[i]
-                else:
-                    step[i] += k[i] * xs[i] - (k[i] / n[i]) * ct * xs[i]
+        for i, j in itertools.product(ran, repeat=2):
+            if i != j:
+                step[i] += self.p.W[j, i] * xs[j] - self.p.W[i, j] * xs[i]
+            else:
+                step[i] += k[i] * xs[i] - (k[i] / n[i]) * ct * xs[i]
 
-            return step
+        return step
 
-        def __integrate_model(self):
-            pass
+    def __size_verification(self, parameter, m: int) -> np.ndarray:
+        output = (
+            np.ones(shape=m, dtype=np.float64)[:] * parameter
+            if type(parameter) is not np.ndarray[tuple[m], np.dtype[np.float64]]
+            else parameter
+        )
+        return output
 
-        def system(self):
-            pass
+    # def __test(self):
+    #     return print("hello")
 
-        def __general_no_med(self):
-            pass
+    def __integrate_model(self):
+        pass
+
+    def system(self):
+        pass
+
+    def __general_no_med(self):
+        pass
 
 
 # class ODEModel:
