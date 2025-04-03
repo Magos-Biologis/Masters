@@ -47,39 +47,19 @@ class ODEModel:
 
         assert type(self.p) is parameter_class, "Incorrect format of parameters"
 
-        ran = range(self.p.m)
+        self.ran = range(self.p.m)
         # ones_matrix = np.ones((self.p.m, self.p.m))
 
         self.p.k = self.__size_verification(self.p.k, self.p.m)
         self.p.n = self.__size_verification(self.p.n, self.p.m)
         self.p.q = self.__size_verification(self.p.q, self.p.m)
 
-        ones_no_diag = np.ones((self.p.m, self.p.m)) - np.diag(np.ones(self.p.m))
-        self.p.w = np.multiply(ones_no_diag, self.p.w)
+        self.p.w = self.__size_verification(self.p.w, self.p.m)
+        # np.multiply(ones_no_diag, self.p.w)
 
-        self.p.W = self.p.W if type(self.p.W) is None else self.p.w + np.diag(self.p.k)
-        self.p.K = (
-            self.p.K
-            if type(self.p.W) is None
-            else np.array([[self.p.k[i] / self.p.n[j] for j in ran] for i in ran])
-        )
+        self.p.K, self.p.W = self.__set_matrices(self.p)
+
         # self.__test()
-
-    def __set_matrices(self, K, W) -> None:  # np.ndarray:
-        pass
-
-    def __step_function(self, xs) -> np.ndarray:
-        step = np.zeros_like(xs)
-        ran = range(len(step))
-        ct = sum(xs)
-
-        for i, j in itertools.product(ran, repeat=2):
-            if i != j:
-                step[i] += self.p.W[j, i] * xs[j] - self.p.W[i, j] * xs[i]
-            else:
-                step[i] += k[i] * xs[i] - (k[i] / n[i]) * ct * xs[i]
-
-        return step
 
     def __size_verification(self, parameter, m: int) -> np.ndarray:
         output = (
@@ -88,6 +68,59 @@ class ODEModel:
             else parameter
         )
         return output
+
+    def __set_matrices(self, parameters: parameter_class) -> tuple:  # np.ndarray:
+        assert type(parameters.k) is np.ndarray
+        assert type(parameters.n) is np.ndarray
+        # [tuple[parameters.m], np.dtype[np.float64]]
+        # [tuple[parameters.m], np.dtype[np.float64]]
+
+        ones_no_diag = np.ones((parameters.m, parameters.m)) - np.diag(
+            np.ones(parameters.m)
+        )
+
+        w_temp = parameters.w
+        for i in range(parameters.m - 1):
+            w_temp = np.append(w_temp, parameters.w)
+        w_reshaped = np.reshape(w_temp, (parameters.m, parameters.m))
+        indices = np.diag_indices(parameters.m)
+        for i, j in zip(*indices):
+            w_reshaped[i, j] = parameters.k[i]
+
+        # w_reshaped[i, j] = 0
+
+        # print(w_reshaped)
+        # # w_nodiag = np.delete(w_reshaped, indices)  # , 0)
+        # # w_nodiag = np.insert(w_reshaped, indices)  # , 0)
+
+        # matrix_W[indices[0], indices[1]]
+
+        matrix_W = parameters.W if type(parameters.W) is None else w_reshaped
+        matrix_K = (
+            parameters.K
+            if type(parameters.W) is None
+            else np.array(
+                [[parameters.k[i] / parameters.n[j] for j in self.ran] for i in self.ran]
+            )
+        )
+
+        return matrix_K, matrix_W
+
+    def __step_function(self, xs, parameters) -> np.ndarray:
+        step = np.zeros_like(xs)
+        # ran = range(len(step))
+        ct = sum(xs)
+
+        for i, j in itertools.product(self.ran, repeat=2):
+            if i != j:
+                step[i] += parameters.W[j, i] * xs[j] - parameters.W[i, j] * xs[i]
+            else:
+                step[i] += (
+                    parameters.k[i] * xs[i]
+                    - (parameters.k[i] / parameters.n[i]) * ct * xs[i]
+                )
+
+        return step
 
     # def __test(self):
     #     return print("hello")
