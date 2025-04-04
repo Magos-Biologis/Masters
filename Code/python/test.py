@@ -11,10 +11,10 @@ beta = 1
 
 
 k_1 = 1
-k_2 = 2
+k_2 = 3
 
 
-n = 10
+n = 100
 
 
 def A(x):
@@ -36,21 +36,21 @@ def stationary_p(x, b):
     return top / x
 
 
-# @njit
-def c(x, **kwargs):
+def C(x, **kwargs):
     k1 = kwargs.get("k1", 1)
     k2 = kwargs.get("k2", 1)
 
-    num = 2 * k1 * k2 * (log(k2) - log(k2 + (k1 - k2) * x)) + (k1**2 - k2**2) * x
-    den = (k1 - k2) ** 2 if k1 != k2 else 1
-    result = num / den
+    num1 = 2 * k1
+    num2 = (k1 - k2) * x - k2 * log(1 + ((k1 - k2) * x) / k2)
+    den = (k1 - k2) ** 2
+    result = x - (num1 * num2) / den
     return result
 
 
 def expon(x, **kwargs):
-    nt = kwargs.get("nt", 1)
+    n = kwargs.get("nt", 1)
 
-    return exp(2 * nt * c(x, **kwargs))
+    return exp(2 * n * C(x, **kwargs))
 
 
 # @njit
@@ -66,6 +66,7 @@ def p_s(x, **kwargs):
 #         output[i] = B(x) ** (-1) * exp(2 * internal_results[i])
 #     return output
 
+kwarg_dict = {"k1": k_1, "k2": k_2, "nt": n}
 
 x_array = np.linspace(alpha, beta, 1000)
 # results = stationary_p(x_array, b)
@@ -73,6 +74,7 @@ x_array = np.linspace(alpha, beta, 1000)
 
 # results = c(x_array, k1=k_1, k2=k_2)
 results = p_s(x_array, nt=n, k1=k_1, k2=k_2)
+print(sum(results / max(results)))
 
 plot(x_array, results)
 show()

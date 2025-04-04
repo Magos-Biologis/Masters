@@ -26,15 +26,17 @@ class parameter_class:
 
     ## The dataclass equivilant of initialization functions
     def __post_init__(self):
-        self.k = self.__size_verification(self.k, self.m)
-        self.n = self.__size_verification(self.n, self.m)
-        self.q = self.__size_verification(self.q, self.m)
-        self.w = self.__size_verification(self.w, self.m)
+        self.k = self.__size_verification(self.k)
+        self.n = self.__size_verification(self.n)
+        self.q = self.__size_verification(self.q)
+        self.w = self.__size_verification(self.w)
 
-    def __size_verification(self, parameter, m: int) -> np.ndarray:
+        self.W, self.K = self.__set_matrices()
+
+    def __size_verification(self, parameter) -> np.ndarray:
         output = (
-            np.ones(shape=m, dtype=np.float64)[:] * parameter
-            if type(parameter) is not np.ndarray[tuple[m], np.dtype[np.float64]]
+            np.ones(shape=self.m, dtype=np.float64)[:] * parameter
+            if type(parameter) is not np.ndarray[tuple[self.m], np.dtype[np.float64]]
             else parameter
         )
         return output
@@ -42,6 +44,7 @@ class parameter_class:
     def __set_matrices(self) -> tuple:  # np.ndarray:
         assert type(self.k) is np.ndarray
         assert type(self.n) is np.ndarray
+        ran = range(self.m)
         # [tuple[parameters.m], np.dtype[np.float64]]
         # [tuple[parameters.m], np.dtype[np.float64]]
 
@@ -62,11 +65,11 @@ class parameter_class:
 
         # matrix_W[indices[0], indices[1]]
 
-        matrix_W = parameters.W if type(parameters.W) is None else w_reshaped
+        matrix_W = self.W if type(self.W) is None else w_reshaped
         matrix_K = (
-            parameters.K
-            if type(parameters.W) is None
-            else np.array([[self.k[i] / self.n[j] for j in self.ran] for i in self.ran])
+            self.K
+            if type(self.W) is None
+            else np.array([[self.k[i] / self.n[j] for j in ran] for i in ran])
         )
 
         return matrix_W, matrix_K
@@ -96,35 +99,37 @@ class ODEModel:
 
         self.m = self.p.m
         self.ran = range(self.m)
-        # ones_matrix = np.ones((self.p.m, self.p.m))
 
-        # self.p.k = self.k = self.__size_verification(self.p.k, m)
-        # self.p.n = self.n = self.__size_verification(self.p.n, m)
-        # self.p.q = self.q = self.__size_verification(self.p.q, m)
-        # self.p.w = self.w = self.__size_verification(self.p.w, m)
-
-        # matrices = self.__set_matrices(self.p)
-        # self.p.W = self.W = matrices[0]
-        # self.p.K = self.K = matrices[1]
-
-    def __step_function(self, xs, parameters) -> np.ndarray:
+    def __step_function(self, xs, parameters: parameter_class) -> np.ndarray:
         step = np.zeros_like(xs)
         # ran = range(len(step))
         ct = sum(xs)
 
         for i, j in itertools.product(self.ran, repeat=2):
             if i != j:
-                step[i] += self.W[j, i] * xs[j] - self.W[i, j] * xs[i]
+                step[i] += parameters.W[j, i] * xs[j] - parameters.W[i, j] * xs[i]
             else:
-                step[i] += self.k[i] * xs[i] - (self.k[i] / self.n[i]) * ct * xs[i]
+                step[i] += (
+                    parameters.k[i] * xs[i]
+                    - (parameters.k[i] / parameters.n[i]) * ct * xs[i]
+                )
 
         return step
 
-    # def __test(self):
-    #     return print("hello")
-
-    def __integrate_model(self):
+    def __integrate_model(self, t_array, m: int):
         pass
+        steps = np.zeros((len(m), len(t_array)))
+        steps[:, 0] = initial
+
+        for j, _ in enumerate(t_array):
+            steps[:, j] += steps[:, j - 1]
+            steps[:, j] += dt * self.__step_function(
+                steps[:, j - 1]
+            )  # print(steps[j, :])
+
+            # print(steps[:, j])
+
+        return t_array, steps
 
     def system(self):
         pass
@@ -134,6 +139,9 @@ class ODEModel:
 
     def show_parameters(self):
         return self.p
+
+    def plot_system(self):
+        pass
 
 
 # class ODEModel:
