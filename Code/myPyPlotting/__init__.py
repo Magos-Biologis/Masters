@@ -3,7 +3,7 @@
 import os
 import itertools
 import collections
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from sys import exit
 from pprint import pp
@@ -23,6 +23,53 @@ class parameter_class:
 
     W: None | np.ndarray[tuple[int, int], np.dtype[np.float64]] = None
     K: None | np.ndarray[tuple[int, int], np.dtype[np.float64]] = None
+
+    ## The dataclass equivilant of initialization functions
+    def __post_init__(self):
+        self.k = self.__size_verification(self.k, self.m)
+        self.n = self.__size_verification(self.n, self.m)
+        self.q = self.__size_verification(self.q, self.m)
+        self.w = self.__size_verification(self.w, self.m)
+
+    def __size_verification(self, parameter, m: int) -> np.ndarray:
+        output = (
+            np.ones(shape=m, dtype=np.float64)[:] * parameter
+            if type(parameter) is not np.ndarray[tuple[m], np.dtype[np.float64]]
+            else parameter
+        )
+        return output
+
+    def __set_matrices(self) -> tuple:  # np.ndarray:
+        assert type(self.k) is np.ndarray
+        assert type(self.n) is np.ndarray
+        # [tuple[parameters.m], np.dtype[np.float64]]
+        # [tuple[parameters.m], np.dtype[np.float64]]
+
+        ones_no_diag = np.ones((self.m, self.m)) - np.diag(np.ones(self.m))
+
+        w_temp = self.w
+        for i in range(self.m - 1):
+            w_temp = np.append(w_temp, self.w)
+        w_reshaped = np.reshape(w_temp, (self.m, self.m))
+        indices = np.diag_indices(self.m)
+        for i, j in zip(*indices):
+            w_reshaped[i, j] = self.k[i]
+
+        # w_reshaped[i, j] = 0
+        # print(w_reshaped)
+        # # w_nodiag = np.delete(w_reshaped, indices)  # , 0)
+        # # w_nodiag = np.insert(w_reshaped, indices)  # , 0)
+
+        # matrix_W[indices[0], indices[1]]
+
+        matrix_W = parameters.W if type(parameters.W) is None else w_reshaped
+        matrix_K = (
+            parameters.K
+            if type(parameters.W) is None
+            else np.array([[self.k[i] / self.n[j] for j in self.ran] for i in self.ran])
+        )
+
+        return matrix_W, matrix_K
 
 
 class ODEModel:
@@ -47,64 +94,18 @@ class ODEModel:
 
         assert type(self.p) is parameter_class, "Incorrect format of parameters"
 
-        self.ran = range(self.p.m)
+        self.m = self.p.m
+        self.ran = range(self.m)
         # ones_matrix = np.ones((self.p.m, self.p.m))
 
-        self.p.k = self.__size_verification(self.p.k, self.p.m)
-        self.p.n = self.__size_verification(self.p.n, self.p.m)
-        self.p.q = self.__size_verification(self.p.q, self.p.m)
+        # self.p.k = self.k = self.__size_verification(self.p.k, m)
+        # self.p.n = self.n = self.__size_verification(self.p.n, m)
+        # self.p.q = self.q = self.__size_verification(self.p.q, m)
+        # self.p.w = self.w = self.__size_verification(self.p.w, m)
 
-        self.p.w = self.__size_verification(self.p.w, self.p.m)
-        # np.multiply(ones_no_diag, self.p.w)
-
-        self.p.K, self.p.W = self.__set_matrices(self.p)
-
-        # self.__test()
-
-    def __size_verification(self, parameter, m: int) -> np.ndarray:
-        output = (
-            np.ones(shape=m, dtype=np.float64)[:] * parameter
-            if type(parameter) is not np.ndarray[tuple[m], np.dtype[np.float64]]
-            else parameter
-        )
-        return output
-
-    def __set_matrices(self, parameters: parameter_class) -> tuple:  # np.ndarray:
-        assert type(parameters.k) is np.ndarray
-        assert type(parameters.n) is np.ndarray
-        # [tuple[parameters.m], np.dtype[np.float64]]
-        # [tuple[parameters.m], np.dtype[np.float64]]
-
-        ones_no_diag = np.ones((parameters.m, parameters.m)) - np.diag(
-            np.ones(parameters.m)
-        )
-
-        w_temp = parameters.w
-        for i in range(parameters.m - 1):
-            w_temp = np.append(w_temp, parameters.w)
-        w_reshaped = np.reshape(w_temp, (parameters.m, parameters.m))
-        indices = np.diag_indices(parameters.m)
-        for i, j in zip(*indices):
-            w_reshaped[i, j] = parameters.k[i]
-
-        # w_reshaped[i, j] = 0
-
-        # print(w_reshaped)
-        # # w_nodiag = np.delete(w_reshaped, indices)  # , 0)
-        # # w_nodiag = np.insert(w_reshaped, indices)  # , 0)
-
-        # matrix_W[indices[0], indices[1]]
-
-        matrix_W = parameters.W if type(parameters.W) is None else w_reshaped
-        matrix_K = (
-            parameters.K
-            if type(parameters.W) is None
-            else np.array(
-                [[parameters.k[i] / parameters.n[j] for j in self.ran] for i in self.ran]
-            )
-        )
-
-        return matrix_K, matrix_W
+        # matrices = self.__set_matrices(self.p)
+        # self.p.W = self.W = matrices[0]
+        # self.p.K = self.K = matrices[1]
 
     def __step_function(self, xs, parameters) -> np.ndarray:
         step = np.zeros_like(xs)
@@ -113,12 +114,9 @@ class ODEModel:
 
         for i, j in itertools.product(self.ran, repeat=2):
             if i != j:
-                step[i] += parameters.W[j, i] * xs[j] - parameters.W[i, j] * xs[i]
+                step[i] += self.W[j, i] * xs[j] - self.W[i, j] * xs[i]
             else:
-                step[i] += (
-                    parameters.k[i] * xs[i]
-                    - (parameters.k[i] / parameters.n[i]) * ct * xs[i]
-                )
+                step[i] += self.k[i] * xs[i] - (self.k[i] / self.n[i]) * ct * xs[i]
 
         return step
 
@@ -133,6 +131,9 @@ class ODEModel:
 
     def __general_no_med(self):
         pass
+
+    def show_parameters(self):
+        return self.p
 
 
 # class ODEModel:
@@ -161,6 +162,7 @@ test2 = ODEModel(test)
 # test2 = parameter_class(test)
 print()
 pp(test)
+pp(test2.show_parameters())
 print()
 # print(test2.p)
 # print()
