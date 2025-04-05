@@ -11,6 +11,8 @@ from matplotlib import pyplot as plt
 from matplotlib.pyplot import FuncFormatter
 # import sympy as sy
 
+from myPyPlotting import parameter_class, ODEModel
+
 print("")
 
 
@@ -89,7 +91,8 @@ t_end = 50
 t_array = np.arange(0, t_end, dt)
 # sol1 = np.zeros((len(t_array), 3))
 
-parameters = [k, w, q, n]
+# parameters = [k, w, q, n]
+parameters = parameter_class(2, k, n, q, w)
 
 cq = sum(n) / len(n)
 
@@ -120,7 +123,10 @@ def integrate(initial, t_array):
 
 
 init_conds1 = [c1_0, c2_0, m_0]
-_, sol1 = integrate(init_conds1, t_array)
+# _, sol1 = integrate(init_conds1, t_array)
+
+integrator = ODEModel((0, t_end), parameters, init_conds1)
+t_array, sol1 = integrator.plot_system()
 
 
 M = np.array(
@@ -288,7 +294,7 @@ ax.legend(loc="center right")
 plt.tight_layout()
 
 file_path = os.path.join(figure_path, file_name)
-plt.savefig(file_path + ".pdf")
+# plt.savefig(file_path + ".pdf")
 
 # print(sol1[-1])
-# plt.show()
+plt.show()

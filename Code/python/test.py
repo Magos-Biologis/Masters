@@ -14,7 +14,12 @@ k_1 = 1
 k_2 = 3
 
 
-n = 100
+n = 1
+
+# @njit
+# def stationary_p(x, b):
+#     top = exp(-2 * x) * (b + x) ** (4 * b - 1)
+#     return top / x
 
 
 def A(x):
@@ -30,12 +35,6 @@ def B(x, **kwargs):
     return (1 / n) * (k2 + (k1 - k2) * x)
 
 
-@njit
-def stationary_p(x, b):
-    top = exp(-2 * x) * (b + x) ** (4 * b - 1)
-    return top / x
-
-
 def C(x, **kwargs):
     k1 = kwargs.get("k1", 1)
     k2 = kwargs.get("k2", 1)
@@ -44,7 +43,7 @@ def C(x, **kwargs):
     num2 = (k1 - k2) * x - k2 * log(1 + ((k1 - k2) * x) / k2)
     den = (k1 - k2) ** 2
     result = x - (num1 * num2) / den
-    return result
+    return log(result)
 
 
 def expon(x, **kwargs):
@@ -68,13 +67,20 @@ def p_s(x, **kwargs):
 
 kwarg_dict = {"k1": k_1, "k2": k_2, "nt": n}
 
-x_array = np.linspace(alpha, beta, 1000)
 # results = stationary_p(x_array, b)
 # results = p_s(x_array, b, k_1, k_2)
-
 # results = c(x_array, k1=k_1, k2=k_2)
-results = p_s(x_array, nt=n, k1=k_1, k2=k_2)
-print(sum(results / max(results)))
+# print(sum(results / max(results)))
+# x_array = np.arange(alpha, beta, 0.001)
+
+steps = 500
+x_array = np.linspace(alpha, beta, num=steps, endpoint=False)[1:]
+
+results = p_s(x_array, **kwarg_dict)
 
 plot(x_array, results)
+
+xlim(left=0, right=1)
+ylim(bottom=0)
+
 show()
