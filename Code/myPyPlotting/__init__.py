@@ -1,174 +1,21 @@
-# from myPyPlotting import *
-
 import os
-import itertools
+from parameter_class import parameter_class
+from ODEModel import ODEModel
+
+
 import collections
-from dataclasses import dataclass, field
 
 from sys import exit
 from pprint import pp
 
 import numpy as np
 from numpy import polynomial as npp
-from numpy._core.multiarray import dtype
 
 from matplotlib import pyplot as plt
 from matplotlib.pyplot import FuncFormatter
 
 
-@dataclass
-class parameter_class:
-    m: int
-
-    k: float | np.ndarray[tuple[int], np.dtype[np.float64]]
-    n: float | np.ndarray[tuple[int], np.dtype[np.float64]]
-    q: float | np.ndarray[tuple[int], np.dtype[np.float64]]
-    w: float | np.ndarray[tuple[int], np.dtype[np.float64]]
-
-    W: None | np.ndarray[tuple[int, int], np.dtype[np.float64]] = None
-    K: None | np.ndarray[tuple[int, int], np.dtype[np.float64]] = None
-
-    ## The dataclass equivilant of initialization functions
-    def __post_init__(self):
-        self.k = self.__size_verification(self.k)
-        self.n = self.__size_verification(self.n)
-        self.q = self.__size_verification(self.q)
-        self.w = self.__size_verification(self.w)
-
-        self.W, self.K = self.__set_matrices()
-
-    def __size_verification(self, parameter) -> np.ndarray:
-        output = (
-            np.ones(shape=self.m, dtype=np.float64)[:] * parameter
-            if type(parameter) is not np.ndarray[tuple[self.m], np.dtype[np.float64]]
-            else parameter
-        )
-        return output
-
-    def __set_matrices(self) -> tuple:  # np.ndarray:
-        assert type(self.k) is np.ndarray
-        assert type(self.n) is np.ndarray
-        ran = range(self.m)
-        # [tuple[parameters.m], np.dtype[np.float64]]
-        # [tuple[parameters.m], np.dtype[np.float64]]
-
-        ones_no_diag = np.ones((self.m, self.m)) - np.diag(np.ones(self.m))
-
-        w_temp = self.w
-        for i in range(self.m - 1):
-            w_temp = np.append(w_temp, self.w)
-        w_reshaped = np.reshape(w_temp, (self.m, self.m))
-        indices = np.diag_indices(self.m)
-        for i, j in zip(*indices):
-            w_reshaped[i, j] = self.k[i]
-
-        matrix_W = self.W if type(self.W) is None else w_reshaped
-
-        matrix_K = (
-            self.K
-            if type(self.W) is None
-            else np.array([[self.k[i] / self.n[j] for j in ran] for i in ran])
-        )
-
-        return matrix_W, matrix_K
-
-
-class ODEModel:
-    def __init__(
-        self,
-        t_range: tuple[int, int],
-        parameters: parameter_class | tuple[int, float, float, float, float],
-        initial_condition: list[float]
-        | np.ndarray[tuple[int], np.dtype[np.float64]]
-        | None = None,
-        **kwargs,
-    ):
-        assert type(parameters) is parameter_class, "Incorrect format of parameters"
-
-        self.p: parameter_class = parameters
-
-        self.m: int = self.p.m
-        self.ran: range = range(len(initial_condition))
-        self.init_cond = initial_condition
-
-        self.n_max = kwargs.get("n_max", self.p.n)
-        self.t_span: tuple[int, int] = t_range
-        self.dt: np.float64 = kwargs.get("dt", 0.01)
-        self.t_array: np.ndarray = np.arange(*self.t_span, self.dt)
-
-    def __step_function(self, xs) -> np.ndarray:
-        assert type(self.p) is parameter_class, "Incorrect format of parameters"
-        step = np.zeros_like(xs)
-
-        ct = sum(xs)
-
-        return step
-
-    def __integrate_model(self):
-        # steps = np.zeros((self.m, len(self.t_array)))
-        steps = np.zeros((len(self.init_cond), len(self.t_array)))
-        steps[:, 0] = self.init_cond
-
-        for j, _ in enumerate(self.t_array):
-            steps[:, j] += steps[:, j - 1]
-            steps[:, j] += self.dt * self.__normal_model(steps[:, j - 1])
-
-        return self.t_array, steps
-
-    def __normal_model(
-        self, xs: np.ndarray[tuple[int], np.dtype[np.float64]]
-    ) -> np.ndarray[tuple[int], np.dtype[np.float64]]:
-        # assert (
-        #     all(type(self.p.k), type(self.p.n), type(self.p.q), type(self.p.w))
-        #     is np.ndarray[tuple[int], np.dtype[np.float64]]
-        # )
-
-        assert len(xs) == 3
-
-        step = np.empty_like(xs)
-
-        c1, c2, m = xs
-        ct = sum(xs[0:2])
-
-        step[0] = (
-            (self.p.k[0] * (1 - ct / self.p.n[0])) * c1
-            - self.p.w[0] * c1
-            + self.p.w[1] * c2
-            - self.p.q[0] * m * c1
-        )
-        step[1] = (
-            (self.p.k[1] * (1 - ct / self.p.n[1])) * c2
-            - self.p.w[1] * c2
-            + self.p.w[0] * c1
-        )
-        step[2] = -self.p.q[1] * m * c2 + m_0
-
-        return step
-
-    def __general_model(self, xs: np.ndarray):
-        step = np.zeros_like(xs)
-        ct = sum(xs)
-
-        for i, j in itertools.product(self.ran, repeat=2):
-            if i != j:
-                step[i] += self.p.W[j, i] * xs[j] - self.p.W[i, j] * xs[i]
-            else:
-                step[i] += self.p.k[i] * xs[i] - (self.p.k[i] / self.p.n[i]) * ct * xs[i]
-
-        return step
-
-    def system(self):
-        pass
-
-    def __general_no_med(self):
-        pass
-
-    def show_parameters(self):
-        return self.p
-
-    def plot_system(self):
-        return self.__integrate_model()
-        # pass
+# pass
 
 
 # class ODEModel:
@@ -183,18 +30,6 @@ class ODEModel:
 #         α = self.params.alpha
 #         β = self.params.beta
 #         return α * y - β * y**2
-
-
-# test = parameter_types(1, 2, 3, 4, 5, 6)
-# k = np.array([[6.1, 6.3], [5.6, 5.9]])
-k = np.array([6.1, 6.3])
-n = np.array([100, 90])
-# test = (3, k, 3, 4, 5)
-test = (3, 1, 3, 4, 5)
-parameters = parameter_class(*test)
-
-t_end = 50
-t_span = (0, t_end)
 
 
 # test2 = ODEModel(t_span, parameters)
@@ -215,7 +50,7 @@ n = np.zeros(2)
 w = np.zeros(2)
 q = np.zeros(2)
 
-k[:] = 0.2
+k[:] = 0.25
 
 # Population cap (purely aesthetic if n₁ = n₂)
 n[0] = 100.0
@@ -259,11 +94,11 @@ t_array = np.arange(0, t_end, dt)
 # sol1 = np.zeros((len(t_array), 3))
 
 # parameters = [k, w, q, n]
-parameters = parameter_class(2, k, n, q, w)
+parameters = parameter_class(2, m_0, k, n, q, w)
 
 init_conds1 = [c1_0, c2_0, m_0]
 integrator = ODEModel((0, t_end), parameters, init_conds1)
-t_array, sol1 = integrator.plot_system()
+t_array, sol1 = integrator.integrate()
 
 
 c1_coeffs = [
@@ -366,7 +201,7 @@ fixed_point_tick_labels = [
     r"$c_2^*$",
 ]
 
-ax.set_ylim(bottom=0)
+ax.set_ylim(bottom=0, top=n.max())
 ax.set_xlim(0, t_end)
 
 new_y_ticks = np.append(ax.get_yticks(), solutions)
