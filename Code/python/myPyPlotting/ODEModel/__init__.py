@@ -1,7 +1,7 @@
 import os
 import itertools
 
-from parameter_class import parameter_class
+from myPyPlotting.parameter_class import parameter_class
 
 import numpy as np
 from numpy import polynomial as npp
@@ -75,6 +75,53 @@ class ODEModel:
 
         return self.t_array, steps
 
+    def __normal_roots(self) -> np.ndarray[tuple[int], np.dtype[np.float64]]:
+        # assert type(self.p) is parameter_class
+        assert type(self.p.k) is np.ndarray
+        assert type(self.p.n) is np.ndarray
+        assert type(self.p.w) is np.ndarray
+        assert type(self.p.q) is np.ndarray
+
+        omega_1 = self.p.k[0] - self.p.w[0]
+        omega_2 = self.p.k[1] - self.p.w[1]
+
+        k_1 = self.p.k[0] / self.p.n[0]
+        k_2 = self.p.k[1] / self.p.n[1]
+
+        c1_min = self.p.w[1] / k_1
+        c2_min = self.p.w[0] / k_2
+
+        c1_max = omega_1 / k_1
+        c2_max = omega_2 / k_2
+
+        c1_coeffs = [
+            self.p.n[1] * self.p.w[1],
+            omega_1 - self.p.n[1] * (self.p.w[1] / self.p.n[0] + k_1),
+            k_1 * ((self.p.n[1] / self.p.n[0]) - 1),
+        ]
+        c2_coeffs = [
+            self.p.n[0] * self.p.w[0],
+            omega_2 - self.p.n[0] * (self.p.w[0] / self.p.n[1] + k_2),
+            k_2 * ((self.p.n[0] / self.p.n[1]) - 1),
+        ]
+
+        c1_poly = npp.Polynomial(
+            coef=c1_coeffs,
+            symbol="_c1",
+        )
+        c2_poly = npp.Polynomial(
+            coef=c2_coeffs,
+            symbol="_c2",
+        )
+
+        c1_roots = c1_poly.roots()
+        c2_roots = c2_poly.roots()
+
+        c1_root = [root for root in c1_roots if c1_min < root < c1_max]
+        c2_root = [root for root in c2_roots if c2_min < root < c2_max]
+
+        return np.array([c1_root, c2_root])
+
     def __normal_model(
         self, xs: np.ndarray[tuple[int], np.dtype[np.float64]]
     ) -> np.ndarray[tuple[int], np.dtype[np.float64]]:
@@ -82,6 +129,11 @@ class ODEModel:
         #     all(type(self.p.k), type(self.p.n), type(self.p.q), type(self.p.w))
         #     is np.ndarray[tuple[int], np.dtype[np.float64]]
         # )
+
+        assert type(self.p.k) is np.ndarray
+        assert type(self.p.n) is np.ndarray
+        assert type(self.p.w) is np.ndarray
+        assert type(self.p.q) is np.ndarray
 
         assert len(xs) == 3
 
@@ -106,6 +158,11 @@ class ODEModel:
         return step
 
     def __general_model(self, xs: np.ndarray):
+        assert type(self.p.k) is np.ndarray
+        assert type(self.p.n) is np.ndarray
+        assert type(self.p.q) is np.ndarray
+        assert type(self.p.W) is np.ndarray
+
         step = np.zeros_like(xs)
         ct = sum(xs)
 
@@ -133,6 +190,14 @@ class ODEModel:
             return self.__integrate_general_model()
         else:
             return self.__integrate_base_model()
+
+    def roots(self, generalized: bool = False):
+        assert type(generalized) is bool
+
+        if generalized:
+            return self.__normal_roots()
+        else:
+            return self.__normal_roots()
 
     # def plot_system(self):
     #     return self.__integrate_general_model()

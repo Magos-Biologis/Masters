@@ -5,3 +5,5 @@
 **/Litterature/
 **/*.venv/
 *.djvu
+
+**/__pycache__/

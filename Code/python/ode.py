@@ -11,7 +11,10 @@ from matplotlib import pyplot as plt
 from matplotlib.pyplot import FuncFormatter
 # import sympy as sy
 
-from myPyPlotting import parameter_class, ODEModel
+# import myPyPlotting
+from myPyPlotting.ODEModel import ODEModel
+from myPyPlotting.parameter_class import parameter_class
+
 
 print("")
 
@@ -92,41 +95,21 @@ t_array = np.arange(0, t_end, dt)
 # sol1 = np.zeros((len(t_array), 3))
 
 # parameters = [k, w, q, n]
-parameters = parameter_class(2, k, n, q, w)
+parameters = parameter_class(2, m_0, k, n, q, w)
 
 cq = sum(n) / len(n)
 
 ### Integration
 
 
-def step_function(xs) -> np.ndarray:
-    step = np.empty_like(xs)
-
-    ct = sum(xs[0:2])
-    c1, c2, m = xs
-
-    step[0] = (k[0] * (1 - ct / n[0])) * c1 - w[0] * c1 + w[1] * c2 - q[0] * m * c1
-    step[1] = (k[1] * (1 - ct / n[1])) * c2 - w[1] * c2 + w[0] * c1
-    step[2] = -q[1] * m * c2 + m_0
-
-    return step
-
-
-def integrate(initial, t_array):
-    steps = np.zeros((len(t_array), 3))
-    steps[0, :] = initial
-    for j, _ in enumerate(t_array):
-        steps[j, :] += steps[j - 1, :]
-        steps[j, :] += dt * step_function(steps[j - 1, :])  # print(steps[j, :])
-
-    return t_array, steps
-
-
 init_conds1 = [c1_0, c2_0, m_0]
 # _, sol1 = integrate(init_conds1, t_array)
 
-integrator = ODEModel((0, t_end), parameters, init_conds1)
-t_array, sol1 = integrator.plot_system()
+model1 = ODEModel((0, t_end), parameters, init_conds1)
+t_array, sol1 = model1.integrate()
+solutions = model1.roots()
+# print(solutions)
+# exit()
 
 
 M = np.array(
@@ -175,42 +158,6 @@ dt_name_list = [
     # f"$m$ fixed point at {m_fixed}",
 ]
 
-## Polynomial
-
-c1_coeffs = [
-    n[1] * w[1],
-    omega_1 - n[1] * (w[1] / n[0] + k_1),
-    k_1 * ((n[1] / n[0]) - 1),
-]
-c2_coeffs = [
-    n[0] * w[0],
-    omega_2 - n[0] * (w[0] / n[1] + k_2),
-    k_2 * ((n[0] / n[1]) - 1),
-]
-
-c1_poly = npp.Polynomial(
-    coef=c1_coeffs,
-    symbol="_c1",
-)
-c2_poly = npp.Polynomial(
-    coef=c2_coeffs,
-    symbol="_c2",
-)
-
-
-c1_roots = c1_poly.roots()
-c2_roots = c2_poly.roots()
-
-c1_root = [root for root in c1_roots if c1_min < root < c1_max]
-c2_root = [root for root in c2_roots if c2_min < root < c2_max]
-
-solutions = np.array([c1_root, c2_root])
-
-# print(sum(solutions) / n[0] + sum(solutions) / n[1])
-
-# print(sol1.T[0][-1] + sol1.T[1][-1])
-# exit()
-
 
 ## Plotting
 
@@ -234,7 +181,7 @@ plt.style.use("bmh")
 # ax.set_facecolor("#c0c0ca")
 
 
-for i, curve in enumerate(sol1.T):
+for i, curve in enumerate(sol1):
     # break
     if i == 2:
         break
@@ -257,8 +204,8 @@ for i, curve in enumerate(sol1.T):
     ax.plot(t_array, curve, label=curve_name, color=color)
 
 
-total = sol1.T[0] + sol1.T[1]
-percent_total = np.divide(sol1.T[0], n[0]) + np.divide(sol1.T[1], n[1])
+# total = sol1.T[0] + sol1.T[1]
+# percent_total = np.divide(sol1.T[0], n[0]) + np.divide(sol1.T[1], n[1])
 
 fixed_point_tick_labels = [
     "\t" + r"$c_1^*$",
