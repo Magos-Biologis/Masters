@@ -11,6 +11,9 @@ from matplotlib import pyplot as plt
 from matplotlib.pyplot import FuncFormatter
 # import sympy as sy
 
+from myPyPlotting.ODEModel import ODEModel
+from myPyPlotting.parameter_class import parameter_class
+
 print("")
 
 
@@ -77,81 +80,28 @@ filename_addendum = (
     + "_w2"
     + f"{w[1]}"
 )
+
 file_name += filename_addendum
 
 
 dt = 0.01
-t_end = 25
-# t_end = 50
+# t_end = 25
+t_end = 50
 # t_end = 150
 t_array = np.arange(0, t_end, dt)
-sol1 = np.zeros((len(t_array), 3))
+# sol1 = np.zeros((len(t_array), 3))
 
-parameters = [k, w, q, n]
 
-cq = sum(n) / len(n)
+parameters = parameter_class(2, m_0, k, n, q, w)
+init_conds1 = [c1_0, c2_0, m_0]
 
 ### Integration
 
+model1 = ODEModel((0, t_end), parameters, init_conds1)
+t_array, sol1 = model1.integrate()
+solutions = model1.roots()
 
-def step_function(xs, dt) -> np.ndarray:
-    c1, c2, m = xs
-    ct = c1 + c2
-
-    c1_dot = (k[0] * (1 - ct / n[0]) - w[0]) * c1 + w[1] * c2 - q[0] * m * c1
-    c2_dot = (k[1] * (1 - ct / n[1]) - w[1]) * c2 + w[0] * c1
-    m_dot = -q[1] * m * c2 + m_0
-
-    return dt * np.array([c1_dot, c2_dot, m_dot])
-
-
-def integrate(initial, t_array):
-    steps = np.zeros((len(t_array), 3))
-    steps[0, :] = initial
-    for j, _ in enumerate(t_array):
-        steps[j, :] += steps[j - 1, :]
-        steps[j, :] += step_function(steps[j - 1, :], dt)  # print(steps[j, :])
-
-    return t_array, steps
-
-
-init_conds1 = [c1_0, c2_0, m_0]
-_, sol1 = integrate(init_conds1, t_array)
-
-
-M = np.array(
-    [
-        [(omega_1 - k_1), w[0]],
-        [w[1], (omega_2 - k_2)],
-    ]
-)
-
-
-probability_sol = np.zeros(2)
-
-solution_norm = M[0, 1] + M[1, 0]
-probability_sol[0] = M[1, 0] / solution_norm
-probability_sol[1] = M[0, 1] / solution_norm
-probability_ticks = w / sum(w)
-
-
-# print(solutions)
-
-
-c1_fixed = n[0]
-c2_fixed = (1 - (w[0] / w[1])) * n[1]
-m_fixed = m_0 / q[1]
-
-
-dt_zeroes = [c1_fixed, c2_fixed, m_fixed]
-
-# total = steps[:, 0] + steps[:, 1]
-# steps[:, 0] = steps[:, 0] / total
-# steps[:, 1] = steps[:, 1] / total
-
-# print(2 * ((n[0] * n[1]) / (n[0] + n[1])))
-# print(total)
-# exit()
+cq = sum(n) / len(n)
 
 
 color_list = ["b", "r", "g"]
@@ -163,39 +113,9 @@ name_list = [
 dt_name_list = [
     r"$c_1$ fixed point at $c_1^*$",  # {c1_fixed}",
     r"$c_2$ fixed point at $c_2^*$",  # {c2_fixed}",
-    f"$m$ fixed point at {m_fixed}",
+    # f"$m$ fixed point at {m_fixed}",
 ]
 
-## Polynomial
-
-c1_coeffs = [
-    n[1] * w[1],
-    omega_1 - n[1] * (w[1] / n[0] + k_1),
-    k_1 * ((n[1] / n[0]) - 1),
-]
-c2_coeffs = [
-    n[0] * w[0],
-    omega_2 - n[0] * (w[0] / n[1] + k_2),
-    k_2 * ((n[0] / n[1]) - 1),
-]
-
-c1_poly = npp.Polynomial(
-    coef=c1_coeffs,
-    symbol="_c1",
-)
-c2_poly = npp.Polynomial(
-    coef=c2_coeffs,
-    symbol="_c2",
-)
-
-
-c1_roots = c1_poly.roots()
-c2_roots = c2_poly.roots()
-
-c1_root = [root for root in c1_roots if c1_min < root < c1_max]
-c2_root = [root for root in c2_roots if c2_min < root < c2_max]
-
-solutions = np.array([c1_root, c2_root])
 
 ## Plotting
 
@@ -222,7 +142,7 @@ plt.style.use("bmh")
 # axes[0].tick_params("x", color="#c0c0ca")
 
 
-for i, curve in enumerate(sol1.T):
+for i, curve in enumerate(sol1):
     # break
     if i == 2:
         break
@@ -252,8 +172,8 @@ for i, curve in enumerate(sol1.T):
 # print()
 # exit()
 
-total = sol1.T[0] + sol1.T[1]
-percent_total = np.divide(sol1.T[0], n[0]) + np.divide(sol1.T[1], n[1])
+# total = sol1.T[0] + sol1.T[1]
+# percent_total = np.divide(sol1.T[0], n[0]) + np.divide(sol1.T[1], n[1])
 
 fixed_point_tick_labels = [
     r"$c_1^*$",
@@ -322,5 +242,5 @@ axes[0].legend(loc="upper right")
 plt.tight_layout()
 
 file_path = os.path.join(figure_path, file_name)
-plt.savefig(file_path + ".pdf")
-# plt.show()
+# plt.savefig(file_path + ".pdf")
+plt.show()

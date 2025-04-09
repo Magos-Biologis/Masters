@@ -1,11 +1,14 @@
 ##
 ## Stealing Jesper's code and making it into Python
 ##
-from numpy import log, min, sum, ndarray
+from numpy import log, min, sum, array
+from numpy import ndarray, dtype, float64
 from numpy.random import rand
 
 
-def gillespie(aj: ndarray) -> list:
+def gillespie(
+    aj: ndarray[tuple[int], dtype[float64]] | list[float],
+) -> tuple[int, float]:
     """
     Gillespie event determination
 
@@ -23,19 +26,24 @@ def gillespie(aj: ndarray) -> list:
     """
 
     if min(aj) <= 0.0:
-        event_id = 0
-        dt = 0
+        j: int = -1
+        tau: float = 0
+        return j, tau
 
-    sum_aj = sum(aj)
+    r: ndarray[tuple[int], dtype[float64]] = rand(2)
+    while r[0] == 0.0:
+        r[0] = rand()
 
-    r1, r2 = rand(1, 2)
-    dt = log(1 / r1) / sum_aj
+    a_0: float = sum(aj)
 
-    event_id = 0
+    j: int = -1
+    tau: float = log(1 / r[0]) / a_0
+
     for n, _ in enumerate(aj):
-        comparative_sum = sum(aj[0:n])
-        if comparative_sum > r2 * sum_aj:
-            event_id = n
+        s_j: float = sum(aj[0 : n + 1])
+
+        if s_j > r[1] * a_0:
+            j += n
             break
 
-    return [event_id, dt]
+    return j, tau

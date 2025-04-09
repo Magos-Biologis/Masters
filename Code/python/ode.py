@@ -50,18 +50,6 @@ w[1] = 0.015
 q[:] = 0
 m_0 = 0.0
 
-omega_1 = k[0] - w[0]
-omega_2 = k[1] - w[1]
-
-k_1 = k[0] / n[0]
-k_2 = k[1] / n[1]
-
-c1_min = w[1] / k_1
-c2_min = w[0] / k_2
-
-c1_max = omega_1 / k_1
-c2_max = omega_2 / k_2
-
 
 alpha = 0
 c1_0 = n[0] - alpha
@@ -94,55 +82,17 @@ t_end = 50
 t_array = np.arange(0, t_end, dt)
 # sol1 = np.zeros((len(t_array), 3))
 
-# parameters = [k, w, q, n]
-parameters = parameter_class(2, m_0, k, n, q, w)
 
-cq = sum(n) / len(n)
+parameters = parameter_class(2, m_0, k, n, q, w)
+init_conds1 = [c1_0, c2_0, m_0]
 
 ### Integration
-
-
-init_conds1 = [c1_0, c2_0, m_0]
-# _, sol1 = integrate(init_conds1, t_array)
 
 model1 = ODEModel((0, t_end), parameters, init_conds1)
 t_array, sol1 = model1.integrate()
 solutions = model1.roots()
-# print(solutions)
-# exit()
 
-
-M = np.array(
-    [
-        [(omega_1 - k_1), w[0]],
-        [w[1], (omega_2 - k_2)],
-    ]
-)
-
-
-probability_sol = np.zeros(2)
-
-solution_norm = M[0, 1] + M[1, 0]
-probability_sol[0] = M[1, 0] / solution_norm
-probability_sol[1] = M[0, 1] / solution_norm
-probability_ticks = w / sum(w)
-
-
-# print(solutions)
-
-
-# c1_fixed = n[0]
-# c2_fixed = (1 - (w[0] / w[1])) * n[1]
-# m_fixed = m_0 / q[1]
-# dt_zeroes = [c1_fixed, c2_fixed, m_fixed]
-
-# total = steps[:, 0] + steps[:, 1]
-# steps[:, 0] = steps[:, 0] / total
-# steps[:, 1] = steps[:, 1] / total
-
-# print(2 * ((n[0] * n[1]) / (n[0] + n[1])))
-# print(total)
-# exit()
+cq = sum(n) / len(n)
 
 
 color_list = ["b", "r", "g"]
@@ -212,7 +162,7 @@ fixed_point_tick_labels = [
     r"$c_2^*$",
 ]
 
-ax.set_ylim(0, np.max(n))
+ax.set_ylim(0, n.max())
 ax.set_xlim(0, t_end)
 
 new_y_ticks = np.append(ax.get_yticks(), solutions)

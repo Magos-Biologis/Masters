@@ -17,6 +17,12 @@ class ODEModel:
         | None = None,
         **kwargs,
     ):
+        if (
+            type(initial_condition)
+            is list[float] | np.ndarray[tuple[int], np.dtype[np.float64]]
+        ):
+            assert type(len(initial_condition)) is int
+
         assert type(parameters) is parameter_class, "Incorrect format of parameters"
 
         self.p: parameter_class = parameters
