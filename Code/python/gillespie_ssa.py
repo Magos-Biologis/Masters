@@ -15,19 +15,11 @@ file_name = "simulated_fpe"
 
 print()
 
-
-b = 100
-
-
-alpha = 0
-beta = 1
-
-
 n = 10
 
-x_lims = (0, n)
 
 boxes = arange(0, n + 2, 1, dtype=np.int_)
+x_lims = (0, n)
 
 # boxes = range(n)
 # print(boxes)
@@ -44,7 +36,7 @@ hist_kwargs = {
 }
 
 curve_kwargs = {
-    "linewidth": 5,
+    "linewidth": 4,
     "alpha": 0.7,
 }
 
@@ -113,11 +105,11 @@ def C(x, **kwargs):
     # if k1 - k2 != 0:
     num1 = 2 * k1
     num2 = (k1 - k2) * x - k2 * log(1 + ((k1 - k2) * x) / k2)
-
-    num = num1 * num2
-
     den = (k1 - k2) ** 2
-    result = x - num / den
+
+    prod = num1 * num2 * (den ** (-1))
+
+    result = x - prod
     return array(result)
 
 
@@ -125,8 +117,9 @@ def expon(x, **kwargs):
     n = kwargs.get("nt", 1)
     max_value = kwargs.get("max_value", 0)
 
-    exponent_input = 2 * n * C(x, **kwargs) - max_value
-    return exp(exponent_input)
+    exponent_input = 2 * n * C(x, **kwargs)
+
+    return exp(subtract(exponent_input, max_value))
 
 
 # @njit
@@ -137,7 +130,7 @@ def p_s(x, **kwargs):
 
 
 steps = 500
-x_array = linspace(alpha, beta, num=steps, endpoint=False)[1:]
+x_array = linspace(0, 1, num=steps, endpoint=False)[1:]
 
 kwarg_dict = {"k1": k_1, "k2": k_2, "nt": n}
 
@@ -227,8 +220,8 @@ def step_function(
 
 steps = 1000000
 
-time_array_1, gillespie_results_1 = step_function(steps, array([n - 1, 1]))
-time_array_2, gillespie_results_2 = step_function(steps, array([1, n - 1]))
+time_array_1, gillespie_results_1 = step_function(steps, array([n, 0]))
+time_array_2, gillespie_results_2 = step_function(steps, array([0, n]))
 # time_array_2, gillespie_results_2 = step_function(steps, array([0, n]))
 
 
@@ -245,8 +238,8 @@ analytical_results = p_s(x_array, **kwarg_dict, max_value=max_val)
 
 
 fig, ax = subplots(2, 2, figsize=(10, 10))
-# fig1, ax1 = subplots()
-# fig2, ax2 = subplots()
+fig1, ax1 = subplots()
+fig2, ax2 = subplots()
 
 # print(boxes)
 # exit()
@@ -280,33 +273,39 @@ ax[1, 1].hist(gillespie_results_2[0, :], **hist_kwargs)
 ax[1, 1].set_ylim(bottom=0)
 ax[1, 1].set_xlim(*x_lims)
 
-hist, edges = histogram(gillespie_results_1[0, :])
-ax[1, 0].plot(x_array * n, hist.max() * analytical_results, **curve_kwargs)
-ax[1, 1].plot(x_array * n, hist.max() * analytical_results, **curve_kwargs)
+hist, edges = histogram(gillespie_results_1[0, :], bins=boxes, density=True)
+scale = hist.max()
+scaled_result = multiply(analytical_results, scale)
+
+# print(scale)
+# exit()
+ax[1, 0].plot(x_array * n, scaled_result, **curve_kwargs)
+ax[1, 1].plot(x_array * n, scaled_result, **curve_kwargs)
 
 
 # hist, edges = histogram(gillespie_results_1[0, :])
 #
-# ax1.hist(gillespie_results_1[0, :], **hist_kwargs)
-#
-# for i, axes in enumerate([ax1, ax2]):
-#     axes.set_xlim(0, n)
-#     axes.set_ylim(0, hist.max() + hist.max() / 10)
-#
-#     axes.plot(x_array * n, hist.max() * analytical_results, **curve_kwargs)
-#     axes.vlines([n * k[1]], 0, 1, **line_kwargs)
-#
-# ax2.hist(gillespie_results_2[0, :], **hist_kwargs)
-#
-#
-# file_path = os.path.join(figure_path, file_name)
+
+ax1.hist(gillespie_results_1[0, :], **hist_kwargs)
+
+for i, axes in enumerate([ax1, ax2]):
+    axes.set_xlim(0, n)
+    axes.set_ylim(0, hist.max() + hist.max() / 10)
+
+    axes.plot(x_array * n, scaled_result, **curve_kwargs)
+    axes.vlines([n * k[1]], 0, 1, **line_kwargs)
+
+ax2.hist(gillespie_results_2[0, :], **hist_kwargs)
+
+
+file_path = os.path.join(figure_path, file_name)
 
 
 # fig1.show()
 # fig2.show()
 
-show()
-
-exit()
+# show()
+#
+# exit()
 fig1.savefig(file_path + "_x0_n_0" + ".pdf")
 fig2.savefig(file_path + "_x0_1_n-1" + ".pdf")

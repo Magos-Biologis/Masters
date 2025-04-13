@@ -16,13 +16,13 @@ alpha = 0
 beta = 1
 
 
-n = 1
+n = 10
 
 k_1 = 1
-k_1 /= n
+# k_1 /= n
 
-k_2 = 3
-k_2 /= n
+k_2 = 1
+# k_2 /= n
 
 
 a_1 = n
@@ -47,23 +47,32 @@ def B(x, **kwargs):
     return (1 / n) * (k2 + (k1 - k2) * x)
 
 
-def C(x, **kwargs):
-    k1 = kwargs.get("k1", 1)
-    k2 = kwargs.get("k2", 1)
-
-    num1 = 2 * k1
-    num2 = (k1 - k2) * x - k2 * log(1 + ((k1 - k2) * x) / k2)
-    den = (k1 - k2) ** 2
-    result = x - (num1 * num2) / den
-    return result
+# def C(x, **kwargs):
+#     k1 = kwargs.get("k1", 1)
+#     k2 = kwargs.get("k2", 1)
+#
+#     num1 = 2 * k1
+#     num2 = (k1 - k2) * x - k2 * log(1 + ((k1 - k2) * x) / k2)
+#     den = (k1 - k2) ** 2
+#
+#     prod = num1 * num2 * (den ** (-1))
+#
+#     result = x - (num1 * num2) / den
+#
+#     return result
 
 
 def expon(x, **kwargs):
     n = kwargs.get("nt", 1)
+    k1 = kwargs.get("k1", 1)
+    k2 = kwargs.get("k2", 1)
     max_value = kwargs.get("max_value", 0)
 
-    exponent_input = 2 * n * C(x, **kwargs) - max_value
-    return exp(exponent_input)
+    num1 = 2 * k1
+    num2 = (k1 - k2) * x - k2 * log(1 + ((k1 - k2) * x) / k2)
+    den = (k1 - k2) ** 2
+
+    return exp(2 * n * (x - (num1 * num2 / den)) - max_value)
 
 
 # @njit
@@ -94,10 +103,9 @@ kwarg_dict = {"k1": k_1, "k2": k_2, "nt": n}
 
 # exponential_array = log(2 * kwarg_dict["nt"] * C(x_array, **kwarg_dict))
 
-exponential_array = 2 * n * C(x_array, **kwarg_dict)
-expon_max = exp(exponential_array.max())
+# exponential_array = 2 * n * C(x_array, **kwarg_dict)
+# expon_max = exp(exponential_array.max())
 
-kwarg_dict.update({"log_results": exponential_array})
 
 results = p_s(x_array, **kwarg_dict, max_value=0)
 results2 = p_s(
