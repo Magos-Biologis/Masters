@@ -100,14 +100,15 @@ def gillespie(
 
     a_0: float = aj.sum()
 
-    j: int = 0
+    j: int = -1
     tau: float = log(1 / r[0]) / a_0
 
     for k, _ in enumerate(aj):
         s_j: float = aj[: k + 1].sum()
+        ra_0: float = r[1] * a_0
 
-        if s_j > r[1] * a_0:
-            j += k
+        if s_j > ra_0:
+            j: int = k
             break
 
     return j, tau
@@ -161,9 +162,7 @@ def step_function(
         if j != -1:
             x[:] = add(x, v[j])  ## Using numpy for speed I guess
         else:
-            j = np.random.randint(0, len(v))
-            x[:] = add(x, v[j])  ## Using numpy for speed I guess
-            # x[:] = x
+            x[:] = x
 
         if x[0] < 1:
             x[0] = 1
