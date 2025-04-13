@@ -23,11 +23,11 @@ alpha = 0
 beta = 1
 
 
-n = 100
+n = 10
 
 x_lims = (0, n)
 
-boxes = arange(0, n + 1, 1, dtype=np.int_)
+boxes = arange(0, n + 2, 1, dtype=np.int_)
 
 # boxes = range(n)
 # print(boxes)
@@ -61,6 +61,7 @@ file_name += "_" + f"k1{k_1}"
 k_1 /= n
 
 
+# k_2 = 3
 k_2 = 1
 file_name += "_" + f"k2{k_2}"
 k_2 /= n
@@ -109,24 +110,27 @@ def C(x, **kwargs):
     k1 = kwargs.get("k1", 1)
     k2 = kwargs.get("k2", 1)
 
+    # if k1 - k2 != 0:
     num1 = 2 * k1
     num2 = (k1 - k2) * x - k2 * log(1 + ((k1 - k2) * x) / k2)
+
+    num = num1 * num2
+
     den = (k1 - k2) ** 2
-    result = x - (num1 * num2) / den
-    return result
+    result = x - num / den
+    return array(result)
 
 
 def expon(x, **kwargs):
     n = kwargs.get("nt", 1)
     max_value = kwargs.get("max_value", 0)
 
-    return exp(2 * n * C(x, **kwargs) - max_value)
+    exponent_input = 2 * n * C(x, **kwargs) - max_value
+    return exp(exponent_input)
 
 
 # @njit
 def p_s(x, **kwargs):
-    calced = kwargs.get("log_results", 1)
-
     top = expon(x, **kwargs)
     bot = B(x, **kwargs)
     return top / bot
@@ -137,8 +141,6 @@ x_array = linspace(alpha, beta, num=steps, endpoint=False)[1:]
 
 kwarg_dict = {"k1": k_1, "k2": k_2, "nt": n}
 
-# exponential_array = log(2 * kwarg_dict["nt"] * C(x_array, **kwarg_dict))
-# exponential_array = log(C(x_array, **kwarg_dict))
 
 # plot(x_array, results)
 # print(rand())
@@ -146,12 +148,13 @@ kwarg_dict = {"k1": k_1, "k2": k_2, "nt": n}
 
 @njit
 def gillespie(
-    aj: ndarray[tuple[int], dtype[float64]] | list[float],
+    aj: ndarray[tuple[int], dtype[float64]],
 ) -> tuple[int, float]:
     # assert type(aj) is ndarray
-    j: int = -1
+    a_0: float = aj.sum()
 
-    if aj.min() <= 0.0:
+    j: int = -1
+    if a_0 <= 0.0:
         tau: float = 0
         return j, tau
 
@@ -160,7 +163,6 @@ def gillespie(
     while r[0] == 0.0:
         r[0] = rand()
 
-    a_0: float = aj.sum()
     tau: float = log(1 / r[0]) / a_0
     ra_0: float = r[1] * a_0
 
@@ -180,7 +182,9 @@ def gillespie(
 def aj(
     x: ndarray[tuple[int], dtype[float64 | int_]],
 ) -> ndarray[tuple[int], dtype[float64]]:
-    return array([k_1 * x[0], k_2 * x[1]])
+    a_1 = k_1 * x[0]
+    a_2 = k_2 * x[1]
+    return array([a_1, a_2], dtype=float64)
 
 
 ## Step function
@@ -193,8 +197,6 @@ def step_function(
     v2 = array([1, -1], dtype=int_)
     v = [v1, v2]
 
-    zero_vector = zeros_like(v1)
-
     ## Other
     gillespie_results = empty((2, steps), dtype=int_)
     time_array = empty(steps, dtype=float64)
@@ -202,23 +204,23 @@ def step_function(
     gillespie_results[:, 0] = x0
     x = x0.astype(float64)
 
+    broke_loop = False
     for i in range(1, steps + 1):
         a_j = aj(gillespie_results[:, i - 1])
         j, dt = gillespie(a_j)
 
-        if j != -1:
-            x = add(x, v[j])  ## Using numpy for speed I guess
+        if j == -1:
+            broke_loop = True
+            final_step: int = i
+            break
 
-        else:  ## When j is -1, we need to check to bounds
-            if x[0] == 0:
-                x = add(x, v[1])
-            elif x[1] == 0:
-                x = add(x, v[0])
-
-        gillespie_results[:, i] = x
+        gillespie_results[:, i] = add(gillespie_results[:, i - 1], v[j])
         time_array[i] = time_array[i - 1] + dt
 
-    return time_array, gillespie_results
+    if not broke_loop:
+        return time_array, gillespie_results
+    else:
+        return time_array[:final_step], gillespie_results[:, :final_step]
 
 
 # time_array, gillespie_results = step_function(100000, x_0)
@@ -226,8 +228,8 @@ def step_function(
 steps = 1000000
 
 time_array_1, gillespie_results_1 = step_function(steps, array([n - 1, 1]))
-# time_array_2, gillespie_results_2 = step_function(steps, array([0, n]))
 time_array_2, gillespie_results_2 = step_function(steps, array([1, n - 1]))
+# time_array_2, gillespie_results_2 = step_function(steps, array([0, n]))
 
 
 if n == 1:
@@ -239,8 +241,7 @@ elif n == 100:
 else:
     max_val = 0
 
-# val = 10**n
-# log(val)
+analytical_results = p_s(x_array, **kwarg_dict, max_value=max_val)
 
 
 fig, ax = subplots(2, 2, figsize=(10, 10))
@@ -270,28 +271,35 @@ ax[0, 1].set_xlim(left=0)
 
 
 ax[1, 0].hist(gillespie_results_1[0, :], **hist_kwargs)
-ax[1, 0].hist(gillespie_results_1[1, :], **hist_kwargs)
+# ax[1, 0].hist(gillespie_results_1[1, :], **hist_kwargs)
 ax[1, 0].set_ylim(bottom=0)
 ax[1, 0].set_xlim(*x_lims)
 
 ax[1, 1].hist(gillespie_results_2[0, :], **hist_kwargs)
-ax[1, 1].hist(gillespie_results_2[1, :], **hist_kwargs)
+# ax[1, 1].hist(gillespie_results_2[1, :], **hist_kwargs)
 ax[1, 1].set_ylim(bottom=0)
 ax[1, 1].set_xlim(*x_lims)
 
+hist, edges = histogram(gillespie_results_1[0, :])
+ax[1, 0].plot(x_array * n, hist.max() * analytical_results, **curve_kwargs)
+ax[1, 1].plot(x_array * n, hist.max() * analytical_results, **curve_kwargs)
 
+
+# hist, edges = histogram(gillespie_results_1[0, :])
+#
 # ax1.hist(gillespie_results_1[0, :], **hist_kwargs)
-
+#
 # for i, axes in enumerate([ax1, ax2]):
-#     axes.plot(x_array * n, hist.max() * results, **curve_kwargs)
 #     axes.set_xlim(0, n)
-#     axes.vlines([n * k[1]], 0, 1, **line_kwargs)
 #     axes.set_ylim(0, hist.max() + hist.max() / 10)
 #
+#     axes.plot(x_array * n, hist.max() * analytical_results, **curve_kwargs)
+#     axes.vlines([n * k[1]], 0, 1, **line_kwargs)
+#
 # ax2.hist(gillespie_results_2[0, :], **hist_kwargs)
-
-
-file_path = os.path.join(figure_path, file_name)
+#
+#
+# file_path = os.path.join(figure_path, file_name)
 
 
 # fig1.show()
