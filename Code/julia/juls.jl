@@ -88,12 +88,6 @@ t_array::Vector{Int} = 1:1:t_end
 x_array[1] = 99
 y_array[1] = 1
 
-# println(t_array)
-# exit()
-
-# append!(x_array, 0)
-# append!(y_array, 0)
-# append!(t_array, 0)
 
 is_c1 = 1
 is_c2 = 2
@@ -104,19 +98,10 @@ mutable struct StateTracking{Int}
 end
 markov = StateTracking(is_c1)
 
-
-
-# time_modifier = [1]
-
 Random.seed!(190622)
 
 U = Uniform(0, 1)
 u = rand(U, 2, length(t_array[1:end-1]))
-#
-# print(u)
-# exit()
-# println(t_array)
-# exit()
 
 #while t_array[end] <= t_end
 for tau in t_array[1:end-1]
@@ -158,16 +143,6 @@ sums = x_array + y_array
 x::Vector{Float64} = x_array ./ sums
 y::Vector{Float64} = y_array ./ sums
 
-# println(sums)
-# exit()
-
-
-
-# print(x_array)
-# exit()
-
-
-
 
 
 Plots.default(linewidth=2, ylims=(0, 1))
@@ -175,6 +150,7 @@ Plots.default(linewidth=2, ylims=(0, 1))
 test_plot = plot(t_array, x; label=(L"x"))
 plot!(t_array, y; label=(L"y"))
 #plot!(t_array, y)
+#
 # ylims!(0, 1)
 xlims!(0, Inf)
 

@@ -6,6 +6,7 @@ from numba import njit
 from pylab import *
 
 # from old.gillespie import gillespie
+import gillespie as dg
 
 
 # figure_env = str(os.getenv("THESIS_FIGURE_PATH"))
@@ -159,52 +160,17 @@ x_array = linspace(0, 1, num=steps, endpoint=False)[1:]
 kwarg_dict = {"k1": k_1, "k2": k_2, "nt": m}
 
 
-# plot(x_array, results)
-# print(rand())
-
-
-@njit
-def ssa(
-    aj: ndarray[tuple[int], dtype[float64]],
-) -> tuple[int, float]:
-    # assert type(aj) is ndarray
-    a_0: float = aj.sum()
-
-    j: int = -1
-    if a_0 <= 0.0:
-        tau: float = 0
-        return j, tau
-
-    # np.random.seed(seed)
-    r = rand(2)
-    while r[0] == 0.0:
-        r[0] = rand()
-
-    tau: float = log(1 / r[0]) / a_0
-    ra_0: float = r[1] * a_0
-
-    for k, _ in enumerate(aj):
-        j: int = k
-        s_j: float = aj[: k + 1].sum()
-        if s_j >= ra_0:
-            break
-
-    return j, tau
-
-
-# from old.gillespie import gillespie
-
-
 @njit
 def aj(
     x: ndarray[tuple[int], dtype[float64 | int_]],
 ) -> ndarray[tuple[int], dtype[float64]]:
     a_1 = k_1 * x[0]
-    # a_m1 =  k_1 * x[0] ** 2
     a_2 = k_2 * x[1]
+
+    # a_m1 =  k_1 * x[0] ** 2
     # a_m2 =  k_2 * x[1] ** 2
+
     return array([a_1, a_2], dtype=float64)
-    # return array([a_1, a_m1, a_2, a_m2], dtype=float64)
 
 
 # @njit
@@ -256,7 +222,7 @@ def step_function(
     broke_loop = False
     for i in range(1, steps + 1):
         a_j = aj(gillespie_results[:, i - 1])
-        j, dt = ssa(a_j)
+        j, dt = dg.ssa_event(a_j)
 
         if j == -1:
             broke_loop = True
