@@ -5,21 +5,28 @@ import numba
 from numba import njit
 from pylab import *
 
+# from old.gillespie import gillespie
 
-figure_env = str(os.getenv("THESIS_FIGURE_PATH"))
-figure_path = os.path.join(figure_env, "fpe")
 
-# file_name = "ode_solution"
+# figure_env = str(os.getenv("THESIS_FIGURE_PATH"))
+figure_env = str(os.getenv("FPE_FIGURE_ENV"))
+
 
 file_name = "simulated_fpe"
 
 print()
 
-n = 10
+m = 100
 
 
-boxes = arange(0, n + 2, 1, dtype=np.int_)
-x_lims = (0, n)
+boxes = arange(0, m + 1, 1, dtype=np.int_)
+
+
+# print(boxes.shape)
+# exit()
+
+margin = 0.5
+x_lims = (0 - margin, m + margin)
 
 # boxes = range(n)
 # print(boxes)
@@ -31,7 +38,7 @@ hist_kwargs = {
     "density": True,
     "edgecolor": "black",
     "alpha": 0.7,
-    "align": "left",
+    "align": "mid",
     # "normed": True,
 }
 
@@ -50,21 +57,38 @@ line_kwargs = {
 
 k_1 = 1
 file_name += "_" + f"k1{k_1}"
-k_1 /= n
+k_1 /= m
 
 
-# k_2 = 3
-k_2 = 1
+k_2 = 3
+# k_2 = 1
 file_name += "_" + f"k2{k_2}"
-k_2 /= n
+k_2 /= m
+
+w_1 = 1
+file_name += "_" + f"w1{w_1}"
+w_1 /= m
+
+w_2 = 1
+file_name += "_" + f"w2{w_2}"
+w_2 /= m
+
+
+n_1 = 100
+file_name += "_" + f"n1{n_1}"
+n_1 /= m
+
+n_2 = 100
+file_name += "_" + f"n2{n_2}"
+n_2 /= m
 
 
 k = array([k_1 / (k_1 + k_2), k_2 / (k_1 + k_2)])
 
-file_name += "_" + f"n{n}"
+file_name += "_" + f"n{m}"
 
 
-a_1 = n
+a_1 = m
 a_2 = 0
 
 
@@ -132,7 +156,7 @@ def p_s(x, **kwargs):
 steps = 500
 x_array = linspace(0, 1, num=steps, endpoint=False)[1:]
 
-kwarg_dict = {"k1": k_1, "k2": k_2, "nt": n}
+kwarg_dict = {"k1": k_1, "k2": k_2, "nt": m}
 
 
 # plot(x_array, results)
@@ -140,7 +164,7 @@ kwarg_dict = {"k1": k_1, "k2": k_2, "nt": n}
 
 
 @njit
-def gillespie(
+def ssa(
     aj: ndarray[tuple[int], dtype[float64]],
 ) -> tuple[int, float]:
     # assert type(aj) is ndarray
@@ -176,8 +200,30 @@ def aj(
     x: ndarray[tuple[int], dtype[float64 | int_]],
 ) -> ndarray[tuple[int], dtype[float64]]:
     a_1 = k_1 * x[0]
+    # a_m1 =  k_1 * x[0] ** 2
     a_2 = k_2 * x[1]
+    # a_m2 =  k_2 * x[1] ** 2
     return array([a_1, a_2], dtype=float64)
+    # return array([a_1, a_m1, a_2, a_m2], dtype=float64)
+
+
+# @njit
+# def aj(
+#     x: ndarray[tuple[int], dtype[float64 | int_]],
+# ) -> ndarray[tuple[int], dtype[float64]]:
+#     a_1 = k_1 * x[0]
+#     # a_m1 = (k_1 / n_1) * x[0] ** 2
+#     a_m1 = k_1 * x[0] ** 2
+#     # a_m1 = (k_1 / n_1) * x[0] * (x[0] + x[1])
+#     # a_m1 = k_1 / (1 + (x[0] / n_1))
+#     a_2 = w_1 * x[0]
+#     a_3 = k_2 * x[1]
+#     # a_m3 = (k_2 / n_2) * x[1] ** 2
+#     a_m3 = k_2 * x[1] ** 2
+#     # a_m3 = (k_2 / n_2) * x[1] * (x[0] + x[1])
+#     # a_m3 = k_2 / (1 + (x[1] / n_2))
+#     a_4 = w_2 * x[1]
+#     return array([a_1, a_m1, a_2, a_3, a_m3, a_4], dtype=float64)
 
 
 ## Step function
@@ -187,8 +233,18 @@ def step_function(
 ) -> tuple[ndarray[tuple[int], dtype[float64]], ndarray[tuple[int], dtype[int_]]]:
     ## v_j
     v1 = array([-1, 1], dtype=int_)
+    vm1 = array([1, -1], dtype=int_)
     v2 = array([1, -1], dtype=int_)
-    v = [v1, v2]
+    vm2 = array([-1, 1], dtype=int_)
+    v = [v1, vm1, v2, vm2]
+
+    # v1 = array([1, 0], dtype=int_)
+    # vm1 = array([-1, 0], dtype=int_)
+    # v2 = array([-1, 0], dtype=int_)
+    # v3 = array([0, 1], dtype=int_)
+    # vm3 = array([0, -1], dtype=int_)
+    # v4 = array([1, -1], dtype=int_)
+    # v = [v1, vm1, v2, v3, vm3, v4]
 
     ## Other
     gillespie_results = empty((2, steps), dtype=int_)
@@ -200,7 +256,7 @@ def step_function(
     broke_loop = False
     for i in range(1, steps + 1):
         a_j = aj(gillespie_results[:, i - 1])
-        j, dt = gillespie(a_j)
+        j, dt = ssa(a_j)
 
         if j == -1:
             broke_loop = True
@@ -220,16 +276,16 @@ def step_function(
 
 steps = 1000000
 
-time_array_1, gillespie_results_1 = step_function(steps, array([n, 0]))
-time_array_2, gillespie_results_2 = step_function(steps, array([0, n]))
+time_array_1, gillespie_results_1 = step_function(steps, array([m, 0]))
+time_array_2, gillespie_results_2 = step_function(steps, array([0, m]))
 # time_array_2, gillespie_results_2 = step_function(steps, array([0, n]))
 
 
-if n == 1:
+if m == 1:
     max_val = log(2.022121436749997)
-elif n == 10:
+elif m == 10:
     max_val = log(674763.2054860857)
-elif n == 100:
+elif m == 100:
     max_val = log(6.367225127715182e43)
 else:
     max_val = 0
@@ -238,11 +294,6 @@ analytical_results = p_s(x_array, **kwarg_dict, max_value=max_val)
 
 
 fig, ax = subplots(2, 2, figsize=(10, 10))
-fig1, ax1 = subplots()
-fig2, ax2 = subplots()
-
-# print(boxes)
-# exit()
 
 ax[0, 0].step(time_array_1, gillespie_results_1[0, :])
 ax[0, 0].step(time_array_1, gillespie_results_1[1, :])
@@ -255,13 +306,6 @@ ax[0, 1].step(time_array_2, gillespie_results_2[1, :])
 
 ax[0, 1].set_ylim(bottom=0)
 ax[0, 1].set_xlim(left=0)
-
-# gillespie_hist11, gillespie_edges11 = histogram(gillespie_results_1[0, :])
-# gillespie_hist12, gillespie_edges12 = histogram(gillespie_results_1[1, :])
-#
-# gillespie_hist21, gillespie_edges21 = histogram(gillespie_results_2[0, :])
-# gillespie_hist22, gillespie_edges22 = histogram(gillespie_results_2[1, :])
-
 
 ax[1, 0].hist(gillespie_results_1[0, :], **hist_kwargs)
 # ax[1, 0].hist(gillespie_results_1[1, :], **hist_kwargs)
@@ -277,35 +321,37 @@ hist, edges = histogram(gillespie_results_1[0, :], bins=boxes, density=True)
 scale = hist.max()
 scaled_result = multiply(analytical_results, scale)
 
+
+show()
+
 # print(scale)
 # exit()
-ax[1, 0].plot(x_array * n, scaled_result, **curve_kwargs)
-ax[1, 1].plot(x_array * n, scaled_result, **curve_kwargs)
+# ax[1, 0].plot(x_array * n, scaled_result, **curve_kwargs)
+# ax[1, 1].plot(x_array * n, scaled_result, **curve_kwargs)
 
 
-# hist, edges = histogram(gillespie_results_1[0, :])
+# fig1, ax1 = subplots()
+# fig2, ax2 = subplots()
 #
-
-ax1.hist(gillespie_results_1[0, :], **hist_kwargs)
-
-for i, axes in enumerate([ax1, ax2]):
-    axes.set_xlim(0, n)
-    axes.set_ylim(0, hist.max() + hist.max() / 10)
-
-    axes.plot(x_array * n, scaled_result, **curve_kwargs)
-    axes.vlines([n * k[1]], 0, 1, **line_kwargs)
-
-ax2.hist(gillespie_results_2[0, :], **hist_kwargs)
-
-
-file_path = os.path.join(figure_path, file_name)
-
-
-# fig1.show()
-# fig2.show()
-
+# ax1.hist(gillespie_results_1[0, :], **hist_kwargs)
+#
+# for i, axes in enumerate([ax1, ax2]):
+#     axes.set_xlim(0, n)
+#     axes.set_ylim(0, hist.max() + hist.max() / 10)
+#
+#     axes.plot(x_array * n, scaled_result, **curve_kwargs)
+#     axes.vlines([n * k[1]], 0, 1, **line_kwargs)
+#
+# ax2.hist(gillespie_results_2[0, :], **hist_kwargs)
+#
+#
+# file_path = os.path.join(figure_env, file_name)
+#
 # show()
-#
+
+# print(file_path)
 # exit()
-fig1.savefig(file_path + "_x0_n_0" + ".pdf")
-fig2.savefig(file_path + "_x0_1_n-1" + ".pdf")
+
+# exit()
+# fig1.savefig(file_path + "_x0_n_0" + ".pdf")
+# fig2.savefig(file_path + "_x0_1_n-1" + ".pdf")

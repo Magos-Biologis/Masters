@@ -46,7 +46,7 @@ class ODEModel:
         self.dt: np.float64 = kwargs.get("dt", 0.01)
         self.t_array: np.ndarray = np.arange(*self.t_span, self.dt)
 
-    def __step_function(self, xs) -> np.ndarray:
+    def _step_function(self, xs) -> np.ndarray:
         assert type(self.p) is parameter_class, "Incorrect format of parameters"
         step = np.zeros_like(xs)
 
@@ -54,8 +54,10 @@ class ODEModel:
 
         return step
 
-    def __integrate_base_model(self):
+    def _integrate_base_model(self):
         assert type(self.ran) is range
+
+        assert type(self.init_cond) is np.ndarray
         assert len(self.init_cond) == 3
 
         # steps = np.zeros((self.m, len(self.t_array)))
@@ -64,11 +66,11 @@ class ODEModel:
 
         for j, _ in enumerate(self.t_array):
             steps[:, j] += steps[:, j - 1]
-            steps[:, j] += self.dt * self.__normal_model(steps[:, j - 1])
+            steps[:, j] += self.dt * self._normal_model(steps[:, j - 1])
 
         return self.t_array, steps
 
-    def __integrate_general_model(self):
+    def _integrate_general_model(self):
         assert type(self.ran) is range
 
         # steps = np.zeros((self.m, len(self.t_array)))
@@ -77,11 +79,11 @@ class ODEModel:
 
         for j, _ in enumerate(self.t_array):
             steps[:, j] += steps[:, j - 1]
-            steps[:, j] += self.dt * self.__general_model(steps[:, j - 1])
+            steps[:, j] += self.dt * self._general_model(steps[:, j - 1])
 
         return self.t_array, steps
 
-    def __normal_roots(self) -> np.ndarray[tuple[int], np.dtype[np.float64]]:
+    def _normal_roots(self) -> np.ndarray[tuple[int], np.dtype[np.float64]]:
         # assert type(self.p) is parameter_class
         assert type(self.p.k) is np.ndarray
         assert type(self.p.n) is np.ndarray
@@ -128,7 +130,7 @@ class ODEModel:
 
         return np.array([c1_root, c2_root])
 
-    def __normal_model(
+    def _normal_model(
         self, xs: np.ndarray[tuple[int], np.dtype[np.float64]]
     ) -> np.ndarray[tuple[int], np.dtype[np.float64]]:
         # assert (
@@ -163,7 +165,7 @@ class ODEModel:
 
         return step
 
-    def __general_model(self, xs: np.ndarray):
+    def _general_model(self, xs: np.ndarray):
         assert type(self.p.k) is np.ndarray
         assert type(self.p.n) is np.ndarray
         assert type(self.p.q) is np.ndarray
@@ -183,7 +185,7 @@ class ODEModel:
     def system(self):
         pass
 
-    def __general_no_med(self):
+    def _general_no_med(self):
         pass
 
     def show_parameters(self):
@@ -193,17 +195,17 @@ class ODEModel:
         assert type(generalized) is bool
 
         if generalized:
-            return self.__integrate_general_model()
+            return self._integrate_general_model()
         else:
-            return self.__integrate_base_model()
+            return self._integrate_base_model()
 
     def roots(self, generalized: bool = False):
         assert type(generalized) is bool
 
         if generalized:
-            return self.__normal_roots()
+            return self._normal_roots()
         else:
-            return self.__normal_roots()
+            return self._normal_roots()
 
     # def plot_system(self):
-    #     return self.__integrate_general_model()
+    #     return self._integrate_general_model()

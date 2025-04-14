@@ -75,9 +75,27 @@ def expon(x, **kwargs):
     return exp(2 * n * (x - (num1 * num2 / den)) - max_value)
 
 
+def prop_expon(x, **kwargs):
+    n = kwargs.get("nt", 1)
+    k1 = kwargs.get("k1", 1)
+    k2 = kwargs.get("k2", 1)
+    max_value = kwargs.get("max_value", 0)
+
+    num1 = 2 * k1
+    num2 = (k1 - k2) * x - k2 * log(1 + ((k1 - k2) * x) / k2)
+
+    return exp(2 * n * (x - num1 * num2) - max_value)
+
+
 # @njit
 def p_s(x, **kwargs):
     top = expon(x, **kwargs)
+    bot = B(x, **kwargs)
+    return top / bot
+
+
+def prop_p_s(x, **kwargs):
+    top = prop_expon(x, **kwargs)
     bot = B(x, **kwargs)
     return top / bot
 
@@ -107,13 +125,8 @@ kwarg_dict = {"k1": k_1, "k2": k_2, "nt": n}
 # expon_max = exp(exponential_array.max())
 
 
-results = p_s(x_array, **kwarg_dict, max_value=0)
-results2 = p_s(
-    x_array,
-    **kwarg_dict,
-    # max_value=log(expon_max),
-    # max_value=log(700000),
-)  # I got 700k from guessing
+results = p_s(x_array, **kwarg_dict)
+results2 = prop_p_s(x_array, **kwarg_dict)
 
 # kde = sps.gaussian_kde(results)
 # kde2 = sps.gaussian_kde(results2)
@@ -134,9 +147,12 @@ results2 = p_s(
 
 
 # plot(x_array, results)
-plot(x_array, results2)
 
-print(results.max())
+fig, ax = subplots()
+ax.plot(x_array, results)
+ax.plot(x_array, results2)
+
+# print(results.max()c
 
 
 xlim(0, 1)
@@ -155,6 +171,8 @@ diff_array = subtract(log(results), log(results2))
 greatest_diff = diff_array.max() - diff_array.min()
 
 print()
+print(diff_array)
+
 # print("The largest difference in the functions, proportionally, is:", greatest_diff)
 # print(diff_array)
 # print(diff_array.max(), "\t", diff_array.min())

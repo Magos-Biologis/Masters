@@ -16,14 +16,13 @@ file_name = "simulated_fpe"
 print()
 
 m: int = 75
-n = m
+n = 1000
+# n /= m
 
-# n = 1
-b = 10
-# b = 150
+# b = 0
+b = 150
 # b = 1000
 
-n /= m
 b /= m
 
 
@@ -31,7 +30,7 @@ alpha = 0
 beta = 1
 
 
-boxes = arange(0, m + 2, 1)
+boxes = arange(0, m + 1, 1)
 # boxes = n+1
 
 hist_kwargs = {
@@ -218,7 +217,9 @@ steps = 1_000_000_000
 # time_array_2, gillespie_results_2 = step_function(steps, array([1, 0], dtype=float64))
 
 time_array_1, gillespie_results_1 = step_function(steps, array([m, 0, n], dtype=float64))
-time_array_2, gillespie_results_2 = step_function(steps, array([1, 0, n], dtype=float64))
+time_array_2, gillespie_results_2 = step_function(
+    steps, array([1, 0, n - 1], dtype=float64)
+)
 
 times = [time_array_1, time_array_2]
 gillespies = [gillespie_results_1, gillespie_results_2]

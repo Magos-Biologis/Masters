@@ -71,3 +71,9 @@ hash -r 2> /dev/null
 
 # Useful project specific environment variables
 export THESIS_FIGURE_PATH="$THESIS_REPORT/images"
+
+export ODE_FIGURE_ENV="$THESIS_FIGURE_PATH/ode"
+export PHS_FIGURE_ENV="$THESIS_FIGURE_PATH/phase"
+export FPE_FIGURE_ENV="$THESIS_FIGURE_PATH/fpe"
+export MKC_FIGURE_ENV="$THESIS_FIGURE_PATH/markov"
+export SSA_FIGURE_ENV="$THESIS_FIGURE_PATH/gssa"
