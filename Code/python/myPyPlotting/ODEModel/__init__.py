@@ -12,25 +12,20 @@ class ODEModel:
         self,
         t_range: tuple[int, int],
         parameters: parameter_class | tuple[int, float, float, float, float],
-        initial_condition: list[float]
-        | np.ndarray[tuple[int], np.dtype[np.float64]]
-        | None = None,
+        initial_condition: np.ndarray[tuple[int], np.dtype[np.float64]] | None = None,
         **kwargs,
     ):
-        if (
-            type(initial_condition)
-            is list[float] | np.ndarray[tuple[int], np.dtype[np.float64]]
-        ):
-            assert type(len(initial_condition)) is int
-
         assert type(parameters) is parameter_class, "Incorrect format of parameters"
+        assert type(initial_condition) is np.ndarray, (
+            "Initial conditions should be ndarray"
+        )
 
         self.p: parameter_class = parameters
 
         self.m: int = self.p.m
         self.ran: range = (
             range(len(initial_condition))
-            if type(initial_condition) is not None
+            if initial_condition is not None
             else range(self.p.m)
         )
 
@@ -38,7 +33,7 @@ class ODEModel:
 
         self.init_cond = (
             initial_condition
-            if type(initial_condition) is not None
+            if initial_condition is not None
             else [self.n_max] + self.m * [0]
         )
 

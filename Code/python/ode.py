@@ -12,8 +12,8 @@ from matplotlib.pyplot import FuncFormatter
 # import sympy as sy
 
 # import myPyPlotting
-from myPyPlotting.ODEModel import ODEModel
-from myPyPlotting.parameter_class import parameter_class
+from myPyPlotting import ODEModel
+from myPyPlotting import parameter_class
 
 
 print("")
@@ -84,11 +84,14 @@ t_array = np.arange(0, t_end, dt)
 
 
 parameters = parameter_class(2, m_0, k, n, q, w)
-init_conds1 = [c1_0, c2_0, m_0]
+init_conds1 = np.array([c1_0, c2_0, m_0])
+model1 = ODEModel((0, t_end), parameters, init_conds1)
+
 
 ### Integration
 
-model1 = ODEModel((0, t_end), parameters, init_conds1)
+# parameters1 = parameter_class(*parameters)
+
 t_array, sol1 = model1.integrate()
 solutions = model1.roots()
 

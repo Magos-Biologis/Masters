@@ -160,17 +160,28 @@ x_array = linspace(0, 1, num=steps, endpoint=False)[1:]
 kwarg_dict = {"k1": k_1, "k2": k_2, "nt": m}
 
 
+# @njit
+# def aj(
+#     x: ndarray[tuple[int], dtype[float64 | int_]],
+# ) -> ndarray[tuple[int], dtype[float64]]:
+#     a_1 = k_1 * x[0]
+#     a_2 = k_2 * x[1]
+#     return array([a_1, a_2], dtype=float64)
+
+
 @njit
 def aj(
     x: ndarray[tuple[int], dtype[float64 | int_]],
 ) -> ndarray[tuple[int], dtype[float64]]:
-    a_1 = k_1 * x[0]
-    a_2 = k_2 * x[1]
+    a_1 = w_1 * x[0]
+    a_2 = w_2 * x[1]
 
-    # a_m1 =  k_1 * x[0] ** 2
-    # a_m2 =  k_2 * x[1] ** 2
+    a_3 = k_1 * x[0]
+    a_4 = k_2 * x[1]
+    a_m3 = k_1 / n_1 * x[0] ** 2
+    a_m4 = k_2 / n_2 * x[1] ** 2
 
-    return array([a_1, a_2], dtype=float64)
+    return array([a_1, a_2, a_3, a_m3, a_4, a_m4], dtype=float64)
 
 
 # @njit
@@ -195,55 +206,64 @@ def aj(
 ## Step function
 @njit
 def step_function(
-    steps: int, x0: ndarray[tuple[int], dtype[float64]]
+    steps: int,
+    x0: ndarray[tuple[int], dtype[float64]],
+    v: list[ndarray[tuple[int], dtype[int_]]],
 ) -> tuple[ndarray[tuple[int], dtype[float64]], ndarray[tuple[int], dtype[int_]]]:
     ## v_j
-    v1 = array([-1, 1], dtype=int_)
-    vm1 = array([1, -1], dtype=int_)
-    v2 = array([1, -1], dtype=int_)
-    vm2 = array([-1, 1], dtype=int_)
-    v = [v1, vm1, v2, vm2]
-
-    # v1 = array([1, 0], dtype=int_)
-    # vm1 = array([-1, 0], dtype=int_)
-    # v2 = array([-1, 0], dtype=int_)
-    # v3 = array([0, 1], dtype=int_)
-    # vm3 = array([0, -1], dtype=int_)
-    # v4 = array([1, -1], dtype=int_)
-    # v = [v1, vm1, v2, v3, vm3, v4]
 
     ## Other
-    gillespie_results = empty((2, steps), dtype=int_)
+    gillespie_results = empty((x0.shape[0], steps), dtype=int_)
     time_array = empty(steps, dtype=float64)
 
     gillespie_results[:, 0] = x0
-    x = x0.astype(float64)
 
-    broke_loop = False
-    for i in range(1, steps + 1):
+    for i in range(1, steps):
         a_j = aj(gillespie_results[:, i - 1])
         j, dt = dg.ssa_event(a_j)
 
         if j == -1:
-            broke_loop = True
-            final_step: int = i
             break
 
         gillespie_results[:, i] = add(gillespie_results[:, i - 1], v[j])
         time_array[i] = time_array[i - 1] + dt
 
-    if not broke_loop:
-        return time_array, gillespie_results
-    else:
-        return time_array[:final_step], gillespie_results[:, :final_step]
+    final_step: int = i
+    return time_array[:final_step], gillespie_results[:, :final_step]
 
 
 # time_array, gillespie_results = step_function(100000, x_0)
 
 steps = 1000000
 
-time_array_1, gillespie_results_1 = step_function(steps, array([m, 0]))
-time_array_2, gillespie_results_2 = step_function(steps, array([0, m]))
+
+# v1 = array([-1, 1], dtype=int_)
+# v2 = array([1, -1], dtype=int_)
+# v3 = array([1, 0], dtype=int_)
+# v4 = array([0, 1], dtype=int_)
+# vm3 = array([-1, 0], dtype=int_)
+# vm4 = array([0, -1], dtype=int_)
+# vj_4 = [v1, v2, v3, vm3, v4, vm4]
+
+v1 = array([-1, 1, 0], dtype=int_)
+v2 = array([1, -1, 0], dtype=int_)
+v3 = array([1, 0, -1], dtype=int_)
+v4 = array([0, 1, -1], dtype=int_)
+vm3 = array([-1, 0, 1], dtype=int_)
+vm4 = array([0, -1, 1], dtype=int_)
+vj_4 = [v1, v2, v3, vm3, v4, vm4]
+
+# v1 = array([-1, 1], dtype=int_)
+# v2 = array([1, -1], dtype=int_)
+# vm1 = array([1, -1], dtype=int_)
+# vm2 = array([-1, 1], dtype=int_)
+# vj_2 = [v1, vm1, v2, vm2]
+
+init1 = array([m, 0, m])
+init2 = array([0, m, m])
+
+time_array_1, gillespie_results_1 = step_function(steps, init1, vj_4)
+time_array_2, gillespie_results_2 = step_function(steps, init1, vj_4)
 # time_array_2, gillespie_results_2 = step_function(steps, array([0, n]))
 
 
