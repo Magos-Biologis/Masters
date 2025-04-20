@@ -8,6 +8,8 @@ from numba import njit
 from numba import typed as nbt
 from numba.experimental import jitclass
 
+from dataclasses import dataclass
+
 
 # spec = [
 #     ("x0", nb.float64[:]),
@@ -49,9 +51,6 @@ class ssa:
         x = self.x0.astype(np.float64)
 
         for i in range(1, self.steps):
-            # a_j: np.ndarray[tuple[int], np.dtype[np.float64]] = self.props(
-            #     self.results[:, i - 1]
-            # )
             a_j = aj(self.results[:, i - 1])
             j, dt = ssa_event(a_j)
 
@@ -64,12 +63,6 @@ class ssa:
         final_step: int = i
 
         return self.time[:final_step], self.results[:, :final_step]
-
-    # def _propensity(self, func: function) -> nb.FunctionType:
-    #     return nb.FunctionType(func)
-    #
-    # def _transitions(self, v: list) -> nbt.NumbaList:
-    #     return nbt.NumbaList(v)
 
 
 @njit
@@ -115,3 +108,107 @@ def ssa_event(
             break
 
     return j, tau
+
+
+@njit
+def aj_2S(
+    xs: np.ndarray[tuple[int], np.dtype[np.int_]],
+    k: np.ndarray[tuple[int], np.dtype[np.float64]],
+) -> np.ndarray[tuple[int], np.dtype[np.float64]]:
+    """
+    Don't forget that that function assumes the substitutions
+    k₁' := nk₁, k₂' := nk₂ , k₃' := bk₃, and k₄' := bk₄ are inside
+    of the reaction matrix k
+    """
+    x, y = xs
+    a_1 = k[0] * x
+    a_2 = k[1] * y
+    return np.array([a_1, a_2])
+
+
+@njit
+def aj_4_2(
+    xs: np.ndarray[tuple[int], np.dtype[np.int_]],
+    k: np.ndarray[tuple[int, int], np.dtype[np.float64]],
+) -> np.ndarray[tuple[int], np.dtype[np.float64]]:
+    """
+    Don't forget that that function assumes the substitutions
+    k₁' := nk₁, k₂' := nk₂ , k₃' := bk₃, and k₄' := bk₄ are inside
+    of the reaction matrix k
+    """
+    x, y = xs
+    a_1 = k[0, 0] * x
+    a_m1 = k[0, 1] * x * x
+    a_2 = k[1, 0] * x
+    a_3 = k[2, 0] * x
+    a_4 = k[3, 0] * y
+    return np.array([a_1, a_m1, a_2, a_3, a_4])
+
+
+@njit
+def aj_5_3(
+    xs: np.ndarray[tuple[int], np.dtype[np.int_]],
+    k: np.ndarray[tuple[int, int], np.dtype[np.float64]],
+) -> np.ndarray[tuple[int], np.dtype[np.float64]]:
+    """
+    Don't forget that that function assumes the substitutions
+    k₃' := k₃ * b and k₄' := k₄ * b are inside of the reaction matrix k
+    """
+    x, y, n = xs
+    a_1 = k[0, 0] * n * x
+    a_m1 = k[0, 1] * x * x
+    a_2 = k[1, 0] * n * x
+    a_3 = k[2, 0] * x
+    a_4 = k[3, 0] * y
+    a_5 = k[4, 0] * y
+    return np.array([a_1, a_m1, a_2, a_3, a_4, a_5])
+
+
+transitions = {
+    "vj_2S": [
+        np.array([-1, 1], dtype=np.int_),
+        np.array([1, -1], dtype=np.int_),
+    ],
+    "vj_4": [
+        np.array([1, 0], dtype=np.int_),
+        np.array([-1, 0], dtype=np.int_),
+        np.array([0, 1], dtype=np.int_),
+        np.array([-1, 0], dtype=np.int_),
+        np.array([0, -1], dtype=np.int_),
+    ],
+    "vj_5": [
+        np.array([1, 0, -1], dtype=np.int_),
+        np.array([-1, 0, 1], dtype=np.int_),
+        np.array([0, 1, -1], dtype=np.int_),
+        np.array([-1, 0, 1], dtype=np.int_),
+        np.array([0, -1, 1], dtype=np.int_),
+        np.array([0, -1, 1], dtype=np.int_),
+    ],
+}
+
+
+# @dataclass(frozen=True)
+# class transitions(object):
+#     vj_4: list[np.ndarray] = [
+#         np.array([1, 0], dtype=np.int_),
+#         np.array([-1, 0], dtype=np.int_),
+#         np.array([0, 1], dtype=np.int_),
+#         np.array([-1, 0], dtype=np.int_),
+#         np.array([0, -1], dtype=np.int_),
+#     ]
+
+# v1 =
+# vm1 =
+# v2 =
+# v3 =
+# v4 =
+
+# def __post_init__(self) -> None:
+#     pass
+# self.vj_4 = [self.v1, self.vm1, self.v2, self.v3, self.v4]
+
+
+# trans = transitions
+
+# print()
+# print(trans["vj_4"])

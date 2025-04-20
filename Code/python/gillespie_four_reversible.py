@@ -17,23 +17,26 @@ file_name = "simulated_fpe"
 print()
 
 m: int = 100
-n = 1500
+n = 500
 # n /= m
 
 b = 0
 # b = 150
 # b = 1000
-# b = 10000
+b = 10000
 
 b /= m + n
+# b /= m
 
 
 alpha = 0
-beta = 1
+beta = 2 * m
+# beta = 2 * m
 
 
-boxes = arange(0, m + 1, 1)
-# boxes = n+1
+boxes = arange(alpha, beta + 1, 1)
+xlims = (alpha, beta)
+
 
 hist_kwargs = {
     "bins": boxes,
@@ -65,55 +68,28 @@ k = zeros(shape=(5, 2), dtype=float64)
 
 k[0, 0] = k_1 = 1  # 0.55
 k[0, 1] = k_m1 = 1  # 0.55
-file_name += "_" + f"k1{k_1}"
 
 
 k[1, 0] = k_2 = 1
-file_name += "_" + f"k2{k_2}"
-
 k[2, 0] = k_3 = 1
-file_name += "_" + f"k3{k_3}"
-
 k[3, 0] = k_4 = 1
-file_name += "_" + f"k4{k_4}"
+k[4, 0] = k_5 = 1
 
-k[4, 0] = k_5 = 0.5
-file_name += "_" + f"k5{k_5}"
-
+k[2, 0] *= b
+k[3, 0] *= b
 
 # print(k)
 # exit()
 
 k = divide(k, m + n)
+
+
+file_name += "_" + f"k1{k_1}"
+file_name += "_" + f"k2{k_2}"
+file_name += "_" + f"k3{k_3}"
+file_name += "_" + f"k4{k_4}"
+file_name += "_" + f"k5{k_5}"
 file_name += "_" + f"n{m}"
-
-
-# @njit
-# def aj(xs: ndarray[tuple[int], dtype[float64]]) -> ndarray[tuple[int], dtype[float64]]:
-#     x = xs[0]  # - 1
-#     y = xs[1]
-#
-#     a_1 = k[0] * n * x
-#     a_m1 = k[1] * x**2
-#     a_2 = k[2] * n * x
-#     a_3 = k[3] * b * x
-#     a_4 = k[4] * b * y
-#
-#     return array([a_1, a_m1, a_2, a_3, a_4])
-
-
-@njit
-def aj(xs: ndarray[tuple[int], dtype[int_]]) -> ndarray[tuple[int], dtype[float64]]:
-    x, y, n = xs
-
-    a_1 = k[0, 0] * n * x
-    a_m1 = k[0, 1] * x**2
-    a_2 = k[1, 0] * n * x
-    a_3 = k[2, 0] * b * x
-    a_4 = k[3, 0] * b * y
-    a_5 = k[4, 0] * y
-
-    return array([a_1, a_m1, a_2, a_3, a_4, a_5])
 
 
 ## Step function
@@ -133,7 +109,7 @@ def step_function(
 
     for i in range(1, steps):
         x: ndarray[tuple[int], dtype[int_]] = gillespie_results[:, i - 1]
-        a_j = aj(x)
+        a_j = dg.aj_5_3(x, k)
         j, dt = dg.ssa_event(a_j)
 
         if j == -1:
@@ -154,29 +130,21 @@ steps = 1_000_000
 # steps = 1_000_000_000
 
 
-v1 = array([1, 0], dtype=int_)
-vm1 = array([-1, 0], dtype=int_)
-v2 = array([0, 1], dtype=int_)
-v3 = array([-1, 0], dtype=int_)
-v4 = array([0, -1], dtype=int_)
-vj_4 = [v1, vm1, v2, v3, v4]
+init1_4 = array([m, 0], dtype=float64)
+init2_4 = array([1, 0], dtype=float64)
 
 
-v1 = array([1, 0, -1], dtype=int_)
-vm1 = array([-1, 0, 1], dtype=int_)
-v2 = array([0, 1, -1], dtype=int_)
-v3 = array([-1, 0, 1], dtype=int_)
-v4 = array([0, -1, 1], dtype=int_)
-v5 = array([0, -1, 1], dtype=int_)
-vj_5 = [v1, vm1, v2, v3, v4, v5]
+init1_5 = array([m, 0, n], dtype=float64)
+init2_5 = array([1, 0, n + (m - 1)], dtype=float64)
 
+# print(dg.transitions)
+# exit()
 
-init1 = array([m, 0, n], dtype=float64)
-init2 = array([1, 0, n + (m - 1)], dtype=float64)
+# time_array_1, gillespie_results_1 = step_function(steps, init1_4, vj_4)
+# time_array_2, gillespie_results_2 = step_function(steps, init2_4, vj_4)
 
-
-time_array_1, gillespie_results_1 = step_function(steps, init1, vj_5)
-time_array_2, gillespie_results_2 = step_function(steps, init2, vj_5)
+time_array_1, gillespie_results_1 = step_function(steps, init1_5, dg.transitions["vj_5"])
+time_array_2, gillespie_results_2 = step_function(steps, init2_5, dg.transitions["vj_5"])
 
 times = [time_array_1, time_array_2]
 gillespies = [gillespie_results_1, gillespie_results_2]
@@ -214,7 +182,7 @@ ax[1, 1].hist(gillespie_results_2[0, :], **hist_kwargs, label="GCN")
 
 for aks in ant_hills:
     aks.set_ylim(bottom=0)
-    aks.set_xlim(left=0, right=m)
+    aks.set_xlim(*xlims)
 
 # hist, edges = histogram(gillespie_results_1[0, :], density=True, bins=boxes)
 # ax[1, 0].plot(x_array * m, hist.max() * results)
@@ -222,7 +190,6 @@ for aks in ant_hills:
 # ax[1, 0].plot(x_array * n, results / n)
 
 # ax[1, 1].hist(gillespie_results_1[0, :], bins=boxes, density=True)
-
 # ax[0, 1].hist2d(gillespie_results_1[0, :], gillespie_results_1[1, :], bins=(m, m))
 
 

@@ -125,6 +125,77 @@ class ODEModel:
 
         return np.array([c1_root, c2_root])
 
+    def _medless_normal_roots(self) -> np.ndarray[tuple[int], np.dtype[np.float64]]:
+        # assert type(self.p) is parameter_class
+        assert type(self.p.k) is np.ndarray
+        assert type(self.p.n) is np.ndarray
+        assert type(self.p.w) is np.ndarray
+        assert type(self.p.q) is np.ndarray
+
+        omega_1 = self.p.k[0] - self.p.w[0]
+        omega_2 = self.p.k[1] - self.p.w[1]
+
+        k_1 = self.p.k[0] / self.p.n[0]
+        k_2 = self.p.k[1] / self.p.n[1]
+
+        c1_min = self.p.w[1] / k_1
+        c2_min = self.p.w[0] / k_2
+
+        c1_max = omega_1 / k_1
+        c2_max = omega_2 / k_2
+
+        c1_coeffs = [
+            self.p.n[1] * self.p.w[1],
+            omega_1 - self.p.n[1] * (self.p.w[1] / self.p.n[0] + k_1),
+            k_1 * ((self.p.n[1] / self.p.n[0]) - 1),
+        ]
+        c2_coeffs = [
+            self.p.n[0] * self.p.w[0],
+            omega_2 - self.p.n[0] * (self.p.w[0] / self.p.n[1] + k_2),
+            k_2 * ((self.p.n[0] / self.p.n[1]) - 1),
+        ]
+
+        c1_poly = npp.Polynomial(
+            coef=c1_coeffs,
+            symbol="_c1",
+        )
+        c2_poly = npp.Polynomial(
+            coef=c2_coeffs,
+            symbol="_c2",
+        )
+
+        c1_roots = c1_poly.roots()
+        c2_roots = c2_poly.roots()
+
+        c1_root = [root for root in c1_roots if c1_min < root < c1_max]
+        c2_root = [root for root in c2_roots if c2_min < root < c2_max]
+
+        return np.array([c1_root, c2_root])
+
+    # def _medless_normal_roots(self) -> np.ndarray[tuple[int], np.dtype[np.float64]]:
+    #     # assert type(self.p) is parameter_class
+    #     assert type(self.p.k) is np.ndarray
+    #     assert type(self.p.n) is np.ndarray
+    #     assert type(self.p.w) is np.ndarray
+    #     assert type(self.p.q) is np.ndarray
+    #
+    #     omega_1 = self.p.k[0] - self.p.w[0]
+    #     omega_2 = self.p.k[1] - self.p.w[1]
+    #
+    #     k_1 = self.p.k[0] / self.p.n[0]
+    #     k_2 = self.p.k[1] / self.p.n[1]
+    #
+    #     c1_min = self.p.w[1] / k_1
+    #     c2_min = self.p.w[0] / k_2
+    #
+    #     c1_max = omega_1 / k_1
+    #     c2_max = omega_2 / k_2
+    #
+    #     c2_root = (omega_2 + self.p.w[0]) / 2 * self.p.k[1]
+    #     c1_root = self.p.n[0] * (1 - c2_root / self.p.n[1])
+    #
+    #     return np.array([c1_root, c2_root])
+
     def _normal_model(
         self, xs: np.ndarray[tuple[int], np.dtype[np.float64]]
     ) -> np.ndarray[tuple[int], np.dtype[np.float64]]:
@@ -198,9 +269,12 @@ class ODEModel:
         assert type(generalized) is bool
 
         if generalized:
-            return self._normal_roots()
+            return self._medless_normal_roots()
         else:
-            return self._normal_roots()
+            if self.p.m_0 == 0:
+                return self._medless_normal_roots()
+            else:
+                return self._normal_roots()
 
     # def plot_system(self):
     #     return self._integrate_general_model()

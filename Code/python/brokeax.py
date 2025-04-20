@@ -93,7 +93,7 @@ t_array = np.arange(0, t_end, dt)
 
 
 parameters = parameter_class(2, m_0, k, n, q, w)
-init_conds1 = [c1_0, c2_0, m_0]
+init_conds1 = np.array([c1_0, c2_0, m_0])
 
 ### Integration
 

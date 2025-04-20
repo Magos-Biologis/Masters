@@ -19,23 +19,26 @@ from myPyPlotting import parameter_class
 print("")
 
 
-figure_env = str(os.getenv("THESIS_FIGURE_PATH"))
-figure_path = os.path.join(figure_env, "ode")
+# figure_env = str(os.getenv("THESIS_FIGURE_PATH"))
+# figure_path = os.path.join(figure_env, "ode")
+
+figure_path = str(os.getenv("ODE_FIGURE_ENV"))
 
 file_name = "ode_solution"
 
 ### Variables
 # Growth Constant, same because same cell
-k = np.zeros(2)
-n = np.zeros(2)
-w = np.zeros(2)
-q = np.zeros(2)
+n = np.zeros(2, dtype=np.float64)
+
+k = np.zeros(2, dtype=np.float64)
+w = np.zeros(2, dtype=np.float64)
+q = np.zeros(2, dtype=np.float64)
 
 k[:] = 0.2
 
 # Population cap (purely aesthetic if n₁ = n₂)
-n[0] = 100.0
-n[1] = 90.0
+n[0] = 100
+n[1] = 90
 
 w[0] = 0.015
 w[1] = 0.015

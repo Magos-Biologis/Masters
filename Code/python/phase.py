@@ -14,6 +14,11 @@ from numpy import polynomial as npp
 # from numpy.polynomial import Polynomial
 from numpy import sum
 
+
+from myPyPlotting import ODEModel
+from myPyPlotting import parameter_class
+
+
 # import sympy as sy
 
 print("")
@@ -55,6 +60,19 @@ q[0] = 0.999
 q[1] = qm = 0.8
 
 
+omega_1 = k[0] - w[0]
+omega_2 = k[1] - w[1]
+
+k_1 = k[0] / n[0]
+k_2 = k[1] / n[1]
+
+c1_min = w[1] / k_1
+c2_min = w[0] / k_2
+
+c1_max = omega_1 / k_1
+c2_max = omega_2 / k_2
+
+
 alpha = 1
 c1_0 = n[0] - alpha
 c2_0 = alpha
@@ -80,77 +98,26 @@ filename_addendum = (
 file_name += filename_addendum
 
 
-pop_norm = np.sqrt(n[0] ** 2 + n[1] ** 2)
-n1_wt = n[0] / pop_norm
-n2_wt = n[1] / pop_norm
+dt = 0.01
+t_end = 250
+t_array = np.arange(0, t_end, dt)
 
-ct_1 = n[0] * ((k[0] - 1) / k[0])
-ct_2 = n[1] * ((k[1] - 1) / k[1])
+parameters = parameter_class(2, m_0, k, n, q, w)
 
-omega_1 = k[0] - w[0]
-omega_2 = k[1] - w[1]
+init_conds1 = np.array([c1_0, c2_0, m_0])
+init_conds2 = np.array([c1_0, c2_0, m_0])
 
-k_1 = k[0] / n[0]
-k_2 = k[1] / n[1]
-
-c1_min = w[1] / k_1
-c2_min = w[0] / k_2
-
-c1_max = omega_1 / k_1
-c2_max = omega_2 / k_2
+model1 = ODEModel((0, t_end), parameters, init_conds1)
+model2 = ODEModel((0, t_end), parameters, init_conds2)
 
 
-cq = sum(n) / len(n)
+### Integration
 
-M = np.array(
-    [
-        [(omega_1 - k_1 * cq), w[1]],
-        [w[0], (omega_2 - k_2 * cq)],
-    ]
-)
+# parameters1 = parameter_class(*parameters)
 
-
-trace = M[0, 0] + M[1, 1]
-det = M[0, 0] * M[1, 1] - M[0, 1] * M[1, 0]
-
-eig1 = (-trace + np.sqrt(trace**2 - 4 * det)) / 2
-eig2 = (-trace - np.sqrt(trace**2 - 4 * det)) / 2
-
-char_M1 = M - eig1 * np.identity(2)
-char_M2 = M - eig2 * np.identity(2)
-
-state_vec = np.array([w[1] / sum(w), w[0] / sum(w)]) * n
-
-## Polynomial
-
-
-c1_coeffs = [
-    n[1] * w[1],
-    omega_1 - n[1] * (w[1] / n[0] + k_1),
-    k_1 * ((n[1] / n[0]) - 1),
-]
-c2_coeffs = [
-    n[0] * w[0],
-    omega_2 - n[0] * (w[0] / n[1] + k_2),
-    k_2 * ((n[0] / n[1]) - 1),
-]
-
-c1_poly = npp.Polynomial(
-    coef=c1_coeffs,
-    symbol="_c1",
-)
-c2_poly = npp.Polynomial(
-    coef=c2_coeffs,
-    symbol="_c2",
-)
-
-
-c1_roots = c1_poly.roots()
-c2_roots = c2_poly.roots()
-
-c1_root = [root for root in c1_roots if c1_min < root < c1_max]
-c2_root = [root for root in c2_roots if c2_min < root < c2_max]
-
+t_array, sol1 = model1.integrate()
+t_array, sol2 = model1.integrate()
+c1_root, c2_root = model1.roots()
 
 ## Plotting
 
@@ -182,44 +149,6 @@ def dc2(c1, c2):
 dc1_U = dc1(c1, c2)
 dc2_V = dc2(c1, c2)
 
-
-dt = 0.01
-t_end = 250
-t_array = np.arange(0, t_end, dt)
-
-parameters = [k, w, q, n]
-
-
-cq = sum(n) / len(n)
-
-
-def step_function(xs, dt) -> np.ndarray:
-    c_1, c_2, m = xs
-    ct = c_1 + c_2
-    # ct = cq
-
-    c1_dot = (k[0] * (1 - ct / n[0]) - w[0]) * c_1 + w[1] * c_2 - q[0] * m * c_1
-    c2_dot = (k[1] * (1 - ct / n[1]) - w[1]) * c_2 + w[0] * c_1
-    m_dot = -q[1] * m * c_2 + m_0
-
-    return dt * np.array([c1_dot, c2_dot, m_dot])
-
-
-def integrate(initial, t_array):
-    steps = np.zeros((len(t_array), 3))
-    steps[0, :] = initial
-    for j, _ in enumerate(t_array):
-        steps[j, :] += steps[j - 1, :]
-        steps[j, :] += step_function(steps[j - 1, :], dt)  # print(steps[j, :])
-
-    return t_array, steps
-
-
-init_conds1 = [c1_0, c2_0, m_0]
-_, outcome1 = integrate(init_conds1, t_array)
-
-init_conds2 = [20, 30, m_0]
-_, outcome2 = integrate(init_conds2, t_array)
 
 speed = np.sqrt(dc1_U**2 + dc2_V**2)
 lw = 4 * speed / speed.max()
@@ -292,8 +221,8 @@ colors = ["b", "r"]
 
 def example_plot():
     ax.plot(
-        outcome1[:, 0],
-        outcome1[:, 1],
+        sol1[:, 0],
+        sol1[:, 1],
         color=colors[0],
         label=r"Init conds, $c_1="
         + f"{int(init_conds1[0])}"
@@ -302,11 +231,11 @@ def example_plot():
         + "$",
         alpha=sol_alpha,
     )
-    ax.scatter(outcome1[0, 0], outcome1[0, 1], color=colors[0], alpha=sol_alpha)
+    ax.scatter(sol1[0, 0], sol1[0, 1], color=colors[0], alpha=sol_alpha)
 
     ax.plot(
-        outcome2[:, 0],
-        outcome2[:, 1],
+        sol2[:, 0],
+        sol2[:, 1],
         color=colors[1],
         label=r"Init conds, $c_1="
         + f"{int(init_conds2[0])}"
@@ -315,7 +244,7 @@ def example_plot():
         + "$",
         alpha=sol_alpha,
     )
-    ax.scatter(outcome2[0, 0], outcome2[0, 1], color=colors[1], alpha=sol_alpha)
+    ax.scatter(sol2[0, 0], sol2[0, 1], color=colors[1], alpha=sol_alpha)
 
 
 ## Nullcline
@@ -472,5 +401,5 @@ ax.yaxis.set_major_formatter(FuncFormatter(y_format))
 
 
 figure_file = os.path.join(phase_path, file_name)
-plt.savefig(figure_file + ".pdf", format="pdf")
-# plt.show()
+# plt.savefig(figure_file + ".pdf", format="pdf")
+plt.show()
