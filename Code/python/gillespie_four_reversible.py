@@ -21,16 +21,17 @@ n = 500
 # n /= m
 
 b = 0
+b = 1
 # b = 150
 # b = 1000
-b = 10000
+# b = 10000
 
-b /= m + n
+# b /= m
 # b /= m
 
 
 alpha = 0
-beta = 2 * m
+beta = m
 # beta = 2 * m
 
 
@@ -64,7 +65,6 @@ line_kwargs = {
 
 
 k = zeros(shape=(5, 2), dtype=float64)
-
 
 k[0, 0] = k_1 = 1  # 0.55
 k[0, 1] = k_m1 = 1  # 0.55
@@ -109,7 +109,7 @@ def step_function(
 
     for i in range(1, steps):
         x: ndarray[tuple[int], dtype[int_]] = gillespie_results[:, i - 1]
-        a_j = dg.aj_5_3(x, k)
+        a_j = dg.aj_5_2(x, k)
         j, dt = dg.ssa_event(a_j)
 
         if j == -1:
@@ -124,18 +124,19 @@ def step_function(
 
 # time_array, gillespie_results = step_function(100000, x_0)
 
-steps = 1_000_000
+steps = 100_000
+# steps = 1_000_000
 # steps = 10_000_000
 # steps = 100_000_000
 # steps = 1_000_000_000
 
 
-init1_4 = array([m, 0], dtype=float64)
-init2_4 = array([1, 0], dtype=float64)
+init1_2 = array([m, 0], dtype=float64)
+init2_2 = array([1, 0], dtype=float64)
 
 
-init1_5 = array([m, 0, n], dtype=float64)
-init2_5 = array([1, 0, n + (m - 1)], dtype=float64)
+init1_3 = array([m, 0, n], dtype=float64)
+init2_3 = array([1, 0, n + (m - 1)], dtype=float64)
 
 # print(dg.transitions)
 # exit()
@@ -143,8 +144,12 @@ init2_5 = array([1, 0, n + (m - 1)], dtype=float64)
 # time_array_1, gillespie_results_1 = step_function(steps, init1_4, vj_4)
 # time_array_2, gillespie_results_2 = step_function(steps, init2_4, vj_4)
 
-time_array_1, gillespie_results_1 = step_function(steps, init1_5, dg.transitions["vj_5"])
-time_array_2, gillespie_results_2 = step_function(steps, init2_5, dg.transitions["vj_5"])
+time_array_1, gillespie_results_1 = step_function(
+    steps, init1_2, dg.transitions["vj_5_2"]
+)
+time_array_2, gillespie_results_2 = step_function(
+    steps, init2_2, dg.transitions["vj_5_2"]
+)
 
 times = [time_array_1, time_array_2]
 gillespies = [gillespie_results_1, gillespie_results_2]

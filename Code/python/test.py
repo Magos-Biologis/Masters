@@ -81,10 +81,15 @@ def prop_expon(x, **kwargs):
     k2 = kwargs.get("k2", 1)
     max_value = kwargs.get("max_value", 0)
 
-    num1 = 2 * k1
-    num2 = (k1 - k2) * x - k2 * log(1 + ((k1 - k2) * x) / k2)
+    if k1 != k2:
+        num1 = 2 * k1
+        num2 = (k1 - k2) * x - k2 * log(1 + ((k1 - k2) * x) / k2)
+        den = (k1 - k2) ** 2
+        res = (num1 * num2) / den
+    else:
+        res = (k1 / 2) * (x**2)
 
-    return exp(2 * n * (x - num1 * num2) - max_value)
+    return exp(2 * n * (x - res) - max_value)
 
 
 # @njit
@@ -125,31 +130,12 @@ kwarg_dict = {"k1": k_1, "k2": k_2, "nt": n}
 # expon_max = exp(exponential_array.max())
 
 
-results = p_s(x_array, **kwarg_dict)
+# results = p_s(x_array, **kwarg_dict)
 results2 = prop_p_s(x_array, **kwarg_dict)
 
-# kde = sps.gaussian_kde(results)
-# kde2 = sps.gaussian_kde(results2)
-
-# mu = results.mean()
-# sig = results.std()
-
-# mu = kde.mean()
-# sig = kde.cov()
-
-# print(mu, sig)
-# pdf = sps.norm.pdf(results, loc=mu, scale=sig)
-# pdf = sps.norm.pdf(results)
-
-# print(mean(results))
-# print(mu, std)
-# norm = sps.norm(x_array, results.mean(), results.std())
-
-
-# plot(x_array, results)
 
 fig, ax = subplots()
-ax.plot(x_array, results)
+# ax.plot(x_array, results)
 ax.plot(x_array, results2)
 
 # print(results.max()c
@@ -167,11 +153,11 @@ xlim(0, 1)
 
 show()
 
-diff_array = subtract(log(results), log(results2))
-greatest_diff = diff_array.max() - diff_array.min()
+# diff_array = subtract(log(results), log(results2))
+# greatest_diff = diff_array.max() - diff_array.min()
 
-print()
-print(diff_array)
+# print()
+# print(diff_array)
 
 # print("The largest difference in the functions, proportionally, is:", greatest_diff)
 # print(diff_array)

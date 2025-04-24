@@ -7,6 +7,7 @@ import matplotlib as mpl
 from matplotlib import pyplot as plt
 from matplotlib.pyplot import FuncFormatter, figure
 
+from mpl_toolkits import mplot3d
 
 import numpy as np
 from numpy import polynomial as npp
@@ -56,8 +57,8 @@ w[1] = 0.015
 # n[1] = 85
 
 
-q[0] = 0.999
 q[1] = qm = 0.8
+q[:] = 0.999
 
 
 omega_1 = k[0] - w[0]
@@ -76,7 +77,7 @@ c2_max = omega_2 / k_2
 alpha = 1
 c1_0 = n[0] - alpha
 c2_0 = alpha
-m_0 = 0.0
+m_0 = 10.0
 
 filename_addendum = (
     "_m0"
@@ -105,10 +106,12 @@ t_array = np.arange(0, t_end, dt)
 parameters = parameter_class(2, m_0, k, n, q, w)
 
 init_conds1 = np.array([c1_0, c2_0, m_0])
-init_conds2 = np.array([c1_0, c2_0, m_0])
+init_conds2 = np.array([c2_0, c1_0, 0])
+init_conds3 = np.array([100, 100, 100])
 
 model1 = ODEModel((0, t_end), parameters, init_conds1)
 model2 = ODEModel((0, t_end), parameters, init_conds2)
+model3 = ODEModel((0, t_end), parameters, init_conds3)
 
 
 ### Integration
@@ -116,7 +119,9 @@ model2 = ODEModel((0, t_end), parameters, init_conds2)
 # parameters1 = parameter_class(*parameters)
 
 t_array, sol1 = model1.integrate()
-t_array, sol2 = model1.integrate()
+t_array, sol2 = model2.integrate()
+t_array, sol3 = model3.integrate()
+
 c1_root, c2_root = model1.roots()
 
 ## Plotting
@@ -129,29 +134,34 @@ y_lims = 0, 100
 
 c1s = np.arange(0.1, 125, 0.5)
 c2s = np.arange(0.1, 125, 0.5)
-c1, c2 = np.meshgrid(c1s, c2s)
+ms = np.arange(0.0, m_0, 0.05)
+
+c1, c2, m = np.meshgrid(c1s, c2s, ms)
 
 
 resolution = c1.shape[0]
 c1s = np.linspace(c1_min + 0.001, c1_max - 0.001, resolution)
 c2s = np.linspace(c2_min + 0.001, c2_max - 0.001, resolution)
-m = np.linspace(0.0, m_0 + k[1], resolution)
 
 
-def dc1(c1, c2):
-    return (k[0] * (1 - (c1 + c2) / n[0]) - w[0]) * c1 + w[1] * c2
+def dc1(c1, c2, m):
+    return (k[0] * (1 - (c1 + c2) / n[0]) - w[0]) * c1 + w[1] * c2 - q[0] * m * c1
 
 
-def dc2(c1, c2):
+def dc2(c1, c2, m):
     return (k[1] * (1 - (c1 + c2) / n[1]) - w[1]) * c2 + w[0] * c1
 
 
-dc1_U = dc1(c1, c2)
-dc2_V = dc2(c1, c2)
+def dm(c1, c2, m):
+    return m_0 - q[1] * m * c2
 
 
-speed = np.sqrt(dc1_U**2 + dc2_V**2)
-lw = 4 * speed / speed.max()
+dc1_U = dc1(c1, c2, m)
+dc2_V = dc2(c1, c2, m)
+
+
+# speed = np.sqrt(dc1_U**2 + dc2_V**2)
+# lw = 4 * speed / speed.max()
 
 
 plt.rcParams.update(
@@ -168,12 +178,14 @@ plt.rcParams.update(
 )
 
 # norm = mpl.colors.Normalize(vmin=lw.min(), vmax=lw.max())
-norm = mpl.colors.LogNorm(vmin=lw.min(), vmax=lw.max())
+# norm = mpl.colors.LogNorm(vmin=lw.min(), vmax=lw.max())
 
 ### Plotting
 
 
-fig, ax = plt.subplots()
+fig = plt.figure()
+ax = plt.axes(projection="3d")
+# fig, ax = plt.subplots()
 
 plt.style.use("bmh")
 # ax.set_facecolor("#c0c0ca")
@@ -182,22 +194,35 @@ plt.style.use("bmh")
 # ax.spines["all"].set_color("white")
 
 
-ax.streamplot(
-    c1,
-    c2,
-    dc1_U,
-    dc2_V,
-    density=1.7,
-    linewidth=lw,
-    arrowstyle="->",
-    color="black",
-    # color=lw,
-    # norm=norm,
-    # cmap="gist_heat_r",
-    # arrowsize=0,
-    # density=0.7,
-    # broken_streamlines=False,
-)
+# c12, c22 = np.meshgrid(c1s, c2s)
+#
+#
+# def dc12(c1, c2):
+#     return (k[0] * (1 - (c1 + c2) / n[0]) - w[0]) * c1 + w[1] * c2
+#
+#
+# def dc22(c1, c2):
+#     return (k[1] * (1 - (c1 + c2) / n[1]) - w[1]) * c2 + w[0] * c1
+#
+#
+# dc11_U = dc12(c12, c22)
+# dc12_v = (dc22(c12, c22),)
+# ax.streamplot(
+#     c12,
+#     c22,
+#     dc11_U,
+#     dc12_v,
+#     density=1.7,
+#     linewidth=lw,
+#     arrowstyle="->",
+#     color="black",
+#     # color=lw,
+#     # norm=norm,
+#     # cmap="gist_heat_r",
+#     # arrowsize=0,
+#     # density=0.7,
+#     # broken_streamlines=False,
+# )
 
 
 ax.set_xlabel(
@@ -205,6 +230,9 @@ ax.set_xlabel(
 )
 ax.set_ylabel(
     r"$c_2$",
+)
+ax.set_zlabel(
+    r"$m$",
 )
 
 ax.set_xlim(*x_lims)
@@ -215,7 +243,7 @@ c1f = omega_1 / k_1
 c2f_b = (omega_1 - k_1 * c1f) / (w[1] - c1f)
 
 
-sol_alpha = 0.6
+sol_alpha = 0.0
 colors = ["b", "r"]
 
 
@@ -251,7 +279,7 @@ def example_plot():
 
 
 def c1_sol(c1) -> float:
-    num = -(c1 * (omega_1 - k_1 * c1))
+    num = q[0] * 0 * c1 - (c1 * (omega_1 - k_1 * c1))
     den = w[1] - k_1 * c1
     return num / den
 
@@ -264,8 +292,9 @@ def c2_sol(c2) -> float:
 
 c1_sol_array = np.arange(c1_min + 0.01, 100, 0.2)
 c2_sol_array = np.arange(c2_min + 0.01, 100, 0.2)
+m_sol_array = np.arange(0.0, m_0, 0.05)
 
-null_alpha = 0.9
+null_alpha = 0  # .9
 null_width = 2
 
 # colors = ["k", "k"]
@@ -341,21 +370,21 @@ c2_test = n[1] * (1 - c1s / n[0])
 origin = np.array([[0, 0], [0, 0]])
 extremes = np.array([[0, n[0]], [n[1], 0]])
 
-points = [[], []]
-margin = 1 / c1.shape[0]
-for i in range(c1.shape[0]):
-    for j in range(c1.shape[1]):
-        c1_norm = c1[i, j] / n[0]
-        c2_norm = c2[i, j] / n[1]
-
-        c_sum = c1_norm + c2_norm
-        # print(c_sum)
-
-        if 1 - margin <= c_sum <= 1 + margin:
-            points[0].append(c1[i, j])
-            points[1].append(c2[i, j])
-        else:
-            continue
+# points = [[], []]
+# margin = 1 / c1.shape[0]
+# for i in range(c1.shape[0]):
+#     for j in range(c1.shape[1]):
+#         c1_norm = c1[i, j] / n[0]
+#         c2_norm = c2[i, j] / n[1]
+#
+#         c_sum = c1_norm + c2_norm
+#         # print(c_sum)
+#
+#         if 1 - margin <= c_sum <= 1 + margin:
+#             points[0].append(c1[i, j])
+#             points[1].append(c2[i, j])
+#         else:
+#             continue
 
 
 # ax1.yaxis.set_ticklabels()
@@ -373,7 +402,18 @@ ax.set_yticks(new_y_ticks)
 fixed_point_tick_labels = [r"$c_1^*$", r"$c_2^*$"]
 # fixed_point_tick_labels = [r"$c_1^* =" + f"{round(c1_root[0], 2)}" + r"$", r"$c_2^* =" + f"{round(c2_root[0], 2)}" + r"$",]
 
-plot_null()
+# plot_null()
+
+
+# ax.scatter(*init_conds1)
+def plot_3d(sol, ax):
+    ax.plot3D(sol[0, :], sol[1, :], sol[2, :], label="Trajectory")
+    ax.scatter3D(sol[0, 0], sol[1, 0], sol[2, 0], color="k")
+
+
+plot_3d(sol1, ax)
+plot_3d(sol2, ax)
+plot_3d(sol3, ax)
 
 
 def x_format(val, pos):

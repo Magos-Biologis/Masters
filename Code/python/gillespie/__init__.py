@@ -1,14 +1,13 @@
 ##
 ## Stealing Jesper's code and making it into Python
 ##
-import numpy as np
+# import numpy as np
+#
+# from numba import njit
+# from dataclasses import dataclass
 
-import numba as nb
-from numba import njit
-from numba import typed as nbt
-from numba.experimental import jitclass
 
-from dataclasses import dataclass
+from gillespie.analytical import *
 
 
 # spec = [
@@ -113,21 +112,19 @@ def ssa_event(
 @njit
 def aj_2S(
     xs: np.ndarray[tuple[int], np.dtype[np.int_]],
-    k: np.ndarray[tuple[int], np.dtype[np.float64]],
+    k: np.ndarray[tuple[int, int], np.dtype[np.float64]],
 ) -> np.ndarray[tuple[int], np.dtype[np.float64]]:
     """
-    Don't forget that that function assumes the substitutions
-    k₁' := nk₁, k₂' := nk₂ , k₃' := bk₃, and k₄' := bk₄ are inside
-    of the reaction matrix k
+    For the most simple two part system
     """
     x, y = xs
-    a_1 = k[0] * x
-    a_2 = k[1] * y
+    a_1 = k[0, 0] * x
+    a_2 = k[0, 1] * y
     return np.array([a_1, a_2])
 
 
 @njit
-def aj_4_2(
+def aj_5_2(
     xs: np.ndarray[tuple[int], np.dtype[np.int_]],
     k: np.ndarray[tuple[int, int], np.dtype[np.float64]],
 ) -> np.ndarray[tuple[int], np.dtype[np.float64]]:
@@ -136,13 +133,15 @@ def aj_4_2(
     k₁' := nk₁, k₂' := nk₂ , k₃' := bk₃, and k₄' := bk₄ are inside
     of the reaction matrix k
     """
-    x, y = xs
-    a_1 = k[0, 0] * x
-    a_m1 = k[0, 1] * x * x
-    a_2 = k[1, 0] * x
-    a_3 = k[2, 0] * x
-    a_4 = k[3, 0] * y
-    return np.array([a_1, a_m1, a_2, a_3, a_4])
+    x: np.int_ = xs[0]
+    y: np.int_ = xs[1]
+    a_1: np.float64 = k[0, 0] * x
+    a_m1: np.float64 = k[0, 1] * x * x
+    a_2: np.float64 = k[1, 0] * x
+    a_3: np.float64 = k[2, 0] * x
+    a_4: np.float64 = k[3, 0] * y
+    a_5: np.float64 = k[4, 0] * y
+    return np.array([a_1, a_m1, a_2, a_3, a_4, a_5])
 
 
 @njit
@@ -169,14 +168,22 @@ transitions = {
         np.array([-1, 1], dtype=np.int_),
         np.array([1, -1], dtype=np.int_),
     ],
-    "vj_4": [
+    "vj_4_2": [
         np.array([1, 0], dtype=np.int_),
         np.array([-1, 0], dtype=np.int_),
         np.array([0, 1], dtype=np.int_),
         np.array([-1, 0], dtype=np.int_),
         np.array([0, -1], dtype=np.int_),
     ],
-    "vj_5": [
+    "vj_5_2": [
+        np.array([1, 0], dtype=np.int_),
+        np.array([-1, 0], dtype=np.int_),
+        np.array([0, 1], dtype=np.int_),
+        np.array([-1, 0], dtype=np.int_),
+        np.array([0, -1], dtype=np.int_),
+        np.array([0, -1], dtype=np.int_),
+    ],
+    "vj_5_3": [
         np.array([1, 0, -1], dtype=np.int_),
         np.array([-1, 0, 1], dtype=np.int_),
         np.array([0, 1, -1], dtype=np.int_),

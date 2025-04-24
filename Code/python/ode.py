@@ -50,8 +50,8 @@ w[1] = 0.015
 # q[0] = 0.999
 # q[1] = 0.8
 
-q[:] = 0
-m_0 = 0.0
+q[:] = 1
+m_0 = 1.0
 
 
 alpha = 0
@@ -80,8 +80,8 @@ file_name += filename_addendum
 
 dt = 0.01
 # t_end = 25
-t_end = 50
-# t_end = 150
+# t_end = 50
+t_end = 150
 t_array = np.arange(0, t_end, dt)
 # sol1 = np.zeros((len(t_array), 3))
 
@@ -155,6 +155,7 @@ for i, curve in enumerate(sol1):
         color=color,
         linestyle="dashed",
         linewidth=1,
+        alpha=0,
     )
 
     ax.plot(t_array, curve, label=curve_name, color=color)
