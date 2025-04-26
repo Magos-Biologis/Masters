@@ -3,7 +3,11 @@ import os
 
 import numba
 from numba import njit
+
 from pylab import *
+from matplotlib.backends.backend_pdf import PdfPages
+
+
 from scipy.stats import mode
 
 # from old.gillespie import gillespie
@@ -22,14 +26,20 @@ m = 100
 
 
 b = 100
-n = 100
+n = 50
 
-para_version = r"$b = n$"
-# para_version = r"$b < n$"
-# para_version = r"$b > n$"
 
-# print(boxes.shape)
-# exit()
+## Simple if else so I can be lazy and not remember to add the naming conventions
+if b == n:
+    para_version = r"$b=n$"
+elif b < n:
+    para_version = r"$b<n$"
+elif b > n:
+    para_version = r"$b>n$"
+else:
+    para_version = "null"
+    print("no numbers?")
+
 
 # margin = 0.5
 alpha = 0
@@ -55,8 +65,8 @@ curve_kwargs = {
 
 line_kwargs = {
     "linewidth": 3,
-    "alpha": 0.6,
-    "linestyle": "dashed",
+    "alpha": 0.8,
+    "linestyle": "-.",
     "color": "black",
 }
 
@@ -80,6 +90,8 @@ k[1, 0] *= n
 
 # print(k)
 # exit()
+
+x_fixed = -(k[2, 0] - k[0, 0]) / k[0, 1]
 
 k = divide(k, m)
 
@@ -241,8 +253,10 @@ grid_axes = [ax_10, ax_11, ax_20, ax_21]
 hist_axes = [ax_12, ax_22]
 
 all_axes = [*grid_axes, *hist_axes]
+
 x_axes = [ax_10, ax_20]
 y_axes = [ax_11, ax_21]
+# walk_axes = [*x_axes, *y_axes]
 
 ax_10.step(
     time_array_1,
@@ -255,6 +269,19 @@ ax_11.step(
     gillespie_results_2[0, :],
     label=r"Walk of $x$ with start [1,0]",
     color="b",
+)
+
+ax_10.step(
+    time_array_1,
+    gillespie_results_1[1, :],
+    label=r"Walk of $y$ with start [m,0]",
+    color="g",
+)
+ax_11.step(
+    time_array_2,
+    gillespie_results_2[1, :],
+    label=r"Walk of $y$ with start [1,0]",
+    color="g",
 )
 
 ax_20.step(
@@ -288,18 +315,14 @@ ax_22.hist(
 )
 
 
-for ax in x_axes:
-    ax.set_xticks([])
-    ax.set_ylim(bottom=0)
-
-for ax in y_axes:
-    ax.set_xlabel("Time")
-    ax.set_ylim(bottom=0)
-
 for ax in grid_axes:
+    ax.set_xlabel("Time", fontsize=12)
+    ax.set_ylabel("Count", fontsize=12)
+
     ax.set_xlim(left=0)
 
-    ax.set_ylabel("Count", fontsize=12)
+    ax.set_yticks([0, 30, 60, 90, 120, 150])
+    ax.set_ylim(bottom=0, top=150)
 
 for ax in hist_axes:
     # ax.plot(x_array * m, scaled_result, **curve_kwargs)
@@ -309,6 +332,8 @@ for ax in hist_axes:
     ax.set_title("Distribution of Gene Copy Number\n" + para_version)
     ax.set_xlabel("Count", fontsize=12)
     ax.set_ylabel("Density", fontsize=12)
+
+    ax.vlines([x_fixed], 0, 1, **line_kwargs, label="Analytical solution for $x$")
 
 
 # exit()
@@ -329,8 +354,10 @@ for ax in hist_axes:
 
 file_path = os.path.join(figure_env, "five_var", file_name)
 
+
 for ax in all_axes:
-    ax.legend()
+    ax.legend(loc="upper right", fontsize=10)
+
 # ax_12.legend()
 # ax_22.legend()
 
@@ -340,8 +367,8 @@ for ax in all_axes:
 
 # exit()
 
-fig1.savefig(file_path + f"_x0_{init1[0]}_y0_{init1[1]}" + ".pdf")
-fig2.savefig(file_path + f"_x0_{init2[0]}_y0_{init2[1]}" + ".pdf")
+fig1.savefig(file_path + f"_x0_{init1[0]}_y0_{init1[1]}" + para_version + ".pdf")
+# fig2.savefig(file_path + f"_x0_{init2[0]}_y0_{init2[1]}" + para_version + ".pdf")
 
 show()
 
