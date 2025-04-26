@@ -124,6 +124,20 @@ def aj_2S(
 
 
 @njit
+def aj_2L(
+    xs: np.ndarray[tuple[int], np.dtype[np.int_]],
+    k: np.ndarray[tuple[int, int], np.dtype[np.float64]],
+) -> np.ndarray[tuple[int], np.dtype[np.float64]]:
+    """
+    For a simple logistically restricted system
+    """
+    x, y = xs
+    a_1 = k[0, 0] * x
+    a_2 = k[0, 1] * y * y
+    return np.array([a_1, a_2])
+
+
+@njit
 def aj_5_2(
     xs: np.ndarray[tuple[int], np.dtype[np.int_]],
     k: np.ndarray[tuple[int, int], np.dtype[np.float64]],
@@ -165,6 +179,10 @@ def aj_5_3(
 
 transitions = {
     "vj_2S": [
+        np.array([-1, 1], dtype=np.int_),
+        np.array([1, -1], dtype=np.int_),
+    ],
+    "vj_2L": [
         np.array([-1, 1], dtype=np.int_),
         np.array([1, -1], dtype=np.int_),
     ],

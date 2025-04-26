@@ -18,7 +18,8 @@ import gillespie as dg
 figure_env = str(os.getenv("FPE_FIGURE_ENV"))
 
 
-file_name = "simulated_fpe"
+# file_name = "simulated_fpe"
+file_name = "multipage_2var_fpe_ssa"
 
 print()
 
@@ -158,19 +159,7 @@ if k_1 != k_2:
 else:
     pass
 
-steps = 500
-x_array = linspace(0, 1, num=steps, endpoint=False)[1:]
-
-# n_1 = ss.stationary(x_array, n=1)
-
-
-# ss = dg.simple_two_system(k_1, k_2, m)
-# analytical_results = ss.stationary(x_array)
-# plot(x_array, analytical_results)
-# xlim(0, 1)
-# ylim(0, 1)
-# show()
-# exit()
+x_array = linspace(0, 1, num=500, endpoint=False)[1:]
 
 
 ## Step function
@@ -179,7 +168,7 @@ def step_function(
     steps: int,
     x0: ndarray[tuple[int], dtype[float64]],
     v: list[ndarray[tuple[int], dtype[int_]]],
-) -> tuple[ndarray[tuple[int], dtype[float64]], ndarray[tuple[int], dtype[int_]]]:
+) -> tuple[ndarray[tuple[int], dtype[float64]], ndarray[tuple[int, int], dtype[int_]]]:
     ## v_j
 
     ## Other
@@ -205,6 +194,7 @@ def step_function(
 
 # time_array, gillespie_results = step_function(100000, x_0)
 
+# steps = 100
 steps = 100_000
 # steps = 1_000_000
 # steps = 10_000_000
@@ -217,105 +207,36 @@ init2 = array([0, m, m])
 
 init1 = array([m, 0])
 init2 = array([1, 0])
+# init2 = array([0, m])
 
 init_conds = [init1, init2]
 
 time_array_1, gillespie_results_1 = step_function(steps, init1, dg.transitions["vj_5_2"])
-time_array_2, gillespie_results_2 = step_function(steps, init1, dg.transitions["vj_5_2"])
+time_array_2, gillespie_results_2 = step_function(steps, init2, dg.transitions["vj_5_2"])
 
 
-# (fig,)
+fig1 = figure(figsize=(5, 2.5))
+fig2 = figure(figsize=(5, 2.5))
+fig3 = figure(figsize=(5, 5))
 
-# hist, edges = histogram(gillespie_results_1[0, :], bins=boxes, density=True)
-# scale = hist.max()
-# scaled_result = multiply(analytical_results, scale)
+ax1 = fig1.add_subplot()
+ax2 = fig2.add_subplot()
+ax3 = fig3.add_subplot()
 
-
-fig1 = figure(figsize=(10, 5))
-fig2 = figure(figsize=(10, 5))
-
-figs = [fig1, fig2]
-for fig in figs:
-    fig.suptitle("Distribution of Variables")
+figs = [fig1, fig2, fig3]
+axes = [ax1, ax2, ax3]
 
 
-ax_10 = subplot2grid((2, 2), (0, 0), fig=fig1)
-ax_11 = subplot2grid((2, 2), (1, 0), fig=fig1)
-ax_12 = subplot2grid((2, 2), (0, 1), rowspan=2, fig=fig1)
+def plot_walk(
+    ax,
+    time: ndarray[tuple[int], dtype[float64]],
+    results: ndarray[tuple[int, int], dtype[int_]],
+    color: str,
+    xstart: str = "[m,0]",
+) -> None:
+    ax.step(time, results[0, :], color=color, label=f"Walk of $x$ with start {xstart}")
+    ax.step(time, results[1, :], color="g", label=f"Walk of $y$ with start {xstart}")
 
-ax_20 = subplot2grid((2, 2), (0, 0), fig=fig2)
-ax_21 = subplot2grid((2, 2), (1, 0), fig=fig2)
-ax_22 = subplot2grid((2, 2), (0, 1), rowspan=2, fig=fig2)
-# ax_20 = subplot2grid((2, 2), (1, 0), fig=fig2)
-
-
-grid_axes = [ax_10, ax_11, ax_20, ax_21]
-hist_axes = [ax_12, ax_22]
-
-all_axes = [*grid_axes, *hist_axes]
-
-x_axes = [ax_10, ax_20]
-y_axes = [ax_11, ax_21]
-# walk_axes = [*x_axes, *y_axes]
-
-ax_10.step(
-    time_array_1,
-    gillespie_results_1[0, :],
-    label=r"Walk of $x$ with start [m,0]",
-    color="r",
-)
-ax_11.step(
-    time_array_2,
-    gillespie_results_2[0, :],
-    label=r"Walk of $x$ with start [1,0]",
-    color="b",
-)
-
-ax_10.step(
-    time_array_1,
-    gillespie_results_1[1, :],
-    label=r"Walk of $y$ with start [m,0]",
-    color="g",
-)
-ax_11.step(
-    time_array_2,
-    gillespie_results_2[1, :],
-    label=r"Walk of $y$ with start [1,0]",
-    color="g",
-)
-
-ax_20.step(
-    time_array_2,
-    gillespie_results_2[0, :],
-    label=r"Walk of $x$",
-    color="r",
-)
-
-# ax_11.step(time_array_1, gillespie_results_1[1, :], label=r"Walk of $y$", color="g")
-ax_21.step(time_array_2, gillespie_results_2[1, :], label=r"Walk of $y$", color="g")
-
-ax_12.hist(
-    gillespie_results_1[0, :],
-    **hist_kwargs,
-    label="Start Condition [m,0]",
-    color="r",
-)
-ax_12.hist(
-    gillespie_results_2[0, :],
-    **hist_kwargs,
-    label="Start Condition [1,0]",
-    color="b",
-)
-
-ax_22.hist(
-    gillespie_results_2[0, :],
-    **hist_kwargs,
-    label="Start Condition [1,0]",
-    color="r",
-)
-
-
-for ax in grid_axes:
     ax.set_xlabel("Time", fontsize=12)
     ax.set_ylabel("Count", fontsize=12)
 
@@ -324,54 +245,68 @@ for ax in grid_axes:
     ax.set_yticks([0, 30, 60, 90, 120, 150])
     ax.set_ylim(bottom=0, top=150)
 
-for ax in hist_axes:
-    # ax.plot(x_array * m, scaled_result, **curve_kwargs)
-    ax.set_xlim(xlims)
-    ax.set_ylim(bottom=0)
 
-    ax.set_title("Distribution of Gene Copy Number\n" + para_version)
-    ax.set_xlabel("Count", fontsize=12)
-    ax.set_ylabel("Density", fontsize=12)
-
-    ax.vlines([x_fixed], 0, 1, **line_kwargs, label="Analytical solution for $x$")
+plot_walk(ax1, time_array_1, gillespie_results_1, "r")
+plot_walk(ax2, time_array_2, gillespie_results_2, "b", "[1,0]")
 
 
-# exit()
-# ax[1, 0].plot(x_array * n, scaled_result, **curve_kwargs)
-# ax[1, 1].plot(x_array * n, scaled_result, **curve_kwargs)
+ax3.hist(
+    gillespie_results_1[0, :],
+    **hist_kwargs,
+    label="Start Condition [m,0]",
+    color="r",
+)
+ax3.hist(
+    gillespie_results_2[0, :],
+    **hist_kwargs,
+    label="Start Condition [1,0]",
+    color="b",
+)
+
+ax3.set_xlim(xlims)
+ax3.set_ylim(bottom=0)
+
+ax3.set_title("Distribution of Gene Copy Number\n" + para_version)
+ax3.set_xlabel("Count", fontsize=12)
+ax3.set_ylabel("Density", fontsize=12)
+
+ax3.vlines([x_fixed], 0, 1, **line_kwargs, label="Analytical solution for $x$")
 
 
-# fig1, ax1 = subplots()
-# fig2, ax2 = subplots()
-# ax1.hist(gillespie_results_1[0, :], **hist_kwargs)
-# for i, axes in enumerate([ax1, ax2]):
-#     axes.set_xlim(0, m)
-#     axes.set_ylim(0, hist.max() + hist.max() / 10)
-#     axes.plot(x_array * m, scaled_result, **curve_kwargs)
-#     axes.vlines([m * k_sols[1]], 0, 1, **line_kwargs)
-# ax2.hist(gillespie_results_2[0, :], **hist_kwargs)
-
-
-file_path = os.path.join(figure_env, "five_var", file_name)
-
-
-for ax in all_axes:
+for ax in axes:
     ax.legend(loc="upper right", fontsize=10)
 
-# ax_12.legend()
-# ax_22.legend()
+for fig in figs:
+    fig.tight_layout()
+
+file_path = os.path.join(figure_env, "five_var", file_name + "_" + para_version[1:-1])
 
 
-# print(file_path)
-# exit()
+## Taken from https://www.geeksforgeeks.org/save-multiple-matplotlib-figures-in-single-pdf-file-using-python/
+def save_image(filename):
+    # PdfPages is a wrapper around pdf
+    # file so there is no clash and create
+    # files with no error.
+    filename += ".pdf"
+    p = PdfPages(filename)
 
-# exit()
+    # get_fignums Return list of existing
+    # figure numbers
+    fig_nums = plt.get_fignums()
+    figs = [plt.figure(n) for n in fig_nums]
 
-fig1.savefig(file_path + f"_x0_{init1[0]}_y0_{init1[1]}" + para_version + ".pdf")
-# fig2.savefig(file_path + f"_x0_{init2[0]}_y0_{init2[1]}" + para_version + ".pdf")
+    # iterating over the numbers in list
+    for fig in figs:
+        # and saving the files
+        fig.savefig(p, format="pdf")
 
+    # close the object
+    p.close()
+
+
+save_image(file_path)
 show()
 
-# print(file_path + f"_x0_{init1[0]}_y0_{init1[1]}" + ".pdf")
+# fig1.savefig(file_path + f"_x0_{init1[0]}_y0_{init1[1]}" + para_version + ".pdf")
 
 exit()
