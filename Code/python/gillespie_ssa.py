@@ -21,8 +21,12 @@ print()
 m = 100
 
 
-b = 10
+b = 100
 n = 100
+
+para_version = r"$b = n$"
+# para_version = r"$b < n$"
+# para_version = r"$b > n$"
 
 # print(boxes.shape)
 # exit()
@@ -39,7 +43,7 @@ hist_kwargs = {
     "bins": boxes,
     "density": True,
     "edgecolor": "black",
-    "alpha": 0.7,
+    "alpha": 0.6,
     "align": "mid",
     # "normed": True,
 }
@@ -126,19 +130,6 @@ a_2 = 0
 
 aj_0 = array([k_1 * a_1, k_2 * a_2])
 
-
-# def aj(x):
-#     a, b = x
-#     return array([k_1 * a, k_2 * b])
-
-
-## S_j
-
-## x_0
-# x_0 = array([a_1, a_2])
-
-# print(v_vec)
-# exit()
 
 t_0 = 0
 dt = 0
@@ -256,9 +247,16 @@ y_axes = [ax_11, ax_21]
 ax_10.step(
     time_array_1,
     gillespie_results_1[0, :],
-    label=r"Walk of $x$",
+    label=r"Walk of $x$ with start [m,0]",
     color="r",
 )
+ax_11.step(
+    time_array_2,
+    gillespie_results_2[0, :],
+    label=r"Walk of $x$ with start [1,0]",
+    color="b",
+)
+
 ax_20.step(
     time_array_2,
     gillespie_results_2[0, :],
@@ -266,8 +264,8 @@ ax_20.step(
     color="r",
 )
 
-ax_11.step(time_array_1, gillespie_results_1[1, :], label=r"Walk of $y$")
-ax_21.step(time_array_2, gillespie_results_2[1, :], label=r"Walk of $y$")
+# ax_11.step(time_array_1, gillespie_results_1[1, :], label=r"Walk of $y$", color="g")
+ax_21.step(time_array_2, gillespie_results_2[1, :], label=r"Walk of $y$", color="g")
 
 ax_12.hist(
     gillespie_results_1[0, :],
@@ -275,19 +273,28 @@ ax_12.hist(
     label="Start Condition [m,0]",
     color="r",
 )
+ax_12.hist(
+    gillespie_results_2[0, :],
+    **hist_kwargs,
+    label="Start Condition [1,0]",
+    color="b",
+)
+
 ax_22.hist(
     gillespie_results_2[0, :],
     **hist_kwargs,
-    label="Start Condition [0,m]",
+    label="Start Condition [1,0]",
     color="r",
 )
 
 
 for ax in x_axes:
     ax.set_xticks([])
+    ax.set_ylim(bottom=0)
 
 for ax in y_axes:
     ax.set_xlabel("Time")
+    ax.set_ylim(bottom=0)
 
 for ax in grid_axes:
     ax.set_xlim(left=0)
@@ -299,7 +306,7 @@ for ax in hist_axes:
     ax.set_xlim(xlims)
     ax.set_ylim(bottom=0)
 
-    ax.set_title("Distribution of Gene Copy Number")
+    ax.set_title("Distribution of Gene Copy Number\n" + para_version)
     ax.set_xlabel("Count", fontsize=12)
     ax.set_ylabel("Density", fontsize=12)
 
@@ -331,11 +338,12 @@ for ax in all_axes:
 # print(file_path)
 # exit()
 
-show()
-exit()
+# exit()
 
 fig1.savefig(file_path + f"_x0_{init1[0]}_y0_{init1[1]}" + ".pdf")
 fig2.savefig(file_path + f"_x0_{init2[0]}_y0_{init2[1]}" + ".pdf")
+
+show()
 
 # print(file_path + f"_x0_{init1[0]}_y0_{init1[1]}" + ".pdf")
 
