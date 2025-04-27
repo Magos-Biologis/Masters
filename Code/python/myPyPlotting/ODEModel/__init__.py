@@ -265,7 +265,9 @@ class ODEModel:
         else:
             return self._integrate_base_model()
 
-    def roots(self, generalized: bool = False):
+    def roots(
+        self, generalized: bool = False
+    ) -> np.ndarray[tuple[int], np.dtype[np.float64]]:
         assert type(generalized) is bool
 
         if generalized:

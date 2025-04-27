@@ -2,6 +2,7 @@
 import os
 from pprint import pprint as pp
 from sys import exit
+from types import resolve_bases
 
 import matplotlib as mpl
 from matplotlib import pyplot as plt
@@ -32,6 +33,8 @@ phase_path = os.path.join(figure_env, "phase")
 file_name = "phaseplane"
 # figure_path = "./figs"
 
+
+three_d = False
 
 ### Variables
 # Growth Constant, same because same cell
@@ -104,10 +107,15 @@ t_end = 250
 t_array = np.arange(0, t_end, dt)
 
 parameters = parameter_class(2, m_0, k, n, q, w)
-
 init_conds1 = np.array([c1_0, c2_0, m_0])
 init_conds2 = np.array([c2_0, c1_0, 0])
 init_conds3 = np.array([100, 100, 100])
+
+# if three_d:
+# else:
+#     init_conds1 = np.array([c1_0, c2_0,])
+#     init_conds2 = np.array([c2_0, c1_0])
+#     init_conds3 = np.array([100, 100])
 
 model1 = ODEModel((0, t_end), parameters, init_conds1)
 model2 = ODEModel((0, t_end), parameters, init_conds2)
@@ -132,36 +140,44 @@ y_lims = 0, 100
 # x_lims = 0, 1
 # y_lims = 0, 1
 
+
 c1s = np.arange(0.1, 125, 0.5)
 c2s = np.arange(0.1, 125, 0.5)
 ms = np.arange(0.0, m_0, 0.05)
 
-c1, c2, m = np.meshgrid(c1s, c2s, ms)
+if three_d:
+    c1, c2, m = np.meshgrid(c1s, c2s, ms)
+
+    def dc1(c1, c2, m):
+        return (k[0] * (1 - (c1 + c2) / n[0]) - w[0]) * c1 + w[1] * c2 - q[0] * m * c1
+
+    def dc2(c1, c2, m):
+        return (k[1] * (1 - (c1 + c2) / n[1]) - w[1]) * c2 + w[0] * c1
+
+    def dm(c1, c2, m):
+        return m_0 - q[1] * m * c2
+
+    dc1_U = dc1(c1, c2, m)
+    dc2_V = dc2(c1, c2, m)
+else:
+    c1, c2 = np.meshgrid(c1s, c2s)
+
+    def dc1(c1, c2, m):
+        return (k[0] * (1 - (c1 + c2) / n[0]) - w[0]) * c1 + w[1] * c2 - q[0] * m * c1
+
+    def dc2(c1, c2):
+        return (k[1] * (1 - (c1 + c2) / n[1]) - w[1]) * c2 + w[0] * c1
+
+    dc1_U = dc1(c1, c2, 0)
+    dc2_V = dc2(c1, c2)
+
+    speed = np.sqrt(dc1_U**2 + dc2_V**2)
+    lw = 4 * speed / speed.max()
 
 
 resolution = c1.shape[0]
 c1s = np.linspace(c1_min + 0.001, c1_max - 0.001, resolution)
 c2s = np.linspace(c2_min + 0.001, c2_max - 0.001, resolution)
-
-
-def dc1(c1, c2, m):
-    return (k[0] * (1 - (c1 + c2) / n[0]) - w[0]) * c1 + w[1] * c2 - q[0] * m * c1
-
-
-def dc2(c1, c2, m):
-    return (k[1] * (1 - (c1 + c2) / n[1]) - w[1]) * c2 + w[0] * c1
-
-
-def dm(c1, c2, m):
-    return m_0 - q[1] * m * c2
-
-
-dc1_U = dc1(c1, c2, m)
-dc2_V = dc2(c1, c2, m)
-
-
-# speed = np.sqrt(dc1_U**2 + dc2_V**2)
-# lw = 4 * speed / speed.max()
 
 
 plt.rcParams.update(
@@ -177,21 +193,51 @@ plt.rcParams.update(
     }
 )
 
+null_kwargs = {
+    "linewidth": 0.9,
+    "alpha": 0.8,
+}
+
+fixed_kwargs = {
+    "linestyle": "--",
+    "linewidth": 0.9,
+    "alpha": 0.8,
+    "zorder": 11,
+}
+
+
 # norm = mpl.colors.Normalize(vmin=lw.min(), vmax=lw.max())
 # norm = mpl.colors.LogNorm(vmin=lw.min(), vmax=lw.max())
 
 ### Plotting
 
-
-fig = plt.figure()
-ax = plt.axes(projection="3d")
-# fig, ax = plt.subplots()
-
 plt.style.use("bmh")
-# ax.set_facecolor("#c0c0ca")
+if three_d:
+    fig = plt.figure()
+    ax = plt.axes(projection="3d")
 
-# ax.tick_params(color="white")
-# ax.spines["all"].set_color("white")
+    ax.set_zlabel(
+        r"$m$",
+    )
+else:
+    fig, ax = plt.subplots()
+
+    ax.streamplot(
+        c1,
+        c2,
+        dc1_U,
+        dc2_V,
+        density=1.7,
+        linewidth=lw,
+        arrowstyle="->",
+        color="black",
+        # color=lw,
+        # norm=norm,
+        # cmap="gist_heat_r",
+        # arrowsize=0,
+        # density=0.7,
+        # broken_streamlines=False,
+    )
 
 
 # c12, c22 = np.meshgrid(c1s, c2s)
@@ -207,32 +253,17 @@ plt.style.use("bmh")
 #
 # dc11_U = dc12(c12, c22)
 # dc12_v = (dc22(c12, c22),)
-# ax.streamplot(
-#     c12,
-#     c22,
-#     dc11_U,
-#     dc12_v,
-#     density=1.7,
-#     linewidth=lw,
-#     arrowstyle="->",
-#     color="black",
-#     # color=lw,
-#     # norm=norm,
-#     # cmap="gist_heat_r",
-#     # arrowsize=0,
-#     # density=0.7,
-#     # broken_streamlines=False,
-# )
 
+ax.set_facecolor("#c0c0ca")
+
+ax.tick_params(color="white")
+# ax.spines["all"].set_color("white")
 
 ax.set_xlabel(
     r"$c_1$",
 )
 ax.set_ylabel(
     r"$c_2$",
-)
-ax.set_zlabel(
-    r"$m$",
 )
 
 ax.set_xlim(*x_lims)
@@ -290,80 +321,60 @@ def c2_sol(c2) -> float:
     return num / den
 
 
-c1_sol_array = np.arange(c1_min + 0.01, 100, 0.2)
-c2_sol_array = np.arange(c2_min + 0.01, 100, 0.2)
+c1_sol_array = np.linspace(c1_min + 0.01, 100, resolution)
+c2_sol_array = np.linspace(c2_min + 0.01, 100, resolution)
 m_sol_array = np.arange(0.0, m_0, 0.05)
 
-null_alpha = 0  # .9
-null_width = 2
 
 # colors = ["k", "k"]
 
 
 def plot_null():
+    c1_col = "blue"
+    c2_col = "red"
+
     ax.plot(
         c2_sol(c2_sol_array),
         c2_sol_array,
         label=r"$c_1$ Nullcline",
-        color=colors[0],
-        alpha=null_alpha,
-        linewidth=null_width,
+        color=c1_col,
+        **null_kwargs,
     )
     ax.plot(
         c1_sol_array,
-        c1_sol(c1_sol_array),
+        c1_sol(c1_sol_array, c2_sol_array),
         label=r"$c_2$ Nullcline",
-        color=colors[1],
-        alpha=null_alpha,
-        linewidth=null_width,
+        color=c2_col,
+        **null_kwargs,
     )
 
     ax.vlines(
         c1_root,
         *x_lims,
-        color=colors[0],
-        linestyle="--",
-        alpha=sol_alpha,
-        zorder=11,
+        color=c1_col,
+        **fixed_kwargs,
     )
     ax.hlines(
         c2_root,
         *y_lims,
-        color=colors[1],
-        linestyle="--",
-        alpha=sol_alpha,
-        zorder=11,
+        color=c2_col,
+        **fixed_kwargs,
     )
+
+    ax.plot(c1_sol_array, -n[1] / n[0] * c1_sol_array + n[1])
 
     ax.legend(framealpha=1, loc="upper center")
 
 
-def pop_curve():
-    c1 = n[0] - m_0 * q[0]
-    c2 = n[1]
-
-    return [c1, 0], [0, c2]
+# def pop_curve():
+#     c1 = n[0] - m_0 * q[0]
+#     c2 = n[1]
+#
+#     return [c1, 0], [0, c2]
 
 
 # ax.plot(*pop_curve())
 
-# ax.plot(
-#     [n[0], 0],
-#     [0, n[1]],
-#     color="k",
-#     label="Conserved sum $c_T$",
-#     # alpha=null_alpha,
-#     linewidth=1,
-# )
-# c2_test = cq - c1s
-# ax.plot(
-#     c1s,
-#     c2_test,
-#     color="k",
-#     label="Conserved sum $c_T$",
-#     # alpha=null_alpha,
-#     linewidth=1,
-# )
 
 c2_test = n[1] * (1 - c1s / n[0])
 
@@ -402,7 +413,7 @@ ax.set_yticks(new_y_ticks)
 fixed_point_tick_labels = [r"$c_1^*$", r"$c_2^*$"]
 # fixed_point_tick_labels = [r"$c_1^* =" + f"{round(c1_root[0], 2)}" + r"$", r"$c_2^* =" + f"{round(c2_root[0], 2)}" + r"$",]
 
-# plot_null()
+#
 
 
 # ax.scatter(*init_conds1)
@@ -411,9 +422,12 @@ def plot_3d(sol, ax):
     ax.scatter3D(sol[0, 0], sol[1, 0], sol[2, 0], color="k")
 
 
-plot_3d(sol1, ax)
-plot_3d(sol2, ax)
-plot_3d(sol3, ax)
+if three_d:
+    plot_3d(sol1, ax)
+    plot_3d(sol2, ax)
+    plot_3d(sol3, ax)
+else:
+    plot_null()
 
 
 def x_format(val, pos):
