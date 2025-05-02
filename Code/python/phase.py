@@ -39,16 +39,30 @@ three_d = False
 ### Variables
 # Growth Constant, same because same cell
 k = np.zeros(2)
+k1 = np.zeros(2)
+
 n = np.zeros(2)
+n1 = np.zeros(2)
+n2 = np.zeros(2)
+
 w = np.zeros(2)
 q = np.zeros(2)
 
-k[:] = 0.2
+k[0] = 1.2
+k[1] = 0.2
+
+k1[0] = 0.6
+k1[1] = 1.2
 
 # Population cap (purely aesthetic if n₁ = n₂)
 n[0] = 100
 n[1] = 90
-# n[1] = 100
+
+n1[0] = 100
+n1[1] = 90
+
+n2[0] = 100
+n2[1] = 100
 
 w[0] = 0.015
 w[1] = 0.015
@@ -106,10 +120,15 @@ dt = 0.01
 t_end = 250
 t_array = np.arange(0, t_end, dt)
 
-parameters = parameter_class(2, m_0, k, n, q, w)
+parameters1 = parameter_class(m=2, m_0=m_0, k=k, n=n1, q=q, w=w)
+parameters2 = parameter_class(m=2, m_0=m_0, k=k1, n=n1, q=q, w=w)
+parameters3 = parameter_class(m=2, m_0=0, k=k, n=n2, q=q, w=w)
+
+
 init_conds1 = np.array([c1_0, c2_0, m_0])
 init_conds2 = np.array([c2_0, c1_0, 0])
-init_conds3 = np.array([100, 100, 100])
+init_conds3 = np.array([c1_0, c2_0, m_0])
+# init_conds3 = np.array([100, 100, 100])
 
 # if three_d:
 # else:
@@ -117,9 +136,9 @@ init_conds3 = np.array([100, 100, 100])
 #     init_conds2 = np.array([c2_0, c1_0])
 #     init_conds3 = np.array([100, 100])
 
-model1 = ODEModel((0, t_end), parameters, init_conds1)
-model2 = ODEModel((0, t_end), parameters, init_conds2)
-model3 = ODEModel((0, t_end), parameters, init_conds3)
+model1 = ODEModel((0, t_end), parameters1, init_conds1)
+model2 = ODEModel((0, t_end), parameters2, init_conds2)
+model3 = ODEModel((0, t_end), parameters3, init_conds3)
 
 
 ### Integration
@@ -342,7 +361,7 @@ def plot_null():
     )
     ax.plot(
         c1_sol_array,
-        c1_sol(c1_sol_array, c2_sol_array),
+        c1_sol(c1_sol_array),
         label=r"$c_2$ Nullcline",
         color=c2_col,
         **null_kwargs,
@@ -361,8 +380,44 @@ def plot_null():
         **fixed_kwargs,
     )
 
-    ax.plot(c1_sol_array, -n[1] / n[0] * c1_sol_array + n[1])
+    # ax.plot(
+    #     c1_sol_array,
+    #     (1 - c1_sol_array / n[0]) * n[1],
+    #     zorder=12,
+    #     label=r"$c_2 = n_2 \left(1 - \frac{c_1}{n_1}\right)$",
+    #     color="seagreen",
+    # )
+    # ax.plot(
+    #     c1_sol_array,
+    #     (k[0] / k[1] - c1_sol_array / n[0]) * n[1],
+    #     zorder=12,
+    #     label=r"$c_2 = n_2 \left(\frac{k_1}{k_2} - \frac{c_1}{n_1}\right)$",
+    #     color="firebrick",
+    # )
+    # ax.plot(
+    #     c1_sol_array,
+    #     (k[1] / k[0] - c1_sol_array / n[0]) * n[1],
+    #     zorder=12,
+    #     label=r"$c_2 = n_2 \left(\frac{k_2}{k_1} - \frac{c_1}{n_1}\right)$",
+    #     color="navy",
+    # )
 
+    ax.plot(
+        c1_sol_array,
+        (1 - c1_sol_array * k[0] / n[0]) * n[1] / k[1],
+        zorder=12,
+        label=r"$c_2 = \frac{n_2}{k_2} \left(1 - \frac{k_1 c_1}{n_1}\right)$",
+        color="indigo",
+    )
+    ax.plot(
+        c1_sol_array,
+        (1 - c1_sol_array / (n[0] * k[0])) * k[0] * n[1],
+        zorder=12,
+        label=r"$c_2 = k_2 n_2 \left(1 - \frac{c_1}{k_1 n_1}\right)$",
+        color="firebrick",
+    )
+
+    ax.plot([0, n[0]], [n[1], 0], label="ratio", color="hotpink", alpha=0.5)
     ax.legend(framealpha=1, loc="upper center")
 
 
@@ -371,9 +426,6 @@ def plot_null():
 #     c2 = n[1]
 #
 #     return [c1, 0], [0, c2]
-
-
-# ax.plot(*pop_curve())
 
 
 c2_test = n[1] * (1 - c1s / n[0])
@@ -454,6 +506,12 @@ ax.yaxis.set_major_formatter(FuncFormatter(y_format))
 # plt.tight_layout()
 
 
+print(sol1[:, -1])
+print(sol2[:, -1])
+print(sol3[:, -1])
+
+
 figure_file = os.path.join(phase_path, file_name)
+
 # plt.savefig(figure_file + ".pdf", format="pdf")
 plt.show()

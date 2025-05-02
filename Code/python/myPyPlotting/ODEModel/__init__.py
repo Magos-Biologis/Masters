@@ -278,5 +278,8 @@ class ODEModel:
             else:
                 return self._normal_roots()
 
+    def nullclines(self) -> np.ndarray[tuple[int, int], np.dtype[np.float64]]:
+        return np.empty(shape=(2, 2))
+
     # def plot_system(self):
     #     return self._integrate_general_model()

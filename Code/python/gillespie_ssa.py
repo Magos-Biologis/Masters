@@ -1,7 +1,11 @@
-#!./.venv/bin/python
+#!../.venv/bin/python3
 import os
 
-import numba
+##
+# os.sched_setaffinity(0, {3})
+
+# import numba
+import numpy as np
 from numba import njit
 
 from pylab import *
@@ -12,6 +16,8 @@ from scipy.stats import mode
 
 # from old.gillespie import gillespie
 import gillespie as dg
+from gillespie import propensities as dgp
+from gillespie import steppers as dgs
 
 import myPyPlotting as mpp
 # from myPyPlotting import ODEModel
@@ -34,10 +40,11 @@ alpha = 0
 beta = m
 
 
+b = 800
 b = 1
-n = u = beta
+n = 100
 
-is_ode = True
+is_ode = False
 
 ks = np.empty(shape=2)
 ns = np.empty(shape=2)
@@ -50,8 +57,8 @@ ks[0] = k_1 = 1
 ks[1] = k_2 = 1
 ns[0] = n_1 = 100
 ns[1] = n_2 = 80
-ws[0] = w_1 = 0.015
-ws[1] = w_2 = 0.015
+ws[0] = w_1 = 0.15
+ws[1] = w_2 = 0.15
 
 qs[0] = q_1 = 0.85
 qs[1] = q_2 = 0.85
@@ -69,8 +76,8 @@ else:
     print("no numbers?")
 
 
-init1 = array([m - 1, 1], dtype=int_)
-init2 = array([1, m - 1], dtype=int_)
+init1 = array([m / 2 - 1, 1, m / 2], dtype=int_)[0:2]
+init2 = array([1, m / 2 - 1, m / 2], dtype=int_)[0:2]
 
 
 boxes = arange(alpha, beta + 1, 1, dtype=np.int_)
@@ -143,12 +150,9 @@ else:
     k[0, :] = ks[:]
     k[0, :] *= u
 
-    k[1, :] = ks[:]
-
-    k[2, :] = ns[:]
-    # k[2, :] *= beta
-
-    k[3, :] = ws[:]
+    k[1, :] = ks
+    k[2, :] = ks / ns
+    k[3, :] = ws
 
     addons = [
         f"num{m}",
@@ -210,43 +214,52 @@ x_array = linspace(0, 1, num=500, endpoint=False)[1:]
 
 
 ## Step function
-@njit
-def step_function(
-    steps: int,
-    x0: ndarray[tuple[int], dtype[int_]],
-    v: list[ndarray[tuple[int], dtype[int_]]],
-) -> tuple[ndarray[tuple[int], dtype[float64]], ndarray[tuple[int, int], dtype[int_]]]:
-    ## v_j
-
-    ## Other
-    gillespie_results = empty((len(x0), steps), dtype=int_)
-    time_array = empty(steps, dtype=float64)
-
-    gillespie_results[:, 0] = x0
-
-    for i in range(1, steps):
-        x: ndarray[tuple[int], dtype[int_]] = gillespie_results[:, i - 1]
-        a_j: ndarray[tuple[int], dtype[float64]] = dg.ode_2_aj(x, divide(k, m))
-        j, dt = dg.ssa_event(a_j)
-
-        if j == -1:
-            break
-
-        gillespie_results[:, i] = add(gillespie_results[:, i - 1], v[j])
-        time_array[i] = time_array[i - 1] + dt
-
-    final_step: int = i
-    return time_array[:final_step], gillespie_results[:, :final_step]
 
 
 # time_array, gillespie_results = step_function(100000, x_0)
 
 # steps = 100
-steps = 100_000
+# steps = 100_000
 # steps = 1_000_000
 # steps = 10_000_000
-# steps = 100_000_000
+steps = 100_000_000
 # steps = 1_000_000_000
+
+
+@njit
+def step_function_5_3(
+    steps: int | np.int_,
+    x0: np.ndarray[tuple[int], np.dtype[np.int_]],
+    v: list[np.ndarray[tuple[int], np.dtype[np.int_]]],
+    # k: np.ndarray[tuple[int, int], np.dtype[np.float64]],
+) -> tuple[
+    np.ndarray[tuple[int], np.dtype[np.float64]],
+    np.ndarray[tuple[int, int], np.dtype[np.int_]],
+]:
+    ## v_j
+    # m: int = np.sum(x0, dtype=int)
+    scaled_k: np.ndarray[tuple[int, int], np.dtype[np.float64]] = np.divide(k, m)
+
+    ## Other
+    gillespie_results = np.empty((len(x0), steps), dtype=np.int_)
+    time_array = np.empty(steps, dtype=np.float64)
+
+    gillespie_results[:, 0] = x0
+
+    for i in range(1, steps):
+        x: np.ndarray[tuple[int], np.dtype[np.int_]] = gillespie_results[:, i - 1]
+        a_j: np.ndarray[tuple[int], np.dtype[np.float64]] = dgp.aj_5_2(x, scaled_k)
+        j, dt = dg.ssa_event(a_j)
+
+        if j == -1:
+            break
+
+        gillespie_results[:, i] = np.add(gillespie_results[:, i - 1], v[j])
+        time_array[i] = time_array[i - 1] + dt
+
+    final_step: int = i
+    # print(final_step)
+    return time_array[:final_step], gillespie_results[:, :final_step]
 
 
 # init1 = array([m, 0])
@@ -255,12 +268,41 @@ steps = 100_000
 
 init_conds = [init1, init2]
 
-time_array_1, gillespie_results_1 = step_function(
-    steps, init1, dg.transitions["ode_2_vj"]
-)
-time_array_2, gillespie_results_2 = step_function(
-    steps, init2, dg.transitions["ode_2_vj"]
-)
+import time
+
+# time_array_1, gillespie_results_1 = steppy.step_function(steps)
+
+model: str = "5_2"
+
+
+transitions = dgp.transitions["vj_" + model]
+steppy1 = dgs.ssa_stepper(init1, k)  # transitions, k)
+steppy2 = dgs.ssa_stepper(init2, k)  # , transitions
+
+t0_1 = time.time()
+time_array_1, gillespie_results_1 = steppy1.step_function(model, steps)
+t1_1 = time.time()
+
+# time_array_1, gillespie_results_1 = dgs.step_function_5_3(
+#     steps, init1, transitions, k
+# )  # ,k)
+
+
+# exit()
+
+t0_2 = time.time()
+time_array_1, gillespie_results_1 = steppy2.step_function(model, steps)
+t1_2 = time.time()
+# time_array_2, gillespie_results_2 = dgs.step_function_5_3(
+#     steps, init2, transitions, k
+# )  # ,k)
+
+
+print()
+print("Class execution time: ", t1_1 - t0_1)
+print("Standalone function execution time: ", t1_2 - t0_2)
+
+exit()
 
 
 fig1 = figure(figsize=(5, 2.5))
