@@ -1,7 +1,7 @@
 import os
 import itertools
 
-from myPyPlotting.parameter_class import parameter_class
+from myodestuff.parameter_class import parameter_class
 
 import numpy as np
 from numpy import polynomial as npp

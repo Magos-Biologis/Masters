@@ -19,7 +19,7 @@ import gillespie as dg
 from gillespie import propensities as dgp
 from gillespie import steppers as dgs
 
-import myPyPlotting as mpp
+import myodestuff as mpp
 # from myPyPlotting import ODEModel
 
 
@@ -226,46 +226,6 @@ steps = 100_000_000
 # steps = 1_000_000_000
 
 
-@njit
-def step_function_5_3(
-    steps: int | np.int_,
-    x0: np.ndarray[tuple[int], np.dtype[np.int_]],
-    v: list[np.ndarray[tuple[int], np.dtype[np.int_]]],
-    # k: np.ndarray[tuple[int, int], np.dtype[np.float64]],
-) -> tuple[
-    np.ndarray[tuple[int], np.dtype[np.float64]],
-    np.ndarray[tuple[int, int], np.dtype[np.int_]],
-]:
-    ## v_j
-    # m: int = np.sum(x0, dtype=int)
-    scaled_k: np.ndarray[tuple[int, int], np.dtype[np.float64]] = np.divide(k, m)
-
-    ## Other
-    gillespie_results = np.empty((len(x0), steps), dtype=np.int_)
-    time_array = np.empty(steps, dtype=np.float64)
-
-    gillespie_results[:, 0] = x0
-
-    for i in range(1, steps):
-        x: np.ndarray[tuple[int], np.dtype[np.int_]] = gillespie_results[:, i - 1]
-        a_j: np.ndarray[tuple[int], np.dtype[np.float64]] = dgp.aj_5_2(x, scaled_k)
-        j, dt = dg.ssa_event(a_j)
-
-        if j == -1:
-            break
-
-        gillespie_results[:, i] = np.add(gillespie_results[:, i - 1], v[j])
-        time_array[i] = time_array[i - 1] + dt
-
-    final_step: int = i
-    # print(final_step)
-    return time_array[:final_step], gillespie_results[:, :final_step]
-
-
-# init1 = array([m, 0])
-# init2 = array([1, 0])
-# init2 = array([0, m])
-
 init_conds = [init1, init2]
 
 import time
@@ -280,28 +240,20 @@ model: str = "5_2"
 steppy1 = dgs.ssa_stepper(model, init1, k)  # transitions, k)
 steppy2 = dgs.ssa_stepper(model, init2, k)  # , transitions
 
+print()
+
 t0_1 = time.time()
 time_array_1, gillespie_results_1 = steppy1.step_function(steps)
 t1_1 = time.time()
 
-# time_array_1, gillespie_results_1 = dgs.step_function_5_3(
-#     steps, init1, transitions, k
-# )  # ,k)
-
-
-# exit()
+print("Stepper one done \n\tTime taken: ", t1_1 - t0_1)
 
 t0_2 = time.time()
-time_array_1, gillespie_results_1 = steppy2.step_function(steps)
+time_array_2, gillespie_results_2 = steppy2.step_function(steps)
 t1_2 = time.time()
-# time_array_2, gillespie_results_2 = dgs.step_function_5_3(
-#     steps, init2, transitions, k
-# )  # ,k)
 
+print("Stepper two done \n\tTime taken: ", t1_2 - t0_2)
 
-print()
-print("Class execution time: ", t1_1 - t0_1)
-print("Standalone function execution time: ", t1_2 - t0_2)
 
 exit()
 

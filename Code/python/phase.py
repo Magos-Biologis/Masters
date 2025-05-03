@@ -17,13 +17,8 @@ from numpy import polynomial as npp
 from numpy import sum
 
 
-from myPyPlotting import ODEModel
-from myPyPlotting import parameter_class
-
-
-# import sympy as sy
-
-print("")
+from myodestuff import ODEModel
+from myodestuff import parameter_class
 
 
 figure_env = str(os.getenv("THESIS_FIGURE_PATH"))
@@ -94,7 +89,7 @@ c2_max = omega_2 / k_2
 alpha = 1
 c1_0 = n[0] - alpha
 c2_0 = alpha
-m_0 = 10.0
+m_0: int = 10
 
 filename_addendum = (
     "_m0"
@@ -164,34 +159,44 @@ c1s = np.arange(0.1, 125, 0.5)
 c2s = np.arange(0.1, 125, 0.5)
 ms = np.arange(0.0, m_0, 0.05)
 
-if three_d:
-    c1, c2, m = np.meshgrid(c1s, c2s, ms)
 
-    def dc1(c1, c2, m):
-        return (k[0] * (1 - (c1 + c2) / n[0]) - w[0]) * c1 + w[1] * c2 - q[0] * m * c1
+c1, c2, m = np.meshgrid(c1s, c2s, ms)
 
-    def dc2(c1, c2, m):
-        return (k[1] * (1 - (c1 + c2) / n[1]) - w[1]) * c2 + w[0] * c1
 
-    def dm(c1, c2, m):
-        return m_0 - q[1] * m * c2
+# print(c1[0, :, 0])
+# exit()
 
-    dc1_U = dc1(c1, c2, m)
-    dc2_V = dc2(c1, c2, m)
-else:
-    c1, c2 = np.meshgrid(c1s, c2s)
 
-    def dc1(c1, c2, m):
-        return (k[0] * (1 - (c1 + c2) / n[0]) - w[0]) * c1 + w[1] * c2 - q[0] * m * c1
+def vector_space(c1, c2, m):
+    dc1 = (k[0] * (1 - (c1 + c2) / n[0]) - w[0]) * c1 + w[1] * c2 - q[0] * m * c1
+    dc2 = (k[1] * (1 - (c1 + c2) / n[1]) - w[1]) * c2 + w[0] * c1
+    dm = m_0 - q[1] * m * c2
 
-    def dc2(c1, c2):
-        return (k[1] * (1 - (c1 + c2) / n[1]) - w[1]) * c2 + w[0] * c1
+    return (dc1, dc2, dm)
 
-    dc1_U = dc1(c1, c2, 0)
-    dc2_V = dc2(c1, c2)
 
-    speed = np.sqrt(dc1_U**2 + dc2_V**2)
-    lw = 4 * speed / speed.max()
+vector_field = vector_space(c1, c2, m)
+
+dU = vector_field[0]
+dV = vector_field[1]
+dW = vector_field[2]
+
+
+speed = np.sqrt(dU[:, :, 0] ** 2 + dV[:, :, 0] ** 2)
+lw = 4 * speed / speed.max()
+
+stream_kwargs = {
+    "density": 1.7,
+    "linewidth": lw,
+    "arrowstyle": "->",
+    "color": "black",
+    # "color":lw,
+    # "norm":norm,
+    # "cmap":"gist_heat_r",
+    # "arrowsize":0,
+    # "density":0.7,
+    # "broken_streamlines":False,
+}
 
 
 resolution = c1.shape[0]
@@ -203,9 +208,9 @@ plt.rcParams.update(
     {
         "axes.labelsize": 20,
         "axes.titleweight": "bold",
-        # "axes.titlecolor": "white",
         "xtick.labelsize": 15,
         "ytick.labelsize": 15,
+        # "axes.titlecolor": "white",
         # "xtick.labelcolor": "white",
         # "ytick.labelcolor": "white",
         # "savefig.facecolor": "#c0c0ca",
@@ -213,7 +218,7 @@ plt.rcParams.update(
 )
 
 null_kwargs = {
-    "linewidth": 0.9,
+    "linewidth": 1.2,
     "alpha": 0.8,
 }
 
@@ -231,6 +236,7 @@ fixed_kwargs = {
 ### Plotting
 
 plt.style.use("bmh")
+
 if three_d:
     fig = plt.figure()
     ax = plt.axes(projection="3d")
@@ -241,37 +247,8 @@ if three_d:
 else:
     fig, ax = plt.subplots()
 
-    ax.streamplot(
-        c1,
-        c2,
-        dc1_U,
-        dc2_V,
-        density=1.7,
-        linewidth=lw,
-        arrowstyle="->",
-        color="black",
-        # color=lw,
-        # norm=norm,
-        # cmap="gist_heat_r",
-        # arrowsize=0,
-        # density=0.7,
-        # broken_streamlines=False,
-    )
+    ax.streamplot(c1[:, :, 0], c2[:, :, 0], dU[:, :, 0], dV[:, :, 0], **stream_kwargs)
 
-
-# c12, c22 = np.meshgrid(c1s, c2s)
-#
-#
-# def dc12(c1, c2):
-#     return (k[0] * (1 - (c1 + c2) / n[0]) - w[0]) * c1 + w[1] * c2
-#
-#
-# def dc22(c1, c2):
-#     return (k[1] * (1 - (c1 + c2) / n[1]) - w[1]) * c2 + w[0] * c1
-#
-#
-# dc11_U = dc12(c12, c22)
-# dc12_v = (dc22(c12, c22),)
 
 ax.set_facecolor("#c0c0ca")
 
@@ -328,21 +305,23 @@ def example_plot():
 ## Nullcline
 
 
-def c1_sol(c1) -> float:
+def c1_sol(c1):
     num = q[0] * 0 * c1 - (c1 * (omega_1 - k_1 * c1))
     den = w[1] - k_1 * c1
     return num / den
 
 
-def c2_sol(c2) -> float:
+def c2_sol(c2):
     num = -(c2 * (omega_2 - k_2 * c2))
     den = w[0] - k_2 * c2
     return num / den
 
 
-c1_sol_array = np.linspace(c1_min + 0.01, 100, resolution)
-c2_sol_array = np.linspace(c2_min + 0.01, 100, resolution)
-m_sol_array = np.arange(0.0, m_0, 0.05)
+dx = 0.01
+
+c1_sol_array = np.linspace(c1_min + dx, 100, resolution)
+c2_sol_array = np.linspace(c2_min + dx, 100, resolution)
+m_sol_array = np.linspace(0.0, m_0 + dx, resolution, endpoint=True)
 
 
 # colors = ["k", "k"]
@@ -353,6 +332,8 @@ def plot_null():
     c2_col = "red"
 
     ax.plot(
+        # c2_sol(c2)[0, :, 0],
+        # c2[:, 0, 0],
         c2_sol(c2_sol_array),
         c2_sol_array,
         label=r"$c_1$ Nullcline",
@@ -360,6 +341,8 @@ def plot_null():
         **null_kwargs,
     )
     ax.plot(
+        # c1[0, :, 0],
+        # c1_sol(c1, m)[:, 0, 0],
         c1_sol_array,
         c1_sol(c1_sol_array),
         label=r"$c_2$ Nullcline",
@@ -382,43 +365,21 @@ def plot_null():
 
     # ax.plot(
     #     c1_sol_array,
-    #     (1 - c1_sol_array / n[0]) * n[1],
+    #     (1 - c1_sol_array * k[0] / n[0]) * n[1] / k[1],
     #     zorder=12,
-    #     label=r"$c_2 = n_2 \left(1 - \frac{c_1}{n_1}\right)$",
-    #     color="seagreen",
+    #     label=r"$c_2 = \frac{n_2}{k_2} \left(1 - \frac{k_1 c_1}{n_1}\right)$",
+    #     color="indigo",
     # )
     # ax.plot(
     #     c1_sol_array,
-    #     (k[0] / k[1] - c1_sol_array / n[0]) * n[1],
+    #     (1 - c1_sol_array / (n[0] * k[0])) * k[0] * n[1],
     #     zorder=12,
-    #     label=r"$c_2 = n_2 \left(\frac{k_1}{k_2} - \frac{c_1}{n_1}\right)$",
+    #     label=r"$c_2 = k_2 n_2 \left(1 - \frac{c_1}{k_1 n_1}\right)$",
     #     color="firebrick",
     # )
-    # ax.plot(
-    #     c1_sol_array,
-    #     (k[1] / k[0] - c1_sol_array / n[0]) * n[1],
-    #     zorder=12,
-    #     label=r"$c_2 = n_2 \left(\frac{k_2}{k_1} - \frac{c_1}{n_1}\right)$",
-    #     color="navy",
-    # )
 
-    ax.plot(
-        c1_sol_array,
-        (1 - c1_sol_array * k[0] / n[0]) * n[1] / k[1],
-        zorder=12,
-        label=r"$c_2 = \frac{n_2}{k_2} \left(1 - \frac{k_1 c_1}{n_1}\right)$",
-        color="indigo",
-    )
-    ax.plot(
-        c1_sol_array,
-        (1 - c1_sol_array / (n[0] * k[0])) * k[0] * n[1],
-        zorder=12,
-        label=r"$c_2 = k_2 n_2 \left(1 - \frac{c_1}{k_1 n_1}\right)$",
-        color="firebrick",
-    )
-
-    ax.plot([0, n[0]], [n[1], 0], label="ratio", color="hotpink", alpha=0.5)
-    ax.legend(framealpha=1, loc="upper center")
+    # ax.plot([0, n[0]], [n[1], 0], label="ratio", color="hotpink", alpha=0.5)
+    ax.legend(framealpha=1, loc="upper right")
 
 
 # def pop_curve():

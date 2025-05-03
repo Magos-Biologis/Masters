@@ -15,7 +15,6 @@ class ssa_stepper:
         variation: str,
         x0: np.ndarray[tuple[int], np.dtype[np.int_]],
         k: np.ndarray[tuple[int, int], np.dtype[np.float64]],
-        # v: list[np.ndarray[tuple[int], np.dtype[np.int_]]],
     ) -> None:
         self.sub_module = self.step_module + ".step_function_" + variation
         self.state_changes = self.vj["vj_" + variation]

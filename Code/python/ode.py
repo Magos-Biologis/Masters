@@ -11,9 +11,9 @@ from matplotlib import pyplot as plt
 from matplotlib.pyplot import FuncFormatter
 # import sympy as sy
 
-# import myPyPlotting
-from myPyPlotting import ODEModel
-from myPyPlotting import parameter_class
+# import myodestuff
+from myodestuff import ODEModel
+from myodestuff import parameter_class
 
 
 print("")
