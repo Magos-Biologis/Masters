@@ -71,7 +71,7 @@ def aj_5_3(
 
 
 @njit
-def ode_2_aj(
+def aj_ode_2(
     cs: np.ndarray[tuple[int], np.dtype[np.int_]],
     k: np.ndarray[tuple[int, int], np.dtype[np.float64]],
     # ks: np.ndarray[tuple[int], np.dtype[np.float64]],
@@ -106,7 +106,7 @@ def ode_2_aj(
 
 
 @njit
-def ode_2_2_aj(
+def aj_ode_2_2(
     cs: np.ndarray[tuple[int], np.dtype[np.int_]],
     k: np.ndarray[tuple[int, int], np.dtype[np.float64]],
     # ks: np.ndarray[tuple[int], np.dtype[np.float64]],
@@ -138,7 +138,7 @@ def ode_2_2_aj(
 
 
 @njit
-def ode_3_aj(
+def aj_ode_3(
     cs: np.ndarray[tuple[int], np.dtype[np.int_]],
     k: np.ndarray[tuple[int, int], np.dtype[np.float64]],
 ) -> np.ndarray[tuple[int], np.dtype[np.float64]]:

@@ -1,7 +1,7 @@
 import numpy as np
 
 transitions: dict[str, list[np.ndarray[tuple[int], np.dtype[np.int_]]]] = {
-    "ode_2_vj": [
+    "vj_ode_2": [
         np.array([1, 0], dtype=np.int_),
         np.array([-1, 0], dtype=np.int_),
         np.array([0, 1], dtype=np.int_),
@@ -9,7 +9,7 @@ transitions: dict[str, list[np.ndarray[tuple[int], np.dtype[np.int_]]]] = {
         np.array([-1, 1], dtype=np.int_),
         np.array([1, -1], dtype=np.int_),
     ],
-    "ode_2_2_vj": [
+    "vj_ode_2_2": [
         np.array([1, 0], dtype=np.int_),
         np.array([-1, 0], dtype=np.int_),
         np.array([0, 1], dtype=np.int_),
@@ -17,7 +17,7 @@ transitions: dict[str, list[np.ndarray[tuple[int], np.dtype[np.int_]]]] = {
         np.array([-1, 1], dtype=np.int_),
         np.array([1, -1], dtype=np.int_),
     ],
-    "ode_3_vj": [
+    "vj_ode_3": [
         np.array([1, 0, -1], dtype=np.int_),
         np.array([-1, 0, 1], dtype=np.int_),
         np.array([0, 1, -1], dtype=np.int_),
@@ -25,7 +25,7 @@ transitions: dict[str, list[np.ndarray[tuple[int], np.dtype[np.int_]]]] = {
         np.array([-1, 1, 0], dtype=np.int_),
         np.array([1, -1, 0], dtype=np.int_),
     ],
-    "ode_m_3_vj": [
+    "vj_ode_m_3": [
         np.array([1, 0, -1], dtype=np.int_),
         np.array([-1, 0, 1], dtype=np.int_),
         np.array([0, 1, -1], dtype=np.int_),

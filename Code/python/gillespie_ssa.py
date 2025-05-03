@@ -275,12 +275,13 @@ import time
 model: str = "5_2"
 
 
-transitions = dgp.transitions["vj_" + model]
-steppy1 = dgs.ssa_stepper(init1, k)  # transitions, k)
-steppy2 = dgs.ssa_stepper(init2, k)  # , transitions
+# transitions = dgp.transitions["vj_" + model]
+
+steppy1 = dgs.ssa_stepper(model, init1, k)  # transitions, k)
+steppy2 = dgs.ssa_stepper(model, init2, k)  # , transitions
 
 t0_1 = time.time()
-time_array_1, gillespie_results_1 = steppy1.step_function(model, steps)
+time_array_1, gillespie_results_1 = steppy1.step_function(steps)
 t1_1 = time.time()
 
 # time_array_1, gillespie_results_1 = dgs.step_function_5_3(
@@ -291,7 +292,7 @@ t1_1 = time.time()
 # exit()
 
 t0_2 = time.time()
-time_array_1, gillespie_results_1 = steppy2.step_function(model, steps)
+time_array_1, gillespie_results_1 = steppy2.step_function(steps)
 t1_2 = time.time()
 # time_array_2, gillespie_results_2 = dgs.step_function_5_3(
 #     steps, init2, transitions, k
