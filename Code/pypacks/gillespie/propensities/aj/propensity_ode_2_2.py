@@ -13,17 +13,18 @@ def aj_ode_2_2(
     c1, c2 = cs
     ct = c1 + c2
     k1, k2 = k[1, :]
-    kn1, kn2 = k[2, :]
+    k1p, k2p = k[1, :]
+    k1n1, k2n2 = k[2, :]
     w1, w2 = k[3, :]
 
     omega1 = k1 - w1
     omega2 = k2 - w2
 
     a_1 = omega1 * c1
-    a_m1 = kn1 * c1 * c1
+    a_m1 = k1n1 * c1 * c1
 
     a_2 = omega2 * c2
-    a_m2 = kn2 * c2 * c2
+    a_m2 = k2n2 * c2 * c2
 
     a_3 = w1 * c1
     a_m3 = w2 * c2

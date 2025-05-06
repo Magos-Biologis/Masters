@@ -78,6 +78,8 @@ export FPE_FIGURE_ENV="$THESIS_FIGURE_PATH/fpe"
 export MKC_FIGURE_ENV="$THESIS_FIGURE_PATH/markov"
 export SSA_FIGURE_ENV="$THESIS_FIGURE_PATH/gssa"
 
+export THESIS_DATA_PATH="$THESIS_CODE/storage/"
+
 # GILLESPIEMODULE="$THESIS_CODE/pypacks/gillespie/"
 # MYODESTUFMODULE="$THESIS_CODE/pypacks/myodestuff/"
 #
