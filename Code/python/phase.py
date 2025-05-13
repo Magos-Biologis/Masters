@@ -1,25 +1,12 @@
 #!./.venv/bin/python
 import os
-from pprint import pprint as pp
-from sys import exit
-from types import resolve_bases
-
-import matplotlib as mpl
-from matplotlib import pyplot as plt
-from matplotlib.pyplot import FuncFormatter, figure
-
-from mpl_toolkits import mplot3d
 
 import numpy as np
-from numpy import polynomial as npp
+from matplotlib import pyplot as plt
+from matplotlib.pyplot import FuncFormatter
 
 # from numpy.polynomial import Polynomial
-from numpy import sum
-
-
-from myodestuff import ODEModel
-from myodestuff import parameter_class
-
+from myodestuff import ODEModel, parameter_class
 
 figure_env = str(os.getenv("THESIS_FIGURE_PATH"))
 phase_path = os.path.join(figure_env, "phase")
@@ -49,12 +36,15 @@ k[1] = 0.2
 k1[0] = 0.6
 k1[1] = 1.2
 
+# k[0] = 2
+# k[1] = 2
+
 # Population cap (purely aesthetic if n₁ = n₂)
 n[0] = 100
-n[1] = 90
+n[1] = 80
 
-n1[0] = 100
-n1[1] = 90
+# n1[0] = 100
+# n1[1] = 100
 
 n2[0] = 100
 n2[1] = 100
@@ -89,7 +79,7 @@ c2_max = omega_2 / k_2
 alpha = 1
 c1_0 = n[0] - alpha
 c2_0 = alpha
-m_0: int = 10
+m_0: int = 0
 
 filename_addendum = (
     "_m0"
@@ -115,9 +105,9 @@ dt = 0.01
 t_end = 250
 t_array = np.arange(0, t_end, dt)
 
-parameters1 = parameter_class(m=2, m_0=m_0, k=k, n=n1, q=q, w=w)
-parameters2 = parameter_class(m=2, m_0=m_0, k=k1, n=n1, q=q, w=w)
-parameters3 = parameter_class(m=2, m_0=0, k=k, n=n2, q=q, w=w)
+parameters1 = parameter_class(m=2, m_0=m_0, k=k, n=n, q=q, w=w)
+# parameters2 = parameter_class(m=2, m_0=m_0, k=k1, n=n1, q=q, w=w)
+# parameters3 = parameter_class(m=2, m_0=0, k=k, n=n2, q=q, w=w)
 
 
 init_conds1 = np.array([c1_0, c2_0, m_0])
@@ -132,8 +122,8 @@ init_conds3 = np.array([c1_0, c2_0, m_0])
 #     init_conds3 = np.array([100, 100])
 
 model1 = ODEModel((0, t_end), parameters1, init_conds1)
-model2 = ODEModel((0, t_end), parameters2, init_conds2)
-model3 = ODEModel((0, t_end), parameters3, init_conds3)
+# model2 = ODEModel((0, t_end), parameters2, init_conds2)
+# model3 = ODEModel((0, t_end), parameters3, init_conds3)
 
 
 ### Integration
@@ -141,8 +131,8 @@ model3 = ODEModel((0, t_end), parameters3, init_conds3)
 # parameters1 = parameter_class(*parameters)
 
 t_array, sol1 = model1.integrate()
-t_array, sol2 = model2.integrate()
-t_array, sol3 = model3.integrate()
+# t_array, sol2 = model2.integrate()
+# t_array, sol3 = model3.integrate()
 
 c1_root, c2_root = model1.roots()
 
@@ -157,17 +147,18 @@ y_lims = 0, 100
 
 c1s = np.arange(0.1, 125, 0.5)
 c2s = np.arange(0.1, 125, 0.5)
-ms = np.arange(0.0, m_0, 0.05)
+ms = np.arange(0.0, m_0 + 1, 0.05)
 
 
 c1, c2, m = np.meshgrid(c1s, c2s, ms)
+c1, c2 = np.meshgrid(c1s, c2s)
 
 
 # print(c1[0, :, 0])
 # exit()
 
 
-def vector_space(c1, c2, m):
+def vector_space(c1, c2, m=0):
     dc1 = (k[0] * (1 - (c1 + c2) / n[0]) - w[0]) * c1 + w[1] * c2 - q[0] * m * c1
     dc2 = (k[1] * (1 - (c1 + c2) / n[1]) - w[1]) * c2 + w[0] * c1
     dm = m_0 - q[1] * m * c2
@@ -175,14 +166,16 @@ def vector_space(c1, c2, m):
     return (dc1, dc2, dm)
 
 
-vector_field = vector_space(c1, c2, m)
+# vector_field = vector_space(c1, c2, m)
+vector_field = vector_space(c1, c2)
 
 dU = vector_field[0]
 dV = vector_field[1]
 dW = vector_field[2]
 
 
-speed = np.sqrt(dU[:, :, 0] ** 2 + dV[:, :, 0] ** 2)
+# speed = np.sqrt(dU[:, :, 0] ** 2 + dV[:, :, 0] ** 2)
+speed = np.sqrt(dU**2 + dV**2)
 lw = 4 * speed / speed.max()
 
 stream_kwargs = {
@@ -200,8 +193,10 @@ stream_kwargs = {
 
 
 resolution = c1.shape[0]
-c1s = np.linspace(c1_min + 0.001, c1_max - 0.001, resolution)
-c2s = np.linspace(c2_min + 0.001, c2_max - 0.001, resolution)
+# c1s = np.arange(c1_min, c1_max, 0.5)
+# c2s = np.arange(c2_min, c2_max, 0.5)
+c1range = np.linspace(c1_min + 0.001, c1_max - 0.001, resolution)
+c2range = np.linspace(c2_min + 0.001, c2_max - 0.001, resolution)
 
 
 plt.rcParams.update(
@@ -224,7 +219,7 @@ null_kwargs = {
 
 fixed_kwargs = {
     "linestyle": "--",
-    "linewidth": 0.9,
+    "linewidth": 1.2,
     "alpha": 0.8,
     "zorder": 11,
 }
@@ -247,10 +242,12 @@ if three_d:
 else:
     fig, ax = plt.subplots()
 
-    ax.streamplot(c1[:, :, 0], c2[:, :, 0], dU[:, :, 0], dV[:, :, 0], **stream_kwargs)
+    # ax.streamplot(c1[:, :, 0], c2[:, :, 0], dU[:, :, 0], dV[:, :, 0], **stream_kwargs)
+    ax.streamplot(c1, c2, dU, dV, **stream_kwargs)
 
 
-ax.set_facecolor("#c0c0ca")
+# ax.set_facecolor("#c0c0ca")
+ax.set_facecolor("white")
 
 ax.tick_params(color="white")
 # ax.spines["all"].set_color("white")
@@ -305,8 +302,8 @@ def example_plot():
 ## Nullcline
 
 
-def c1_sol(c1):
-    num = q[0] * 0 * c1 - (c1 * (omega_1 - k_1 * c1))
+def c1_sol(c1, c2):
+    num = q[0] * (m_0 / (q[1] * c2)) * c1 - (c1 * (omega_1 - k_1 * c1))
     den = w[1] - k_1 * c1
     return num / den
 
@@ -319,9 +316,9 @@ def c2_sol(c2):
 
 dx = 0.01
 
-c1_sol_array = np.linspace(c1_min + dx, 100, resolution)
-c2_sol_array = np.linspace(c2_min + dx, 100, resolution)
-m_sol_array = np.linspace(0.0, m_0 + dx, resolution, endpoint=True)
+# c1_sol_array = np.linspace(c1_min + dx, 100, resolution)
+# c2_sol_array = np.linspace(c2_min + dx, 100, resolution)
+# m_sol_array = np.linspace(0.0, m_0 + dx, resolution, endpoint=True)
 
 
 # colors = ["k", "k"]
@@ -334,8 +331,8 @@ def plot_null():
     ax.plot(
         # c2_sol(c2)[0, :, 0],
         # c2[:, 0, 0],
-        c2_sol(c2_sol_array),
-        c2_sol_array,
+        c2_sol(c2range),
+        c2range,
         label=r"$c_1$ Nullcline",
         color=c1_col,
         **null_kwargs,
@@ -343,8 +340,8 @@ def plot_null():
     ax.plot(
         # c1[0, :, 0],
         # c1_sol(c1, m)[:, 0, 0],
-        c1_sol_array,
-        c1_sol(c1_sol_array),
+        c1range,
+        c1_sol(c1range, c2range),
         label=r"$c_2$ Nullcline",
         color=c2_col,
         **null_kwargs,
@@ -379,7 +376,6 @@ def plot_null():
     # )
 
     # ax.plot([0, n[0]], [n[1], 0], label="ratio", color="hotpink", alpha=0.5)
-    ax.legend(framealpha=1, loc="upper right")
 
 
 # def pop_curve():
@@ -389,7 +385,7 @@ def plot_null():
 #     return [c1, 0], [0, c2]
 
 
-c2_test = n[1] * (1 - c1s / n[0])
+# c2_test = n[1] * (1 - c1s / n[0])
 
 origin = np.array([[0, 0], [0, 0]])
 extremes = np.array([[0, n[0]], [n[1], 0]])
@@ -467,12 +463,13 @@ ax.yaxis.set_major_formatter(FuncFormatter(y_format))
 # plt.tight_layout()
 
 
-print(sol1[:, -1])
-print(sol2[:, -1])
-print(sol3[:, -1])
+# print(sol1[:, -1])
+# print(sol2[:, -1])
+# print(sol3[:, -1])
 
 
+ax.legend(framealpha=1, loc="upper right")
 figure_file = os.path.join(phase_path, file_name)
 
-# plt.savefig(figure_file + ".pdf", format="pdf")
-plt.show()
+plt.savefig(figure_file + ".pdf", format="pdf")
+# plt.show()

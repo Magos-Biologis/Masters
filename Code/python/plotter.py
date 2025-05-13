@@ -1,24 +1,20 @@
 import os
 import re
-from pprint import pprint as pp
-
-from pylab import *
-from matplotlib.backends.backend_pdf import PdfPages
-
-import myodestuff as mpp
 
 import numpy as np
 import pandas as pd
+from matplotlib.backends.backend_pdf import PdfPages
+from pylab import *
 
 ## regex
 
 
 # figure_env = str(os.getenv("THESIS_FIGURE_PATH"))
-figure_env = str(os.getenv("FPE_FIGURE_ENV"))
+fpe_env = str(os.getenv("FPE_FIGURE_ENV"))
 data_env = str(os.getenv("THESIS_DATA_PATH"))
 
-ode_dir = os.path.join(figure_env, "ode")
-fpe_dir = os.path.join(figure_env, "fpe")
+ode_dir = os.path.join(fpe_env, "ode")
+fpe_dir = os.path.join(fpe_env, "five_var")
 
 file_dir = ode_dir
 
@@ -29,19 +25,16 @@ file_dir = ode_dir
 
 
 # is_ode = True
-model: str = "ode_3_2"
+model: str = "ode_2_2"
+# model: str = "2S"
+# model: str = "5_3"
 # model: None = None
 
 
-var_count = 3
+# var_count = 3
 
-m = 100
-# margin = 0.5
 
-alpha = 0
-beta = m
-
-re_pattern = re.compile(
+re_pattern: re.Pattern = re.compile(
     r"(?P<datasource>[^M]*)"
     r"M(?P<model>[^P]*)"  # Model specifier
     r"P(?P<metadata>[^S]*)"  # Parameters and such
@@ -59,23 +52,22 @@ for fn in file_names:
     ## So there are two methods, search, and match
     ## It seems that search is what works for what I want,
     ## match is more for if you are decomposing the entire string from the start
-    m = re_pattern.search(fn)
-    if m is not None:
-        rec = m.groupdict()
+    matches = re_pattern.search(fn)
+    if matches is not None:
+        rec = matches.groupdict()
         rec["file_name"] = fn
         records.append(rec)
 
 ## So we assign it to a dataframe for easy access
 raw_frame = pd.DataFrame(records)
+raw_frame.sort_values(by="t", inplace=True)  ## Sorting by unix epoch time, ascending
+# raw_frame["initcond"].astype()  ## Sorting by unix epoch time, ascending
 
 ## I need to update the metadata column, to be a column of dict type.
 ## We do this by updating the existing elements in the df
 ### First we seperate variable ratio metadata from non-that
-raw_frame["ratio"] = (
-    raw_frame["metadata"]
-    .str.split("R")
-    .array.map(lambda x: x[1] if len(x) > 1 else np.nan)
-)
+find_ratios = lambda x: x[1] if len(x) > 1 else np.nan
+raw_frame["ratio"] = raw_frame["metadata"].str.split("R").array.map(find_ratios)
 
 ## Using numpy's 'not' operator, ~, we can invert the truth and locate the relevant spots
 ## so as to remove the ratio from the other metadata
@@ -83,28 +75,37 @@ truths = ~raw_frame["ratio"].isna()
 raw_frame.loc[truths, "metadata"] = (
     raw_frame.loc[truths, "metadata"].str.split("R").array.map(lambda x: x[0] + x[2])
 )
+
+
 ### Making the remaining string in an array of elements for further processing
+extract_count = lambda l: l[0].replace("num", "").replace("=", "")
+glue_ends = lambda l: l[1:-1]
+
 raw_frame.loc[:, "metadata"] = raw_frame["metadata"].str.split("_")
-raw_frame["size"] = raw_frame["metadata"].map(lambda l: l[0].replace("num", ""))
-raw_frame.loc[:, "metadata"] = raw_frame["metadata"].map(lambda l: l[1:-1])
+raw_frame["count"] = raw_frame["metadata"].map(extract_count).astype(int)
+raw_frame.loc[:, "metadata"] = raw_frame["metadata"].map(glue_ends)
+
+# def extract_count(l: list):
+#     count = int(l[0].replace("num", ""))
+#     rest = l[1:-1]
+#     return [count, rest]
+
+
+# print(raw_frame)
+# exit()
 
 
 ## From the list, we then count the number of times each model shows up,
 ## assigning the number of each step accordingly.
 ## From this, we make a multi-index for the dataframe so as to have an
 ## easier time choosing which file to plot
-raw_frame["count_index"] = raw_frame.groupby("model").cumcount()
-file_frame = raw_frame.set_index(["model", "count_index"]).sort_index()
+raw_frame["model_index"] = raw_frame.groupby("model").cumcount()
+file_frame = raw_frame.set_index(["model", "model_index"]).sort_index()
 
+model_count = 2
 
 file_options = file_frame.loc[model]
-file_choice = file_options.loc[1:2].reset_index()
-
-# pp(file_choice["initcond"])
-# exit()
-
-# print(file_choice)
-# exit()
+file_choice = file_options.loc[model_count : model_count + 1].reset_index()
 
 data_file_1 = os.path.join(data_env, file_choice.loc[0, "file_name"])
 data_file_2 = os.path.join(data_env, file_choice.loc[1, "file_name"])
@@ -117,9 +118,18 @@ else:
     is_ode = True
 
 
+print(file_options)
 # pp(test["time"])
 # pp(states)
 # exit()
+
+m: int = file_choice.loc[0, "count"]
+# m: int = file_choice.loc[0, "initcond"][0:2].sum()
+# print(m)
+# exit()
+
+alpha = 0
+beta = m
 
 boxes = arange(alpha, beta + 1, 1, dtype=np.int_)
 xlims = (alpha, beta)
@@ -221,6 +231,8 @@ def plot_walk(
         color=color,
     )
 
+    ax3.set_ylabel("Fraction of States")
+
 
 numpy_data = np.load(data_file_1)
 time, states = numpy_data["time"], numpy_data["states"]
@@ -231,7 +243,8 @@ time, states = numpy_data["time"], numpy_data["states"]
 plot_walk(ax2, time, states, "b", f"{file_choice.loc[1, 'initcond']}")
 
 
-file_name = "multiplot"
+# file_name = "multiplot"
+file_name = model  # file_choice.loc[0, "model"]
 for item in file_choice.loc[0, "metadata"]:
     file_name += "_" + item
 
@@ -247,18 +260,22 @@ if is_ode:
     ax3.set_title("Cell Population Densities")
     ax4.set_title("Cell Population Densities")
 
-    file_path = os.path.join(file_dir, file_name)
+    file_path = os.path.join(ode_dir, file_name)
 
 else:
     # para_match = re.compile(r"R(?P<ratio>b[<=>]n)R").search(file_choice["metadata"])
     # para_version = para_match.groupdict()["ratio"]  ## This is scuffed, but it works
-    para_version = file_choice["ratio"]
+    para_version = file_choice["ratio"] if file_choice["ratio"].isna() is True else ""
 
     ax3.set_title("Distribution of Gene Copy Number\n" + para_version)
     ax4.set_title("Distribution of Gene Copy Number\n" + para_version)
 
-    file_path = os.path.join(file_dir, file_name + "_" + para_version[1:-1])
+    file_path = os.path.join(fpe_dir, file_name + "_" + para_version[1:-1])
 
+file_name += "T" + file_choice.loc[0, "t"]
+
+# print(file_choice.loc[0, "t"])
+# exit()
 # ax3.hist(
 #     gillespie_results_2[0, :],
 #     **hist_kwargs,

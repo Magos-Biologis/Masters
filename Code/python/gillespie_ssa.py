@@ -4,22 +4,12 @@ import re
 
 ##
 # os.sched_setaffinity(0, {3})
-
 # import numba
 import numpy as np
-from numba import njit
-
-from pylab import *
-from matplotlib.backends.backend_pdf import PdfPages
-
-
-from scipy.stats import mode
 
 # from old.gillespie import gillespie
-import gillespie as dg
-from gillespie import propensities as dgp
 from gillespie import steppers as dgs
-
+from pylab import *
 
 # figure_env = str(os.getenv("THESIS_FIGURE_PATH"))
 figure_env = str(os.getenv("FPE_FIGURE_ENV"))
@@ -32,14 +22,14 @@ data_env = str(os.getenv("THESIS_DATA_PATH"))
 # file_name = "simulated_fpe"
 
 
-model: str = "ode_3"
+model: str = "5_3"
 var_count = 3
 
 
 # steps = 100
-steps = 100_000
-# steps = 1_000_000
-steps = 10_000_000
+# steps = 100_000
+steps = 1_000_000
+# steps = 10_000_000
 # steps = 100_000_000
 # steps = 1_000_000_000
 
@@ -52,8 +42,8 @@ beta = m
 inx1, iny1 = m - 1, 1
 inx2, iny2 = 1, m - 1
 
-init1 = array([inx1, iny1, 0], dtype=int_)[0:var_count]
-init2 = array([inx2, iny2, 0], dtype=int_)[0:var_count]
+init1 = array([inx1, iny1, m], dtype=int_)[0:var_count]
+init2 = array([inx2, iny2, m], dtype=int_)[0:var_count]
 
 
 b = 100
@@ -93,7 +83,8 @@ if check_ode is None:
 else:
     is_ode = True
 
-
+addons = []
+addons.append(f"num={init1.sum()}")
 if not is_ode:
     k[0, 0] = k_1 = 1  # 0.55
     k[0, 1] = k_m1 = 1  # 0.55
@@ -105,28 +96,33 @@ if not is_ode:
 
     if var_count == 2:
         k[0:2, 0] *= n
-    k[2:4, 0] *= b
+        k[2:4, 0] *= b
+
+        addons.append(f"n={n}")
+
+    if var_count == 3:
+        k[2:4, 0] *= b
 
     # print(k)
     # exit()
 
     # anal_sol = -(k[2, 0] - k[0, 0]) / k[0, 1]
 
-    addons = [
-        f"num{m}",
-        f"n{n}",
-        f"b{b}",
-        f"k1{k_1}",
-        f"km1{k_m1}",
-        f"k2{k_2}",
-        # f"km2{k_m2}",a
-        f"k3{k_3}",
-        # f"km3{k_m3}",
-        f"k4{k_4}",
-        # f"km4{k_m4}",
-        f"k5{k_5}",
-        # f"km5{k_m5}",
-    ]
+    addons.append(
+        [
+            f"b={b}",
+            f"k1={k_1}",
+            f"km1={k_m1}",
+            f"k2={k_2}",
+            # f"km2{k_m2}",a
+            f"k3={k_3}",
+            # f"km3{k_m3}",
+            f"k4={k_4}",
+            # f"km4{k_m4}",
+            f"k5={k_5}",
+            # f"km5{k_m5}",
+        ]
+    )
 
     k_sols = array([k_1 / (k_1 + k_2), k_2 / (k_1 + k_2)])
 
@@ -140,23 +136,25 @@ else:
 
     k[4, :] = ns
 
-    addons = [
-        f"num{m}",
-        f"u{u}",
-        f"k1{k_1}",
-        f"k2{k_2}",
-        f"n1{n_1}",
-        f"n2{n_2}",
-        f"w1{w_1}",
-        f"w2{w_2}",
-    ]
+    addons.append(
+        [
+            f"num={m}",
+            f"u={u}",
+            f"k1={k_1}",
+            f"k2={k_2}",
+            f"n1={n_1}",
+            f"n2={n_2}",
+            f"w1={w_1}",
+            f"w2={w_2}",
+        ]
+    )
 
 
 file_name += "P"
 for addon in addons:
     file_name += addon + "_"
 
-if not is_ode:
+if not is_ode and (var_count == 2):
     if b == n:
         para_version = r"$b=n$"
     elif b < n:
@@ -166,6 +164,7 @@ if not is_ode:
     else:
         para_version = "null"
         print("no numbers?")
+
     ## Simple if else so I can be lazy and not remember to add the naming conventions
     file_name += f"R{para_version[1:-1]}R"
 
