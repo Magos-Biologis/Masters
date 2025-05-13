@@ -36,6 +36,7 @@ parser.add_argument(
         "ode_2_2",
         "ode_3",
         "ode_3_2",
+        "ode_3_3",
         "ode_5_2",
         "ode_5_3",
     ],
@@ -91,7 +92,7 @@ step_count: int = args.steps
 set_of_3 = [
     "5_3",
     "ode_3",
-    "ode_3_2",
+    "ode_3_3",
     "ode_5_3",
 ]
 
@@ -101,6 +102,7 @@ set_of_2 = [
     "5_2",
     "ode_2",
     "ode_2_2",
+    "ode_3_2",
     "ode_5_2",
 ]
 

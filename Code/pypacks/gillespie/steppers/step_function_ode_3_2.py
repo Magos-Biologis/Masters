@@ -1,8 +1,8 @@
 import numpy as np
 from numba import njit
 
-from gillespie.propensities import aj_ode_3_2 as propensities
 from gillespie import ssa_event
+from gillespie.propensities import aj_ode_3_2 as propensities
 
 
 @njit

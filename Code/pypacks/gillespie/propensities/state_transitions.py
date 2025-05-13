@@ -26,12 +26,20 @@ transitions: dict[str, list[np.ndarray[tuple[int], np.dtype[np.int_]]]] = {
         np.array([1, -1, 0], dtype=np.int_),
     ],
     "vj_ode_3_2": [
+        np.array([-1, 1], dtype=np.int_),
+        np.array([1, -1], dtype=np.int_),
+        np.array([1, 0], dtype=np.int_),
+        np.array([-1, 0], dtype=np.int_),
+        np.array([0, 1], dtype=np.int_),
+        np.array([0, -1], dtype=np.int_),
+    ],
+    "vj_ode_3_3": [
+        np.array([-1, 1, 0], dtype=np.int_),
+        np.array([1, -1, 0], dtype=np.int_),
         np.array([1, 0, -1], dtype=np.int_),
         np.array([-1, 0, 1], dtype=np.int_),
         np.array([0, 1, -1], dtype=np.int_),
         np.array([0, -1, 1], dtype=np.int_),
-        np.array([-1, 1, 0], dtype=np.int_),
-        np.array([1, -1, 0], dtype=np.int_),
     ],
     "vj_ode_5_2": [
         np.array([-1, 1], dtype=np.int_),

@@ -38,6 +38,7 @@ parser.add_argument(
         "ode_2_2",
         "ode_3",
         "ode_3_2",
+        "ode_3_3",
         "ode_5_2",
         "ode_5_3",
     ],
@@ -449,14 +450,14 @@ def plot_walk(
     ax3.hist(
         results[0, :],
         **hist_kwargs,
-        label=f"Start Condition {xstart}",
+        label=f"$c_1$",
         color="r",
     )
     if args.both:
         ax3.hist(
             results[1, :],
             **hist_kwargs,
-            label=f"Start Condition {xstart}",
+            label=f"$c_2$",
             color="b",
         )
 
