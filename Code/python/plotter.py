@@ -1,3 +1,4 @@
+import argparse
 import os
 import re
 
@@ -16,22 +17,149 @@ data_env = str(os.getenv("THESIS_DATA_PATH"))
 ode_dir = os.path.join(fpe_env, "ode")
 fpe_dir = os.path.join(fpe_env, "five_var")
 
-file_dir = ode_dir
+# file_dir = ode_dir
 
-# file_name = "multipage_2var_fpe_ssa"
+## Parser
+parser = argparse.ArgumentParser(
+    prog="Plotter",
+    description="A python3 script that plots the data generated elsewhere",
+)
+
+parser.add_argument(
+    "model",
+    # nargs=1,
+    help="State which model to run",
+    choices=[
+        "2S",
+        "2L",
+        "5_2",
+        "5_3",
+        "ode_2",
+        "ode_2_2",
+        "ode_3",
+        "ode_3_2",
+        "ode_5_2",
+        "ode_5_3",
+    ],
+    type=str,
+)
+
+parser.add_argument(
+    "-st",
+    "--steps",
+    dest="steps",
+    help="Number of Steps",
+    type=int,
+    default=int(1e5),
+)
+parser.add_argument(
+    "-si",
+    "--size",
+    dest="size",
+    help="Size of System",
+    type=int,
+    default=int(100),
+)
 
 
-# file_name = "simulated_fpe"
+parser.add_argument(
+    "-b",
+    "--bins",
+    dest="bin_count",
+    help="Number of bins",
+    type=int,
+    default=int(100),
+)
+parser.add_argument(
+    "-f",
+    "--filter",
+    dest="filter",
+    help="Filter",
+)
+parser.add_argument(
+    "-i",
+    "--index",
+    dest="index",
+    help="Which index",
+    type=int,
+)
+parser.add_argument(
+    "-cp",
+    "--compare-plots",
+    dest="compare_plots",
+    help="Compare Plots",
+    action="store_true",
+)
+# type=int,
+# const=1,
+
+parser.add_argument(
+    "-o",
+    "--options",
+    dest="opt",
+    help="List options",
+    action="store_true",
+)
+parser.add_argument(
+    "-sh",
+    "--show",
+    dest="show",
+    help="Show Plot",
+    action="store_true",
+)
+parser.add_argument(
+    "-ns",
+    "--no-save",
+    dest="save",
+    help="Don't save plot",
+    action="store_false",
+)
+parser.add_argument(
+    "-nb",
+    "--not-both",
+    dest="both",
+    help="Don't plot both x and y",
+    action="store_false",
+)
+
+# parser.add_argument(
+#     "-ns",
+#     "--no-save",
+#     dest="save",
+#     help="Don't save plot",
+# )
 
 
-# is_ode = True
-model: str = "ode_2_2"
-# model: str = "2S"
-# model: str = "5_3"
-# model: None = None
+parser.add_argument(
+    "-ic",
+    "--initial-conds",
+    nargs="*",
+    dest="initial_conds",
+    help="Initial Conditions",
+    type=int,
+)
+
+parser.add_argument(
+    "-is",
+    "--include-starts",
+    dest="include_starts",
+    help="Include starts in legend",
+    action="store_true",
+)
+# default=[99, 1, 100],
+
+parser.add_argument("-ks", "--parameters", dest="k", help="Test", type=float, default=1)
 
 
-# var_count = 3
+args = parser.parse_args()
+
+# print(args.k1)
+
+## Compiling the defaults and the choice of parameters
+
+
+model: str = args.model
+model_count = args.index
 
 
 re_pattern: re.Pattern = re.compile(
@@ -83,7 +211,7 @@ glue_ends = lambda l: l[1:-1]
 
 raw_frame.loc[:, "metadata"] = raw_frame["metadata"].str.split("_")
 raw_frame["count"] = raw_frame["metadata"].map(extract_count).astype(int)
-raw_frame.loc[:, "metadata"] = raw_frame["metadata"].map(glue_ends)
+raw_frame.loc[:, "metadata"] = raw_frame["metadata"].array.map(glue_ends)
 
 # def extract_count(l: list):
 #     count = int(l[0].replace("num", ""))
@@ -102,14 +230,37 @@ raw_frame.loc[:, "metadata"] = raw_frame["metadata"].map(glue_ends)
 raw_frame["model_index"] = raw_frame.groupby("model").cumcount()
 file_frame = raw_frame.set_index(["model", "model_index"]).sort_index()
 
-model_count = 2
 
 file_options = file_frame.loc[model]
-file_choice = file_options.loc[model_count : model_count + 1].reset_index()
 
-data_file_1 = os.path.join(data_env, file_choice.loc[0, "file_name"])
-data_file_2 = os.path.join(data_env, file_choice.loc[1, "file_name"])
+if args.filter is not None:
+    file_options = file_options.loc[args.filter]
 
+if args.opt:
+    print(file_options)
+    exit()
+
+
+# print(file_options.tail(1).index.values)
+
+if args.compare_plots:
+    if args.index is None:
+        model_choice = file_options.index.values[-2]
+    else:
+        model_choice = args.index
+    file_choice = file_options.loc[model_count : model_count + 1].reset_index()
+    data_file_1 = os.path.join(data_env, file_choice.loc[0, "file_name"])
+    data_file_2 = os.path.join(data_env, file_choice.loc[1, "file_name"])
+else:
+    if args.index == None:
+        model_choice = file_options.index.values[-1]
+    else:
+        model_choice = args.index
+
+    file_choice = file_options.loc[model_choice]
+    data_file_1 = os.path.join(data_env, str(file_choice["file_name"]))
+
+# print(file_choice["file_name"])
 
 check_ode = re.compile(r"ode").search(model)  # file_choice["model"])
 if check_ode is None:
@@ -118,15 +269,20 @@ else:
     is_ode = True
 
 
-print(file_options)
-# pp(test["time"])
-# pp(states)
-# exit()
+# m: int = file_choice.loc[0, "count"]
 
-m: int = file_choice.loc[0, "count"]
+# if model == "5_3":
+#     m /= 2
+
 # m: int = file_choice.loc[0, "initcond"][0:2].sum()
 # print(m)
 # exit()
+
+if args.bin_count is not None:
+    m: int = args.bin_count
+else:
+    m: int = file_choice.loc[0, "count"]
+
 
 alpha = 0
 beta = m
@@ -164,15 +320,21 @@ line_kwargs = {
 fig1 = figure(figsize=(5, 2.5))
 fig2 = figure(figsize=(5, 2.5))
 fig3 = figure(figsize=(5, 5))
-fig4 = figure(figsize=(5, 5))
+
 
 ax1 = fig1.add_subplot()
 ax2 = fig2.add_subplot()
 ax3 = fig3.add_subplot()
-ax4 = fig4.add_subplot()
 
-figs = [fig1, fig2, fig3, fig4]
-axes = [ax1, ax2, ax3, ax4]
+figs = [fig1, fig2, fig3]
+axes = [ax1, ax2, ax3]
+
+if args.compare_plots:
+    fig4 = figure(figsize=(5, 5))
+    ax4 = fig4.add_subplot()
+
+    figs.append(fig4)
+    axes.append(ax4)
 
 
 if is_ode:
@@ -188,25 +350,33 @@ else:
     y_name = "y"
 
 
-def plot_walk(
+def plot_walks(
     ax,
     time: ndarray[tuple[int], dtype[float64]],
     results: ndarray[tuple[int, int], dtype[int_]],
     color: str,
     xstart: str = "[m,0]",
+    plot_starts: bool = args.include_starts,
 ) -> None:
+    x_label = f"Walk of ${x_name}$"
+    y_label = f"Walk of ${y_name}$"
+
+    if plot_starts:
+        x_label += f" with start {xstart}"
+        y_label += f" with start {xstart}"
+
     ax.step(
         time,
         results[0, :],
         color=color,
-        label=f"Walk of ${x_name}$ with start {xstart}",
+        label=x_label,
         **walk_kwargs,
     )
     ax.step(
         time,
         results[1, :],
         color="g",
-        label=f"Walk of ${y_name}$ with start {xstart}",
+        label=y_label,
         **walk_kwargs,
     )
 
@@ -231,36 +401,103 @@ def plot_walk(
         color=color,
     )
 
+    ax3.set_ylabel("Fraction of States", fontsize=12)
+
+
+def plot_walk(
+    ax_1,
+    ax_2,
+    time: ndarray[tuple[int], dtype[float64]],
+    results: ndarray[tuple[int, int], dtype[int_]],
+    color: str,
+    xstart: str = "[m,0]",
+    plot_starts: bool = args.include_starts,
+) -> None:
+    x_label = f"Walk of ${x_name}$"
+    y_label = f"Walk of ${y_name}$"
+
+    axs = [ax_1, ax_2]
+
+    if plot_starts:
+        x_label += f" with start {xstart}"
+        y_label += f" with start {xstart}"
+
+    ax_1.step(
+        time,
+        results[0, :],
+        color="r",
+        label=x_label,
+        **walk_kwargs,
+    )
+    ax_2.step(
+        time,
+        results[1, :],
+        color="b",
+        label=y_label,
+        **walk_kwargs,
+    )
+
+    for ax in axs:
+        ax.set_xlabel("Time", fontsize=12)
+        ax.set_ylabel("Count", fontsize=12)
+
+        ax.set_xlim(left=0)
+
+        ax.set_yticks([0, 30, 60, 90, 120, 150])
+        ax.set_ylim(bottom=0, top=beta)
+
+    ax3.hist(
+        results[0, :],
+        **hist_kwargs,
+        label=f"Start Condition {xstart}",
+        color="r",
+    )
+    if args.both:
+        ax3.hist(
+            results[1, :],
+            **hist_kwargs,
+            label=f"Start Condition {xstart}",
+            color="b",
+        )
+
     ax3.set_ylabel("Fraction of States")
 
 
-numpy_data = np.load(data_file_1)
-time, states = numpy_data["time"], numpy_data["states"]
-plot_walk(ax1, time, states, "r", f"{file_choice.loc[0, 'initcond']}")
+file_name: str = model
+if args.compare_plots:
+    numpy_data = np.load(data_file_1)
+    time, states = numpy_data["time"], numpy_data["states"]
+    plot_walks(ax1, time, states, "r", f"{file_choice.loc[0, 'initcond']}")
 
-numpy_data = np.load(data_file_2)
-time, states = numpy_data["time"], numpy_data["states"]
-plot_walk(ax2, time, states, "b", f"{file_choice.loc[1, 'initcond']}")
+    numpy_data = np.load(data_file_2)
+    time, states = numpy_data["time"], numpy_data["states"]
+    plot_walks(ax2, time, states, "b", f"{file_choice.loc[1, 'initcond']}")
+
+    for item in file_choice.loc[0, "metadata"]:
+        file_name += "_" + item
+else:
+    numpy_data = np.load(data_file_1)
+    time, states = numpy_data["time"], numpy_data["states"]
+    plot_walk(ax1, ax2, time, states, "r", f"{file_choice['initcond']}")
+
+    for item in file_choice["metadata"]:
+        file_name += "_" + item
 
 
 # file_name = "multiplot"
-file_name = model  # file_choice.loc[0, "model"]
-for item in file_choice.loc[0, "metadata"]:
-    file_name += "_" + item
 
 # print(file_name)
 # exit()
+# ax1.hlines(anal_sol, 0, time_array_1[-1], colors=["r", "g"])
+# ax2.hlines(anal_sol, 0, time_array_2[-1], colors=["b", "g"])
+#
+# ax3.vlines(anal_sol[0], 0, 1 / m)
+# ax4.vlines(anal_sol[1], 0, 1 / m)
+
 if is_ode:
-    # ax1.hlines(anal_sol, 0, time_array_1[-1], colors=["r", "g"])
-    # ax2.hlines(anal_sol, 0, time_array_2[-1], colors=["b", "g"])
-    #
-    # ax3.vlines(anal_sol[0], 0, 1 / m)
-    # ax4.vlines(anal_sol[1], 0, 1 / m)
-
     ax3.set_title("Cell Population Densities")
-    ax4.set_title("Cell Population Densities")
-
-    file_path = os.path.join(ode_dir, file_name)
+    if args.compare_plots:
+        ax4.set_title("Cell Population Densities")
 
 else:
     # para_match = re.compile(r"R(?P<ratio>b[<=>]n)R").search(file_choice["metadata"])
@@ -268,11 +505,16 @@ else:
     para_version = file_choice["ratio"] if file_choice["ratio"].isna() is True else ""
 
     ax3.set_title("Distribution of Gene Copy Number\n" + para_version)
-    ax4.set_title("Distribution of Gene Copy Number\n" + para_version)
+    if args.compare_plots:
+        ax4.set_title("Distribution of Gene Copy Number\n" + para_version)
 
-    file_path = os.path.join(fpe_dir, file_name + "_" + para_version[1:-1])
+    file_name += "_" + para_version[1:-1]
+file_name += "T"
+if args.compare_plots:
+    file_name += file_choice.loc[0, "t"]
+else:
+    file_name += file_choice["t"]
 
-file_name += "T" + file_choice.loc[0, "t"]
 
 # print(file_choice.loc[0, "t"])
 # exit()
@@ -283,17 +525,22 @@ file_name += "T" + file_choice.loc[0, "t"]
 #     color="b",
 # )plo
 
-ax3.set_xlabel(f"Distribution of the Count of ${x_name}$", fontsize=12)
-ax4.set_xlabel(f"Distribution of the Count of ${y_name}$", fontsize=12)
-
 ax3.set_xlim(xlims)
 ax3.set_ylim(bottom=0)
-ax4.set_xlim(xlims)
-ax4.set_ylim(bottom=0)
 
+if args.compare_plots:
+    ax3.set_xlabel(f"Distribution of the Count of ${x_name}$", fontsize=12)
+    ax4.set_xlabel(f"Distribution of the Count of ${y_name}$", fontsize=12)
+    ax4.set_xlim(xlims)
+    ax4.set_ylim(bottom=0)
+    file_name += "W2"
+else:
+    ax3.set_xlabel("Distribution of cell states")
+    file_name += "W1"
 
-ax3.set_ylabel("Density", fontsize=12)
-ax4.set_ylabel("Density", fontsize=12)
+# ax3.set_ylabel("Density", fontsize=12)
+# ax4.set_ylabel("Density", fontsize=12)
+
 
 # ax3.vlines(anal_sol, 0, 1, **line_kwargs, label="Analytical solution for $x$")
 
@@ -327,9 +574,16 @@ def save_image(filename):
     p.close()
 
 
-save_image(file_path)
-# show()
+if args.save:
+    if is_ode:
+        file_path = os.path.join(ode_dir, file_name)
+    else:
+        file_path = os.path.join(fpe_dir, file_name)
+    save_image(file_path)
 
-# fig1.savefig(file_path + f"_x0_{init1[0]}_y0_{init1[1]}" + para_version + ".pdf")
+if args.show:
+    show()
+
+print("Done Plotting")
 
 exit()

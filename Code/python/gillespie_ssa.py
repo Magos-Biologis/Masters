@@ -1,6 +1,8 @@
 #!../.venv/bin/python3
+import argparse
 import os
 import re
+import time
 
 ##
 # os.sched_setaffinity(0, {3})
@@ -11,40 +13,128 @@ import numpy as np
 from gillespie import steppers as dgs
 from pylab import *
 
-# figure_env = str(os.getenv("THESIS_FIGURE_PATH"))
 figure_env = str(os.getenv("FPE_FIGURE_ENV"))
 data_env = str(os.getenv("THESIS_DATA_PATH"))
 
-# file_dir = os.path.join(figure_env, "five_var")
-# file_name = "multipage_2var_fpe_ssa"
+## Adding a cmdline parser so I can change the options without opening the file
+## This is very much a brute force, no real elegance to be had
+parser = argparse.ArgumentParser(
+    prog="Gillespie Stepper",
+    description="A python3 script that runs the gillespie SSA algorithm for various models I've made",
+)
+
+parser.add_argument(
+    "model",
+    # nargs=1,
+    help="State which model to run",
+    choices=[
+        "2S",
+        "2L",
+        "5_2",
+        "5_3",
+        "ode_2",
+        "ode_2_2",
+        "ode_3",
+        "ode_3_2",
+        "ode_5_2",
+        "ode_5_3",
+    ],
+    type=str,
+)
 
 
-# file_name = "simulated_fpe"
+### As the type can be a function, we'll just assert it as an integer
+def make_int(input: str) -> int:
+    return int(input)
 
 
-model: str = "5_3"
-var_count = 3
+parser.add_argument(
+    "-st",
+    "--steps",
+    dest="steps",
+    help="Number of Steps",
+    type=make_int,
+    default=10_000,
+)
+parser.add_argument(
+    "-si",
+    "--size",
+    dest="size",
+    help="Size of System",
+    type=int,
+    default=int(100),
+)
+
+parser.add_argument(
+    "-ic",
+    "--initial_conds",
+    nargs="*",
+    dest="initial_conds",
+    help="Initial Conditions",
+    type=int,
+)
+# default=[99, 1, 100],
+
+parser.add_argument("-ks", "--parameters", dest="k", help="Test", type=float, default=1)
 
 
-# steps = 100
-# steps = 100_000
-steps = 1_000_000
-# steps = 10_000_000
-# steps = 100_000_000
-# steps = 1_000_000_000
+args = parser.parse_args()
 
-m = 100
-# margin = 0.5
+# print(args.k1)
+
+## Compiling the defaults and the choice of parameters
+
+
+model: str = args.model
+step_count: int = args.steps
+
+set_of_3 = [
+    "5_3",
+    "ode_3",
+    "ode_3_2",
+    "ode_5_3",
+]
+
+set_of_2 = [
+    "2S",
+    "2L",
+    "5_2",
+    "ode_2",
+    "ode_2_2",
+    "ode_5_2",
+]
+
+# print(set(model))
+# print(set(model).intersection(set(set_of_2)))
+# exit()
+
+# print(model)
+
+if model in set_of_2:
+    var_count = 2
+elif model in set_of_3:
+    var_count = 3
+else:
+    print("What?")
+    exit()
+
+
+m: int = args.size
+inx, iny = m - 1, 1
+
+initial = args.initial_conds
+if initial is None:
+    initial = [inx, iny, 0]
+
+initial = np.array(initial, dtype=int_)[0:var_count]
+
+# print(initial)
+# exit()
+# initial = np.array([*args.init], dtype=int_)[0:var_count]
+
 
 alpha = 0
 beta = m
-
-inx1, iny1 = m - 1, 1
-inx2, iny2 = 1, m - 1
-
-init1 = array([inx1, iny1, m], dtype=int_)[0:var_count]
-init2 = array([inx2, iny2, m], dtype=int_)[0:var_count]
-
 
 b = 100
 n = 100
@@ -74,7 +164,7 @@ qs[0] = q_1 = 0.85
 qs[1] = q_2 = 0.85
 
 
-file_name = "ssa"
+file_name: str = "ssa"
 file_name += f"M{model}"
 check_ode = re.compile(r"ode").search(model)
 
@@ -84,7 +174,7 @@ else:
     is_ode = True
 
 addons = []
-addons.append(f"num={init1.sum()}")
+addons.append(f"num={initial.sum()}")
 if not is_ode:
     k[0, 0] = k_1 = 1  # 0.55
     k[0, 1] = k_m1 = 1  # 0.55
@@ -108,7 +198,7 @@ if not is_ode:
 
     # anal_sol = -(k[2, 0] - k[0, 0]) / k[0, 1]
 
-    addons.append(
+    addons.extend(
         [
             f"b={b}",
             f"k1={k_1}",
@@ -136,7 +226,7 @@ else:
 
     k[4, :] = ns
 
-    addons.append(
+    addons.extend(
         [
             f"num={m}",
             f"u={u}",
@@ -218,50 +308,38 @@ x_array = linspace(0, 1, num=500, endpoint=False)[1:]
 # time_array, gillespie_results = step_function(100000, x_0)
 
 
-file_name += "S{:.0e}S".format(steps)
+file_name += "S{:.0e}S".format(step_count)
+steppy1 = dgs.ssa_stepper(model, initial, k)  # transitions, k)
 
-# print(file_name)
-# exit()
-
-init_conds = [init1, init2]
-
-import time
-
-# time_array_1, gillespie_results_1 = steppy.step_function(steps)
-
-
-# transitions = dgp.transitions["vj_" + model]
-
-steppy1 = dgs.ssa_stepper(model, init1, k)  # transitions, k)
-steppy2 = dgs.ssa_stepper(model, init2, k)  # , transitions
+# steppy2 = dgs.ssa_stepper(model, init2, k)  # , transitions
 
 
 date_time = time.time()
 
 t0_1 = time.time()
-time_results_1, gillespie_results_1 = steppy1.step_function(steps)
+time_results_1, gillespie_results_1 = steppy1.step_function(step_count)
 t1_1 = time.time()
 
-print("Stepper one done \n\tTime taken: ", t1_1 - t0_1)
+print("Stepper done \n\tTime taken: ", t1_1 - t0_1)
 
-t0_2 = time.time()
-time_results_2, gillespie_results_2 = steppy2.step_function(steps)
-t1_2 = time.time()
-
-
-print("Stepper two done \n\tTime taken: ", t1_2 - t0_2)
+# t0_2 = time.time()
+# time_results_2, gillespie_results_2 = steppy2.step_function(step_count)
+# t1_2 = time.time()
+#
+#
+# print("Stepper two done \n\tTime taken: ", t1_2 - t0_2)
 
 
 np.savez(
-    os.path.join(data_env, file_name + f"I{init1}C" + f"T{round(t1_1)}"),
+    os.path.join(data_env, file_name + f"I{initial}C" + f"T{round(t1_1)}"),
     time=time_results_1,
     states=gillespie_results_1,
 )
 
-np.savez(
-    os.path.join(data_env, file_name + f"I{init2}C" + f"T{round(t1_2)}"),
-    time=time_results_2,
-    states=gillespie_results_2,
-)
+# np.savez(
+#     os.path.join(data_env, file_name + f"I{init2}C" + f"T{round(t1_2)}"),
+#     time=time_results_2,
+#     states=gillespie_results_2,
+# )
 
 exit()
