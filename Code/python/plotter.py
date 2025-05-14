@@ -5,10 +5,8 @@ import re
 import numpy as np
 import pandas as pd
 from matplotlib.backends.backend_pdf import PdfPages
+from plottingstuff import plotting_functions
 from pylab import *
-
-## regex
-
 
 # figure_env = str(os.getenv("THESIS_FIGURE_PATH"))
 fpe_env = str(os.getenv("FPE_FIGURE_ENV"))
@@ -208,20 +206,11 @@ raw_frame.loc[truths, "metadata"] = (
 
 ### Making the remaining string in an array of elements for further processing
 extract_count = lambda l: l[0].replace("num", "").replace("=", "")
-glue_ends = lambda l: l[1:-1]
+remove_ends = lambda l: l[1:-1]
 
 raw_frame.loc[:, "metadata"] = raw_frame["metadata"].str.split("_")
 raw_frame["count"] = raw_frame["metadata"].map(extract_count).astype(int)
-raw_frame.loc[:, "metadata"] = raw_frame["metadata"].array.map(glue_ends)
-
-# def extract_count(l: list):
-#     count = int(l[0].replace("num", ""))
-#     rest = l[1:-1]
-#     return [count, rest]
-
-
-# print(raw_frame)
-# exit()
+raw_frame.loc[:, "metadata"] = raw_frame["metadata"].map(remove_ends)
 
 
 ## From the list, we then count the number of times each model shows up,
@@ -231,14 +220,14 @@ raw_frame.loc[:, "metadata"] = raw_frame["metadata"].array.map(glue_ends)
 raw_frame["model_index"] = raw_frame.groupby("model").cumcount()
 file_frame = raw_frame.set_index(["model", "model_index"]).sort_index()
 
+model_frame = file_frame.loc[model]
 
-file_options = file_frame.loc[model]
 
 if args.filter is not None:
-    file_options = file_options.loc[args.filter]
+    model_frame = model_frame.loc[args.filter]
 
 if args.opt:
-    print(file_options)
+    print(model_frame)
     exit()
 
 
@@ -246,38 +235,28 @@ if args.opt:
 
 if args.compare_plots:
     if args.index is None:
-        model_choice = file_options.index.values[-2]
+        model_choice = model_frame.index.values[-2]
     else:
         model_choice = args.index
-    file_choice = file_options.loc[model_count : model_count + 1].reset_index()
+    file_choice = model_frame.loc[model_count : model_count + 1].reset_index()
     data_file_1 = os.path.join(data_env, file_choice.loc[0, "file_name"])
     data_file_2 = os.path.join(data_env, file_choice.loc[1, "file_name"])
 else:
     if args.index == None:
-        model_choice = file_options.index.values[-1]
+        model_choice = model_frame.index.values[-1]
     else:
         model_choice = args.index
 
-    file_choice = file_options.loc[model_choice]
+    file_choice = model_frame.loc[model_choice]
     data_file_1 = os.path.join(data_env, str(file_choice["file_name"]))
 
-# print(file_choice["file_name"])
 
-check_ode = re.compile(r"ode").search(model)  # file_choice["model"])
+check_ode = re.compile(r"ode").search(model)
 if check_ode is None:
     is_ode = False
 else:
     is_ode = True
 
-
-# m: int = file_choice.loc[0, "count"]
-
-# if model == "5_3":
-#     m /= 2
-
-# m: int = file_choice.loc[0, "initcond"][0:2].sum()
-# print(m)
-# exit()
 
 if args.bin_count is not None:
     m: int = args.bin_count
@@ -285,28 +264,55 @@ else:
     m: int = file_choice.loc[0, "count"]
 
 
+#######################
+#   File name stuff   #
+#######################
+
+## The base name
+file_name: str = model
+
+## Subsequently adding stuff dependent on the resulting bool flags
+if args.compare_plots:
+    for item in file_choice.loc[0, "metadata"]:
+        file_name += "_" + item
+else:
+    for item in file_choice["metadata"]:
+        file_name += "_" + item
+
+if not is_ode:
+    if args.compare_plots:
+        para_version = (
+            file_choice.loc[0, "ratio"] if file_choice["ratio"].isna() is True else ""
+        )
+    else:
+        para_version = file_choice["ratio"] if file_choice["ratio"].isna() is True else ""
+    file_name += "_" + para_version[1:-1]
+
+
+## Adding the epoch time to ensure the files don't overwrite eachother
+file_name += "T"
+if args.compare_plots:
+    file_name += file_choice.loc[0, "t"]
+    file_name += "W2"
+else:
+    file_name += file_choice["t"]
+    file_name += "W1"
+
+#######################
+
 alpha = 0
 beta = m
 
 boxes = arange(alpha, beta + 1, 1, dtype=np.int_)
 xlims = (alpha, beta)
-hist_kwargs = {
-    "bins": boxes,
-    "density": True,
-    "edgecolor": "black",
-    "alpha": 0.6,
-    "align": "mid",
-    # "normed": True,
-}
 
 curve_kwargs = {
     "linewidth": 4,
     "alpha": 0.7,
 }
 
-walk_kwargs = {
-    "linewidth": 1,
-    "alpha": 0.7,
+font_kwargs = {
+    "fontsize": 12,
 }
 
 line_kwargs = {
@@ -316,6 +322,37 @@ line_kwargs = {
     "color": "black",
     "zorder": 11,
 }
+hist_kwargs = {
+    "bins": boxes,
+    "density": True,
+    "edgecolor": "black",
+    "alpha": 0.6,
+    "align": "mid",
+    # "normed": True,
+}
+
+
+walk_kwargs = {
+    "linewidth": 1,
+    "alpha": 0.7,
+}
+
+
+if is_ode:
+    x_name = "c_1"
+    y_name = "c_2"
+else:
+    x_name = "x"
+    y_name = "y"
+
+plot_class = plotting_functions(
+    font_kwargs=font_kwargs,
+    hist_kwargs=hist_kwargs,
+    line_kwargs=line_kwargs,
+    walk_kwargs=walk_kwargs,
+    x_name=x_name,
+    y_name=y_name,
+)
 
 
 fig1 = figure(figsize=(5, 2.5))
@@ -338,151 +375,70 @@ if args.compare_plots:
     axes.append(ax4)
 
 
-if is_ode:
-    # parameters = mpp.parameter_class(2, m_0, ks, ns, qs, ws)
-    # init_conds1 = np.array([1, 0, 0])
-    # model1 = mpp.ODEModel((0, time[-1]), parameters, init_conds1)
-    # anal_sol = model1.roots()
-
-    x_name = "c_1"
-    y_name = "c_2"
-else:
-    x_name = "x"
-    y_name = "y"
-
-
-def plot_walks(
-    ax,
-    time: ndarray[tuple[int], dtype[float64]],
-    results: ndarray[tuple[int, int], dtype[int_]],
-    color: str,
-    xstart: str = "[m,0]",
-    plot_starts: bool = args.include_starts,
-) -> None:
-    x_label = f"Walk of ${x_name}$"
-    y_label = f"Walk of ${y_name}$"
-
-    if plot_starts:
-        x_label += f" with start {xstart}"
-        y_label += f" with start {xstart}"
-
-    ax.step(
-        time,
-        results[0, :],
-        color=color,
-        label=x_label,
-        **walk_kwargs,
-    )
-    ax.step(
-        time,
-        results[1, :],
-        color="g",
-        label=y_label,
-        **walk_kwargs,
-    )
-
-    ax.set_xlabel("Time", fontsize=12)
-    ax.set_ylabel("Count", fontsize=12)
-
-    ax.set_xlim(left=0)
-
-    ax.set_yticks([0, 30, 60, 90, 120, 150])
-    ax.set_ylim(bottom=0, top=beta)
-
-    ax3.hist(
-        results[0, :],
-        **hist_kwargs,
-        label=f"Start Condition {xstart}",
-        color=color,
-    )
-    ax4.hist(
-        results[1, :],
-        **hist_kwargs,
-        label=f"Start Condition {xstart}",
-        color=color,
-    )
-
-    ax3.set_ylabel("Fraction of States", fontsize=12)
-
-
-def plot_walk(
-    ax_1,
-    ax_2,
-    time: ndarray[tuple[int], dtype[float64]],
-    results: ndarray[tuple[int, int], dtype[int_]],
-    color: str,
-    xstart: str = "[m,0]",
-    plot_starts: bool = args.include_starts,
-) -> None:
-    x_label = f"Walk of ${x_name}$"
-    y_label = f"Walk of ${y_name}$"
-
-    axs = [ax_1, ax_2]
-
-    if plot_starts:
-        x_label += f" with start {xstart}"
-        y_label += f" with start {xstart}"
-
-    ax_1.step(
-        time,
-        results[0, :],
-        color="r",
-        label=x_label,
-        **walk_kwargs,
-    )
-    ax_2.step(
-        time,
-        results[1, :],
-        color="b",
-        label=y_label,
-        **walk_kwargs,
-    )
-
-    for ax in axs:
-        ax.set_xlabel("Time", fontsize=12)
-        ax.set_ylabel("Count", fontsize=12)
-
-        ax.set_xlim(left=0)
-
-        ax.set_yticks([0, 30, 60, 90, 120, 150])
-        ax.set_ylim(bottom=0, top=beta)
-
-    ax3.hist(
-        results[0, :],
-        **hist_kwargs,
-        label=f"$c_1$",
-        color="r",
-    )
-    if args.both:
-        ax3.hist(
-            results[1, :],
-            **hist_kwargs,
-            label=f"$c_2$",
-            color="b",
-        )
-
-    ax3.set_ylabel("Fraction of States")
-
-
-file_name: str = model
 if args.compare_plots:
+    init_cond_string: str = "{}".format(file_choice.loc[0, "initcond"])
     numpy_data = np.load(data_file_1)
     time, states = numpy_data["time"], numpy_data["states"]
-    plot_walks(ax1, time, states, "r", f"{file_choice.loc[0, 'initcond']}")
+    plot_class.plot_walks(
+        ax1,
+        time,
+        states,
+        "r",
+        init_cond_string,
+        args.include_starts,
+    )
+    plot_class.plot_hists(
+        ax3,
+        ax4,
+        states,
+        "r",
+        init_cond_string,
+    )
 
     numpy_data = np.load(data_file_2)
     time, states = numpy_data["time"], numpy_data["states"]
-    plot_walks(ax2, time, states, "b", f"{file_choice.loc[1, 'initcond']}")
+    plot_class.plot_walks(
+        ax2,
+        time,
+        states,
+        "b",
+        init_cond_string,
+        args.include_starts,
+    )
+    plot_class.plot_hists(
+        ax3,
+        ax4,
+        states,
+        "r",
+        init_cond_string,
+    )
 
-    for item in file_choice.loc[0, "metadata"]:
-        file_name += "_" + item
 else:
+    init_cond_string: str = "{}".format(file_choice.loc["initcond"])
     numpy_data = np.load(data_file_1)
     time, states = numpy_data["time"], numpy_data["states"]
-    plot_walk(ax1, ax2, time, states, "r", f"{file_choice['initcond']}")
-
-    for item in file_choice["metadata"]:
-        file_name += "_" + item
+    plot_class.plot_walk(
+        ax1,
+        time,
+        states,
+        "r",
+        x_name,
+        init_cond_string,
+    )
+    plot_class.plot_walk(
+        ax2,
+        time,
+        states,
+        "b",
+        y_name,
+        init_cond_string,
+    )
+    plot_class.plot_hist(
+        ax3,
+        states[0, :],
+        "r",
+        init_cond_string,
+    )
 
 
 # file_name = "multiplot"
@@ -503,18 +459,10 @@ if is_ode:
 else:
     # para_match = re.compile(r"R(?P<ratio>b[<=>]n)R").search(file_choice["metadata"])
     # para_version = para_match.groupdict()["ratio"]  ## This is scuffed, but it works
-    para_version = file_choice["ratio"] if file_choice["ratio"].isna() is True else ""
 
     ax3.set_title("Distribution of Gene Copy Number\n" + para_version)
     if args.compare_plots:
         ax4.set_title("Distribution of Gene Copy Number\n" + para_version)
-
-    file_name += "_" + para_version[1:-1]
-file_name += "T"
-if args.compare_plots:
-    file_name += file_choice.loc[0, "t"]
-else:
-    file_name += file_choice["t"]
 
 
 # print(file_choice.loc[0, "t"])
@@ -529,15 +477,15 @@ else:
 ax3.set_xlim(xlims)
 ax3.set_ylim(bottom=0)
 
+ax3.set_ylabel("Fraction of States", fontsize=12)
+
 if args.compare_plots:
     ax3.set_xlabel(f"Distribution of the Count of ${x_name}$", fontsize=12)
     ax4.set_xlabel(f"Distribution of the Count of ${y_name}$", fontsize=12)
     ax4.set_xlim(xlims)
     ax4.set_ylim(bottom=0)
-    file_name += "W2"
 else:
     ax3.set_xlabel("Distribution of cell states")
-    file_name += "W1"
 
 # ax3.set_ylabel("Density", fontsize=12)
 # ax4.set_ylabel("Density", fontsize=12)

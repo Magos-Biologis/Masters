@@ -14,17 +14,15 @@ def aj_ode_3_3(
     # ct = c1 + c2
 
     k1, k2 = k[0, :]
+    # k1u, k2u = k[1, :]
     k1n1, k2n2 = k[2, :]
     w1, w2 = k[3, :]
-
-    # n1, n2 = k[4, :]
-    # k1n1, k2n2 = k1 / n1, k2 / n2
 
     a_1 = w1 * c1
     a_m1 = w2 * c2
 
     a_2 = k1 * c1 * n
-    a_m2 = k1n1 * c1 * c2
+    a_m2 = k1n1 * c1 * c1
 
     a_3 = k2 * c2 * n
     a_m3 = k2n2 * c2 * c2
