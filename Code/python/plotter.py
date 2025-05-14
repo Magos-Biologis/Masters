@@ -4,8 +4,8 @@ import re
 
 import numpy as np
 import pandas as pd
+import plottingstuff as ps
 from matplotlib.backends.backend_pdf import PdfPages
-from plottingstuff import plotting_functions
 from pylab import *
 
 # figure_env = str(os.getenv("THESIS_FIGURE_PATH"))
@@ -238,7 +238,7 @@ if args.compare_plots:
         model_choice = model_frame.index.values[-2]
     else:
         model_choice = args.index
-    file_choice = model_frame.loc[model_count : model_count + 1].reset_index()
+    file_choice = model_frame.loc[model_choice : model_choice + 1].reset_index()
     data_file_1 = os.path.join(data_env, file_choice.loc[0, "file_name"])
     data_file_2 = os.path.join(data_env, file_choice.loc[1, "file_name"])
 else:
@@ -306,7 +306,7 @@ beta = m
 boxes = arange(alpha, beta + 1, 1, dtype=np.int_)
 xlims = (alpha, beta)
 
-curve_kwargs = {
+curv_kwargs = {
     "linewidth": 4,
     "alpha": 0.7,
 }
@@ -345,7 +345,9 @@ else:
     x_name = "x"
     y_name = "y"
 
-plot_class = plotting_functions(
+
+gillespies = ps.gillespie_plotters(
+    curv_kwargs=curv_kwargs,
     font_kwargs=font_kwargs,
     hist_kwargs=hist_kwargs,
     line_kwargs=line_kwargs,
@@ -379,7 +381,7 @@ if args.compare_plots:
     init_cond_string: str = "{}".format(file_choice.loc[0, "initcond"])
     numpy_data = np.load(data_file_1)
     time, states = numpy_data["time"], numpy_data["states"]
-    plot_class.plot_walks(
+    gillespies.plot_walks(
         ax1,
         time,
         states,
@@ -387,17 +389,17 @@ if args.compare_plots:
         init_cond_string,
         args.include_starts,
     )
-    plot_class.plot_hists(
+    gillespies.plot_hists(
         ax3,
         ax4,
         states,
-        "r",
+        "b",
         init_cond_string,
     )
 
     numpy_data = np.load(data_file_2)
     time, states = numpy_data["time"], numpy_data["states"]
-    plot_class.plot_walks(
+    gillespies.plot_walks(
         ax2,
         time,
         states,
@@ -405,7 +407,7 @@ if args.compare_plots:
         init_cond_string,
         args.include_starts,
     )
-    plot_class.plot_hists(
+    gillespies.plot_hists(
         ax3,
         ax4,
         states,
@@ -417,7 +419,7 @@ else:
     init_cond_string: str = "{}".format(file_choice.loc["initcond"])
     numpy_data = np.load(data_file_1)
     time, states = numpy_data["time"], numpy_data["states"]
-    plot_class.plot_walk(
+    gillespies.plot_walk(
         ax1,
         time,
         states,
@@ -425,7 +427,7 @@ else:
         x_name,
         init_cond_string,
     )
-    plot_class.plot_walk(
+    gillespies.plot_walk(
         ax2,
         time,
         states,
@@ -433,7 +435,7 @@ else:
         y_name,
         init_cond_string,
     )
-    plot_class.plot_hist(
+    gillespies.plot_hist(
         ax3,
         states[0, :],
         "r",
