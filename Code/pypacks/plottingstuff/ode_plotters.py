@@ -73,7 +73,7 @@ class ode_plotters(plotting_class):
             ax,
             x_range,
             dy_nullcline(x_range),
-            label=r"$c_2$ Nullcline",
+            label=r"$c_1$ Nullcline",
             color=c2_col,
         )
         self._plot_nullcline(
@@ -87,28 +87,35 @@ class ode_plotters(plotting_class):
     def plot_phase_fixed_points(
         self,
         ax: axe.Axes,
+        sol1,
+        sol2,
+        color1: str,
+        color2: str,
+        xmax: float = 100,
+        ymax: float = 100,
     ) -> None:
         ax.vlines(
-            c1_root,
-            *x_lims,
-            color=c1_col,
-            **fixed_kwargs,
+            sol1,
+            0,
+            xmax,
+            color=color1,
+            **self.lineargs,
         )
         ax.hlines(
-            c2_root,
-            *y_lims,
-            color=c2_col,
-            **fixed_kwargs,
+            sol2,
+            0,
+            ymax,
+            color=color2,
+            **self.lineargs,
         )
 
     def plot_phase_space(
         self,
         ax: axe.Axes,
-        c1,
-        c2,
-        dU,
-        dV,
-        stream_kwargs,
+        x: np.ndarray[tuple[int, int], np.dtype[np.float64]],
+        y: np.ndarray[tuple[int, int], np.dtype[np.float64]],
+        u: np.ndarray[tuple[int, int], np.dtype[np.float64]],
+        v: np.ndarray[tuple[int, int], np.dtype[np.float64]],
         **kwargs,
     ) -> None:
-        ax.streamplot(c1, c2, dU, dV, **stream_kwargs)
+        ax.streamplot(x, y, u, v, **kwargs)

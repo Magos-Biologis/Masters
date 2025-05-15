@@ -175,17 +175,20 @@ else:
 m: int = args.size
 inx, iny = m - 1, 1
 
-initial = args.initial_conds
-if initial is None:
-    initial = [inx, iny, 0]
+# initial = args.initial_conds
+if args.initial_conds is None:
+    initial = np.array([inx, iny, 0, 0, 0], dtype=int_)[:var_count]
+else:
+    initial = np.array([*args.initial_conds, 0, 0], dtype=int_)[:var_count]
 
-initial = np.array([*initial, 0, 0], dtype=int_)[0:var_count]
+
+# print(args.initial_conds)
+# print(initial)
+# exit()
 
 
 if parameter_default != args.parameters:
-    for key in args.parameters:
-        parameter_default[key] = args.parameters[key]
-
+    parameter_default.update(args.parameters)
 
 parameters = dgs.ParameterClass(**parameter_default)
 
@@ -223,13 +226,13 @@ if not is_ode:
             "k1={}".format(parameters.k1),
             "k-1={}".format(parameters.k_1),
             "k2={}".format(parameters.k2),
-            # "km2{}".format(parameters.k_2),a
+            "k-2{}".format(parameters.k_2),
             "k3={}".format(parameters.k3),
-            # "km3{}".format(parameters.k_3),
+            "k-3{}".format(parameters.k_3),
             "k4={}".format(parameters.k4),
-            # "km4{}".format(parameters.k_4),
+            "k-4{}".format(parameters.k_4),
             "k5={}".format(parameters.k5),
-            # "km5{}".format(parameters.k_5),
+            "k-5{}".format(parameters.k_5),
         ]
     )
 
@@ -244,6 +247,7 @@ else:
             "n2={}".format(parameters.n2),
             "w1={}".format(parameters.w1),
             "w2={}".format(parameters.w2),
+            "m0={}".format(parameters.m0),
         ]
     )
 
@@ -271,18 +275,18 @@ t_0 = 0
 dt = 0
 
 
-max_val = 0
-if parameters.k1 != parameters.k2:
-    if m == 1:
-        max_val = log(2.022121436749997)
-    elif m == 10:
-        max_val = log(674763.2054860857)
-    elif m == 100:
-        max_val = log(6.367225127715182e43)
-else:
-    pass
+# max_val = 0
+# if parameters.k1 != parameters.k2:
+#     if m == 1:
+#         max_val = log(2.022121436749997)
+#     elif m == 10:
+#         max_val = log(674763.2054860857)
+#     elif m == 100:
+#         max_val = log(6.367225127715182e43)
+# else:
+#     pass
 
-x_array = linspace(0, 1, num=500, endpoint=False)[1:]
+# x_array = linspace(0, 1, num=500, endpoint=False)[1:]
 
 
 ## Step function
@@ -317,7 +321,7 @@ print("Stepper done \n\tTime taken: ", t1_1 - t0_1)
 final_name1 = file_name + f"I{initial}C" + f"T{round(t1_1)}"
 full_file_path1 = os.path.join(data_env, final_name1)
 
-if save:
+if args.save:
     np.savez(
         full_file_path1,
         time=time_results_1,

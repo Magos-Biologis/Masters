@@ -44,26 +44,26 @@ class gillespie_plotters(plotting_class):
         ax2: axe.Axes,
         results: np.ndarray[tuple[int, int], np.dtype[np.float64]],
         color: str,
-        xstart: str = "[m,0]",
+        start: str = "[m,0]",
     ) -> None:
         self._plot_hist(
             ax1,
             results[0, :],
             color=color,
-            label=f"Start Condition {xstart}",
+            label=f"Start Condition {start}",
         )
         self._plot_hist(
             ax2,
-            results[0, :],
+            results[1, :],
             color=color,
-            label=f"Start Condition {xstart}",
+            label=f"Start Condition {start}",
         )
 
     def plot_walk(
         self,
         ax: axe.Axes,
         time: np.ndarray[tuple[int], np.dtype[np.float64]],
-        results: np.ndarray[tuple[int, int], np.dtype[np.int_]],
+        steps: np.ndarray[tuple[int], np.dtype[np.int_]],
         color: str,
         label: str,
         xstart: str = "[m,0]",
@@ -81,7 +81,7 @@ class gillespie_plotters(plotting_class):
 
         ax.step(
             time,
-            results[0, :],
+            steps,
             color=color,
             label=x_label,
             **self.walkargs,

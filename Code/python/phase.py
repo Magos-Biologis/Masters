@@ -11,8 +11,56 @@ from myodestuff import ODEModel, parameter_class
 figure_env = str(os.getenv("THESIS_FIGURE_PATH"))
 phase_path = os.path.join(figure_env, "phase")
 
+data_env = str(os.getenv("THESIS_DATA_PATH"))
 
-file_name = "phaseplane"
+
+import argparse
+
+parameter_default = {
+    "k1": 1,
+    "k2": 1,
+    "n1": 100,
+    "n2": 90,
+    "w1": 0.15,
+    "w2": 0.15,
+    "q1": 0.85,
+    "q2": 0.85,
+    "m0": 0,
+}
+
+parser = argparse.ArgumentParser(
+    prog="Gillespie Stepper",
+    description="A python3 script that runs the gillespie SSA algorithm for various models I've made",
+)
+
+
+def parse_parameters(string):
+    matches: list[tuple] = re.findall(r"(\w+[-m]?\d*'?)\s?=\s?(\S*)", string)
+    parameters = [
+        (
+            str(key).replace("-", "_").replace("m", "_").replace("'", "p"),
+            float(value),
+        )
+        for key, value in matches
+    ]
+    return dict(parameters)
+
+
+parser.add_argument(
+    "-p",
+    "--parameters",
+    dest="parameters",
+    help="Takes a string of equalities, and creates a dict from it",
+    type=parse_parameters,
+    default=parameter_default,
+)
+
+args = parser.parse_args()
+
+
+file_name: str = "phase"
+
+model: str = "jesper"
 # figure_path = "./figs"
 
 
@@ -21,46 +69,30 @@ three_d = False
 ### Variables
 # Growth Constant, same because same cell
 k = np.zeros(2)
-k1 = np.zeros(2)
-
 n = np.zeros(2)
-n1 = np.zeros(2)
-n2 = np.zeros(2)
-
 w = np.zeros(2)
 q = np.zeros(2)
 
-k[0] = 1.2
-k[1] = 0.2
+if parameter_default != args.parameters:
+    parameter_default.update(args.parameters)
 
-k1[0] = 0.6
-k1[1] = 1.2
 
-# k[0] = 2
-# k[1] = 2
+m_0 = parameter_default["m0"]
+
+k[0] = parameter_default["k1"]
+k[1] = parameter_default["k2"]
 
 # Population cap (purely aesthetic if n₁ = n₂)
-n[0] = 100
-n[1] = 80
-
-# n1[0] = 100
-# n1[1] = 100
-
-n2[0] = 100
-n2[1] = 100
-
-w[0] = 0.015
-w[1] = 0.015
-
-# w[1] = 0.035
-
-# w[1] = 0.14
-# n[0] = 55
-# n[1] = 85
+n[0] = parameter_default["n1"]
+n[1] = parameter_default["n2"]
 
 
-q[1] = qm = 0.8
-q[:] = 0.999
+w[0] = parameter_default["w1"]
+w[1] = parameter_default["w2"]
+
+
+q[0] = parameter_default["q1"]
+q[1] = qm = parameter_default["q2"]
 
 
 omega_1 = k[0] - w[0]
@@ -79,26 +111,32 @@ c2_max = omega_2 / k_2
 alpha = 1
 c1_0 = n[0] - alpha
 c2_0 = alpha
-m_0: int = 0
 
-filename_addendum = (
-    "_m0"
-    + f"{m_0}"
-    + "_k1"
-    + f"{k[0]}"
-    + "_k2"
-    + f"{k[1]}"
-    + "_n1"
-    + f"{n[0]}"
-    + "_n2"
-    + f"{n[1]}"
-    + "_w1"
-    + f"{w[0]}"
-    + "_w2"
-    + f"{w[1]}"
-)
+filename_addendum = [
+    "num={}".format(0),
+    "m0={}".format(m_0),
+    "k1={}".format(k[0]),
+    "k2={}".format(k[1]),
+    "n1={}".format(n[0]),
+    "n2={}".format(n[1]),
+    "w1={}".format(w[0]),
+    "w2={}".format(w[1]),
+    "q1={}".format(q[0]),
+    "q2={}".format(q[1]),
+]
 
-file_name += filename_addendum
+file_name += "M" + model
+file_name += "P"
+for entry in filename_addendum:
+    file_name += entry + "_"
+file_name += "S"
+file_name += "IC"
+
+import time
+
+t = time.time()
+
+file_name += "T" + "{}".format(round(t))
 
 
 dt = 0.01
@@ -158,7 +196,7 @@ c1, c2 = np.meshgrid(c1s, c2s)
 # exit()
 
 
-def vector_space(c1, c2, m=0):
+def vector_space(c1, c2, m=m_0 / (c2 * q[1])):
     dc1 = (k[0] * (1 - (c1 + c2) / n[0]) - w[0]) * c1 + w[1] * c2 - q[0] * m * c1
     dc2 = (k[1] * (1 - (c1 + c2) / n[1]) - w[1]) * c2 + w[0] * c1
     dm = m_0 - q[1] * m * c2
@@ -172,6 +210,22 @@ vector_field = vector_space(c1, c2)
 dU = vector_field[0]
 dV = vector_field[1]
 dW = vector_field[2]
+
+# final_name = file_name
+full_file_path = os.path.join(data_env, file_name)
+
+# print(c1.shape, c2.shape)
+# print(dU.shape, dV.shape)
+# exit()
+
+np.savez(
+    full_file_path,
+    c1=c1,
+    c2=c2,
+    dU=dU,
+    dV=dV,
+)
+exit()
 
 
 # speed = np.sqrt(dU[:, :, 0] ** 2 + dV[:, :, 0] ** 2)
@@ -225,6 +279,8 @@ fixed_kwargs = {
 }
 
 
+# np.savez(storage)
+
 # norm = mpl.colors.Normalize(vmin=lw.min(), vmax=lw.max())
 # norm = mpl.colors.LogNorm(vmin=lw.min(), vmax=lw.max())
 
@@ -245,6 +301,9 @@ else:
     # ax.streamplot(c1[:, :, 0], c2[:, :, 0], dU[:, :, 0], dV[:, :, 0], **stream_kwargs)
     ax.streamplot(c1, c2, dU, dV, **stream_kwargs)
 
+
+plt.show()
+exit()
 
 # ax.set_facecolor("#c0c0ca")
 ax.set_facecolor("white")
