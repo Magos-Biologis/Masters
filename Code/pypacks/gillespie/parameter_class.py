@@ -113,7 +113,7 @@ class ParameterClass:
 parameter_default = dict(
     [
         ("n", 50),
-        ("b", 50),
+        ("b", 0),
         ("k1", 1),
         ("k_1", 1),
         ("k2", 1),

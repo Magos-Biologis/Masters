@@ -113,6 +113,7 @@ parser.add_argument(
     dest="parameters",
     help="Takes a string of equalities, and creates a dict from it",
     type=parse_parameters,
+    default=parameter_default,
 )
 
 
@@ -189,12 +190,13 @@ if initial is None:
 initial = np.array(initial, dtype=int_)[0:var_count]
 
 
-for key in args.parameters:
-    parameter_default[key] = args.parameters[key]
+if parameter_default != args.parameters:
+    for key in args.parameters:
+        parameter_default[key] = args.parameters[key]
+
 
 parameters = dgs.ParameterClass(**parameter_default)
 
-k = zeros(shape=(5, 2), dtype=float64)
 
 ks = np.array([parameters.k1, parameters.k2])
 qs = np.array([parameters.q1, parameters.q2])

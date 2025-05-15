@@ -1,28 +1,26 @@
 import numpy as np
 from numba import njit
 
+from gillespie.parameter_class import ParameterClass
+
 
 @njit
 def aj_ode_3(
     cs: np.ndarray[tuple[int], np.dtype[np.int_]],
-    k: np.ndarray[tuple[int, int], np.dtype[np.float64]],
+    p: ParameterClass,
 ) -> np.ndarray[tuple[int], np.dtype[np.float64]]:
     """
     For a logistically restricted system that looks like the ode system
     """
-    c1, c2, u = cs
+    c1, c2, n = cs
     ct = c1 + c2
 
-    k1, k2 = k[0, :]
-    k1n1, k2n2 = k[2, :]
-    w1, w2 = k[3, :]
+    a_1 = p.k1 * n * c1
+    a_m1 = p.k1 * c1 * ct
 
-    a_1 = k1 * u * c1
-    a_m1 = k1n1 * c1 * ct
+    a_2 = p.k2 * n * c2
+    a_m2 = p.k2 * c2 * ct
 
-    a_2 = k2 * u * c2
-    a_m2 = k2n2 * c2 * ct
-
-    a_3 = w1 * c1
-    a_m3 = w2 * c2
+    a_3 = p.w1 * c1
+    a_m3 = p.w2 * c2
     return np.array([a_1, a_m1, a_2, a_m2, a_3, a_m3])

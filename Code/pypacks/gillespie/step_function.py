@@ -1,8 +1,8 @@
 import numpy as np
-from gillespie import ssa_event
-from gillespie.parameter_class import ParameterClass
-from gillespie.propensities import aj_ode_5_3 as propensities
 from numba import njit
+
+from gillespie import ssa_event
+from gillespie.propensities import aj_2L as propensities
 
 
 @njit
@@ -11,6 +11,7 @@ def main(
     x0: np.ndarray[tuple[int], np.dtype[np.int_]],
     v: list[np.ndarray[tuple[int], np.dtype[np.int_]]],
     k: ParameterClass,
+    # k: np.ndarray[tuple[int, int], np.dtype[np.float64]],
 ) -> tuple[
     np.ndarray[tuple[int], np.dtype[np.float64]],
     np.ndarray[tuple[int, int], np.dtype[np.int_]],

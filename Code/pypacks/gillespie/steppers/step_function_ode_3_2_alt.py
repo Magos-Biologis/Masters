@@ -18,11 +18,6 @@ def main(
 ]:
     m: int = x0.sum()
     k.divide(m)
-    # scaled_k = k
-
-    # for key in k:
-    #     k[key] /= m
-    # scaled_k: np.ndarray[tuple[int, int], np.dtype[np.float64]] = np.divide(k, m)
 
     ## Other
     gillespie_results = np.empty((len(x0), steps), dtype=np.int_)
