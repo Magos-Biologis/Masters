@@ -87,20 +87,12 @@ parser.add_argument(
 )
 
 
-def intify(string) -> list[int]:
-    return [int(val) for val in string.split()]
-
-
-def floatify(string) -> list[float]:
-    return [float(val) for val in string.split()]
-
-
 def parse_parameters(string):
-    matches: list[tuple] = re.findall(r"(\w+[-m]?\d*'?)=(\S*)", string)
+    matches: list[tuple] = re.findall(r"(\w+[-m]?\d*'?)\s?=\s?(\S*)", string)
     parameters = [
         (
             str(key).replace("-", "_").replace("m", "_").replace("'", "p"),
-            np.float64(value),
+            float(value),
         )
         for key, value in matches
     ]

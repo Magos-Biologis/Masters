@@ -17,10 +17,10 @@ def aj_ode_3_2(
     a_1 = p.w1 * c1
     a_m1 = p.w2 * c2
 
-    a_2 = p.k1 * p.n1 * c1
+    a_2 = p.k1p * c1
     a_m2 = p.k1 * c1 * c1
 
-    a_3 = p.k2 * p.n2 * c2
+    a_3 = p.k2p * c2
     a_m3 = p.k2 * c2 * c2
 
     return np.array([a_1, a_m1, a_2, a_m2, a_3, a_m3])
