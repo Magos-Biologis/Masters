@@ -187,7 +187,7 @@ initial = args.initial_conds
 if initial is None:
     initial = [inx, iny, 0]
 
-initial = np.array(initial, dtype=int_)[0:var_count]
+initial = np.array([*initial, 0, 0], dtype=int_)[0:var_count]
 
 
 if parameter_default != args.parameters:
