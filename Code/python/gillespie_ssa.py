@@ -4,13 +4,15 @@ import os
 import re
 import time
 
+# from old.gillespie import gillespie
+# from gillespie import steppers as dgs
+import gillespie as dgs
+
 ##
 # os.sched_setaffinity(0, {3})
 # import numba
 import numpy as np
-
-# from old.gillespie import gillespie
-from gillespie import steppers as dgs
+from gillespie.parameter_class import parameter_default
 from pylab import *
 
 figure_env = str(os.getenv("FPE_FIGURE_ENV"))
@@ -42,6 +44,13 @@ parser.add_argument(
         "ode_5_3",
     ],
     type=str,
+)
+
+parser.add_argument(
+    "-ns",
+    "--no-save",
+    dest="save",
+    action="store_false",
 )
 
 
@@ -87,48 +96,56 @@ def floatify(string) -> list[float]:
 
 
 def parse_parameters(string):
-    matches = re.findall(r"(\w+-?m?\d)=(\S*)", string)
-    return dict(matches)
+    matches: list[tuple] = re.findall(r"(\w+[-m]?\d*'?)=(\S*)", string)
+    parameters = [
+        (
+            str(key).replace("-", "_").replace("m", "_").replace("'", "p"),
+            np.float64(value),
+        )
+        for key, value in matches
+    ]
+    return dict(parameters)
 
 
 parser.add_argument(
     "-p",
     "--parameters",
-    dest="params",
+    dest="parameters",
     help="Takes a string of equalities, and creates a dict from it",
     type=parse_parameters,
 )
 
 
-parser.add_argument(
-    "-ks",
-    "--k-params",
-    dest="ks",
-    help="Test",
-    type=floatify,
-)
-parser.add_argument(
-    "-ws",
-    "--w-params",
-    dest="ws",
-    help="Test",
-    type=floatify,
-    default=[0.15, 0.15],
-)
-parser.add_argument(
-    "-ns",
-    "--n-params",
-    dest="ns",
-    help="Test",
-    type=intify,
-    default=[100, 90],
-)
+# parser.add_argument(
+#     "-ks",
+#     "--k-params",
+#     dest="ks",
+#     help="Test",
+#     type=floatify,
+# )
+# parser.add_argument(
+#     "-ws",
+#     "--w-params",
+#     dest="ws",
+#     help="Test",
+#     type=floatify,
+#     default=[0.15, 0.15],
+# )
+# parser.add_argument(
+#     "-ns",
+#     "--n-params",
+#     dest="ns",
+#     help="Test",
+#     type=intify,
+#     default=[100, 90],
+# )
 
 
 args = parser.parse_args()
 
 
-print(args.params)
+# print(args.parameters)
+# exit()
 
 
 ## Compiling the defaults and the choice of parameters
@@ -172,63 +189,20 @@ if initial is None:
 initial = np.array(initial, dtype=int_)[0:var_count]
 
 
-def dict_setter(**kwargs) -> dict[str, float]:
-    parameter_dict = dict()
+for key in args.parameters:
+    parameter_default[key] = args.parameters[key]
 
-    parameter_dict["k1"] = kwargs.get("k1", 1)
-    parameter_dict["k-1"] = kwargs.get("k-1", 1)
-    parameter_dict["k2"] = kwargs.get("k2", 1)
-    parameter_dict["k-2"] = kwargs.get("k-2", 1)
-    parameter_dict["k3"] = kwargs.get("k3", 1)
-    parameter_dict["k-3"] = kwargs.get("k-3", 1)
-    parameter_dict["k4"] = kwargs.get("k4", 1)
-    parameter_dict["k-4"] = kwargs.get("k-4", 1)
-    parameter_dict["k5"] = kwargs.get("k5", 1)
-    parameter_dict["k-5"] = kwargs.get("k-5", 1)
-
-    parameter_dict["w1"] = kwargs.get("w1", 1)
-    parameter_dict["w2"] = kwargs.get("w2", 1)
-    parameter_dict["n1"] = kwargs.get("n1", 1)
-    parameter_dict["n2"] = kwargs.get("n2", 1)
-    parameter_dict["q1"] = kwargs.get("q1", 1)
-    parameter_dict["q2"] = kwargs.get("q2", 1)
-
-    return parameter_dict
-
-
-parameters = dict_setter(*args.params)
-
-
-alpha = 0
-beta = m
-
-b = 100
-n = 50
-
-u = n
+parameters = dgs.ParameterClass(**parameter_default)
 
 k = zeros(shape=(5, 2), dtype=float64)
 
-ks = np.empty(shape=2)
-qs = np.empty(shape=2)
+ks = np.array([parameters.k1, parameters.k2])
+qs = np.array([parameters.q1, parameters.q2])
 
-ns = np.array(args.ns)
-ws = np.array(args.ws)
+ns = np.array([parameters.n1, parameters.n2])
+ws = np.array([parameters.w1, parameters.w2])
 
-
-m_0 = 0
-
-k_1 = ks[0]
-k_2 = ks[1]
-
-n_1 = ns[0]
-n_2 = ns[1]
-
-w_1 = ws[0]
-w_2 = ws[1]
-
-qs[0] = q_1 = 0.85
-qs[1] = q_2 = 0.85
+m_0 = parameters.m0
 
 
 file_name: str = "ssa"
@@ -242,59 +216,40 @@ else:
 
 addons = []
 addons.append(f"num={initial.sum()}")
+if var_count == 2:
+    addons.append("n={}".format(parameters.n))
+
+alpha = 0
+beta = m
+
 if not is_ode:
-    k[0, 0] = k_1 = 1
-    k[0, 1] = k_m1 = 1
-
-    k[1, 0] = k_2 = 1
-    k[2, 0] = k_3 = 1
-    k[3, 0] = k_4 = 1
-    k[4, 0] = k_5 = 1
-
-    if var_count == 2:
-        k[0:2, 0] *= n
-        k[2:4, 0] *= b
-
-        addons.append(f"n={n}")
-
-    if var_count == 3:
-        k[2:4, 0] *= b
-
     addons.extend(
         [
-            f"b={b}",
-            f"k1={k_1}",
-            f"k-1={k_m1}",
-            f"k2={k_2}",
-            # f"km2{k_m2}",a
-            f"k3={k_3}",
-            # f"km3{k_m3}",
-            f"k4={k_4}",
-            # f"km4{k_m4}",
-            f"k5={k_5}",
-            # f"km5{k_m5}",
+            "b={}".format(parameters.b),
+            "k1={}".format(parameters.k1),
+            "k-1={}".format(parameters.k_1),
+            "k2={}".format(parameters.k2),
+            # "km2{}".format(parameters.k_2),a
+            "k3={}".format(parameters.k3),
+            # "km3{}".format(parameters.k_3),
+            "k4={}".format(parameters.k4),
+            # "km4{}".format(parameters.k_4),
+            "k5={}".format(parameters.k5),
+            # "km5{}".format(parameters.k_5),
         ]
     )
 
-    k_sols = array([k_1 / (k_1 + k_2), k_2 / (k_1 + k_2)])
+    # k_sols = array([k_1 / (k_1 + k_2), k_2 / (k_1 + k_2)])
 
 else:
-    k[0, :] = ks
-    k[1, :] = ks * ns
-    k[2, :] = ks / ns
-    k[3, :] = ws
-
-    k[4, :] = ns
-
     addons.extend(
         [
-            f"n={u}",
-            f"k1={k_1}",
-            f"k2={k_2}",
-            f"n1={n_1}",
-            f"n2={n_2}",
-            f"w1={w_1}",
-            f"w2={w_2}",
+            "k1={}".format(parameters.k1),
+            "k2={}".format(parameters.k2),
+            "n1={}".format(parameters.n1),
+            "n2={}".format(parameters.n2),
+            "w1={}".format(parameters.w1),
+            "w2={}".format(parameters.w2),
         ]
     )
 
@@ -304,11 +259,11 @@ for addon in addons:
     file_name += addon + "_"
 
 if not is_ode and (var_count == 2):
-    if b == n:
+    if parameters.b == parameters.n:
         para_version = r"$b=n$"
-    elif b < n:
+    elif parameters.b < parameters.n:
         para_version = r"$b<n$"
-    elif b > n:
+    elif parameters.b > parameters.n:
         para_version = r"$b>n$"
     else:
         para_version = "null"
@@ -318,24 +273,12 @@ if not is_ode and (var_count == 2):
     file_name += f"R{para_version[1:-1]}R"
 
 
-# k = array([k_1, k_2])
-
-# file_name += "_" + f"n{m}"
-
-
-a_1 = m
-a_2 = 0
-
-
-aj_0 = array([k_1 * a_1, k_2 * a_2])
-
-
 t_0 = 0
 dt = 0
 
 
 max_val = 0
-if k_1 != k_2:
+if parameters.k1 != parameters.k2:
     if m == 1:
         max_val = log(2.022121436749997)
     elif m == 10:
@@ -355,13 +298,8 @@ x_array = linspace(0, 1, num=500, endpoint=False)[1:]
 
 
 file_name += "S{:.0e}S".format(step_count)
-steppy1 = dgs.ssa_stepper(model, initial, k)  # transitions, k)
+steppy1 = dgs.ssa_stepper(model, initial, parameters)  # transitions, k)
 
-# steppy2 = dgs.ssa_stepper(model, init2, k)  # , transitions
-
-
-print("Test Mode")
-exit()
 
 date_time = time.time()
 
@@ -371,6 +309,9 @@ t1_1 = time.time()
 
 print("Stepper done \n\tTime taken: ", t1_1 - t0_1)
 
+# print("Test Mode")
+# exit()
+
 # t0_2 = time.time()
 # time_results_2, gillespie_results_2 = steppy2.step_function(step_count)
 # t1_2 = time.time()
@@ -379,11 +320,19 @@ print("Stepper done \n\tTime taken: ", t1_1 - t0_1)
 # print("Stepper two done \n\tTime taken: ", t1_2 - t0_2)
 
 
-np.savez(
-    os.path.join(data_env, file_name + f"I{initial}C" + f"T{round(t1_1)}"),
-    time=time_results_1,
-    states=gillespie_results_1,
-)
+final_name1 = file_name + f"I{initial}C" + f"T{round(t1_1)}"
+full_file_path1 = os.path.join(data_env, final_name1)
+
+if save:
+    np.savez(
+        full_file_path1,
+        time=time_results_1,
+        states=gillespie_results_1,
+    )
+
+    print('saved as "{}"'.format(final_name1))
+else:
+    print('file name is "{}"'.format(final_name1))
 
 # np.savez(
 #     os.path.join(data_env, file_name + f"I{init2}C" + f"T{round(t1_2)}"),

@@ -2,52 +2,14 @@
 ##
 ##
 
+from importlib import import_module
 
-from gillespie.analytical import *
+import numpy as np
+from numba import njit
 
-# class ssa:
-#     def __init__(
-#         self,
-#         x0: np.ndarray[tuple[int], np.dtype[np.float64]],
-#         vj: list[np.ndarray[tuple[int], np.dtype[np.int_]]],
-#         # propensity_tuple: tuple[
-#         #     function,
-#         #     list[np.ndarray[tuple[int], np.dtype[np.int_]]],
-#         # ],
-#         steps: int = 1000,
-#     ) -> None:
-#         self.x0 = x0
-#         self.v = vj
-#
-#         self.steps = steps
-#         # self.props, self.v = propensity_tuple
-#
-#         self.time = np.empty(shape=self.steps, dtype=np.float64)
-#         self.results = np.empty(shape=(2, self.steps), dtype=np.int_)
-#
-#     def generate(
-#         self,
-#         aj,
-#     ) -> tuple[
-#         np.ndarray[tuple[int, int], np.dtype[np.float64]],
-#         np.ndarray[tuple[int], np.dtype[np.int_]],
-#     ]:
-#         self.results[:, 0] = self.x0
-#         x = self.x0.astype(np.float64)
-#
-#         for i in range(1, self.steps):
-#             a_j = aj(self.results[:, i - 1])
-#             j, dt = ssa_event(a_j)
-#
-#             if j == -1:
-#                 break
-#
-#             self.results[:, i] = np.add(self.results[:, i - 1], self.v[j])
-#             self.time[i] = self.time[i - 1] + dt
-#
-#         final_step: int = i
-#
-#         return self.time[:final_step], self.results[:, :final_step]
+from .analytical import simple_two_system
+from .parameter_class import ParameterClass  # , parameter_default
+from .propensities import transitions
 
 
 @njit
@@ -96,6 +58,37 @@ def ssa_event(
             break
 
     return j, tau
+
+
+class ssa_stepper:
+    step_module: str = "gillespie.steppers"
+    steps: int = 10_000
+
+    vj: dict[str, list[np.ndarray[tuple[int], np.dtype[np.int_]]]] = transitions
+
+    def __init__(
+        self,
+        variation: str,
+        x0: np.ndarray[tuple[int], np.dtype[np.int_]],
+        params: ParameterClass,
+    ) -> None:
+        self.sub_module = self.step_module + ".step_function_" + variation
+        self.state_changes = self.vj["vj_" + variation]
+
+        self.x0 = x0
+        self.params = params
+
+    def step_function(
+        self,
+        steps: int | np.int_ = steps,
+    ) -> tuple[
+        np.ndarray[tuple[int], np.dtype[np.float64]],
+        np.ndarray[tuple[int, int], np.dtype[np.int_]],
+    ]:
+        modu = import_module(self.sub_module)
+        step_function = getattr(modu, "main")
+
+        return step_function(steps, self.x0, self.state_changes, self.params)
 
 
 # @dataclass(frozen=True)
