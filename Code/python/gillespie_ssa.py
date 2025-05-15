@@ -36,6 +36,7 @@ parser.add_argument(
         "ode_2_2",
         "ode_3",
         "ode_3_2",
+        "ode_3_2_alt",
         "ode_3_3",
         "ode_5_2",
         "ode_5_3",
@@ -50,7 +51,7 @@ def make_int(input: str) -> int:
 
 
 parser.add_argument(
-    "-st",
+    "-s",
     "--steps",
     dest="steps",
     help="Number of Steps",
@@ -58,13 +59,14 @@ parser.add_argument(
     default=10_000,
 )
 parser.add_argument(
-    "-si",
+    "-n",
     "--size",
     dest="size",
-    help="Size of System",
+    help="Total units in system",
     type=int,
     default=int(100),
 )
+
 
 parser.add_argument(
     "-ic",
@@ -74,20 +76,65 @@ parser.add_argument(
     help="Initial Conditions",
     type=int,
 )
-# default=[99, 1, 100],
 
-parser.add_argument("-ks", "--parameters", dest="k", help="Test", type=float, default=1)
+
+def intify(string) -> list[int]:
+    return [int(val) for val in string.split()]
+
+
+def floatify(string) -> list[float]:
+    return [float(val) for val in string.split()]
+
+
+def parse_parameters(string):
+    matches = re.findall(r"(\w+-?m?\d)=(\S*)", string)
+    return dict(matches)
+
+
+parser.add_argument(
+    "-p",
+    "--parameters",
+    dest="params",
+    help="Takes a string of equalities, and creates a dict from it",
+    type=parse_parameters,
+)
+
+
+parser.add_argument(
+    "-ks",
+    "--k-params",
+    dest="ks",
+    help="Test",
+    type=floatify,
+)
+parser.add_argument(
+    "-ws",
+    "--w-params",
+    dest="ws",
+    help="Test",
+    type=floatify,
+    default=[0.15, 0.15],
+)
+parser.add_argument(
+    "-ns",
+    "--n-params",
+    dest="ns",
+    help="Test",
+    type=intify,
+    default=[100, 90],
+)
 
 
 args = parser.parse_args()
 
-# print(args.k1)
+
+print(args.params)
+
 
 ## Compiling the defaults and the choice of parameters
-
-
 model: str = args.model
 step_count: int = args.steps
+
 
 set_of_3 = [
     "5_3",
@@ -103,14 +150,9 @@ set_of_2 = [
     "ode_2",
     "ode_2_2",
     "ode_3_2",
+    "ode_3_2_alt",
     "ode_5_2",
 ]
-
-# print(set(model))
-# print(set(model).intersection(set(set_of_2)))
-# exit()
-
-# print(model)
 
 if model in set_of_2:
     var_count = 2
@@ -119,7 +161,6 @@ elif model in set_of_3:
 else:
     print("What?")
     exit()
-
 
 m: int = args.size
 inx, iny = m - 1, 1
@@ -130,37 +171,61 @@ if initial is None:
 
 initial = np.array(initial, dtype=int_)[0:var_count]
 
-# print(initial)
-# exit()
-# initial = np.array([*args.init], dtype=int_)[0:var_count]
+
+def dict_setter(**kwargs) -> dict[str, float]:
+    parameter_dict = dict()
+
+    parameter_dict["k1"] = kwargs.get("k1", 1)
+    parameter_dict["k-1"] = kwargs.get("k-1", 1)
+    parameter_dict["k2"] = kwargs.get("k2", 1)
+    parameter_dict["k-2"] = kwargs.get("k-2", 1)
+    parameter_dict["k3"] = kwargs.get("k3", 1)
+    parameter_dict["k-3"] = kwargs.get("k-3", 1)
+    parameter_dict["k4"] = kwargs.get("k4", 1)
+    parameter_dict["k-4"] = kwargs.get("k-4", 1)
+    parameter_dict["k5"] = kwargs.get("k5", 1)
+    parameter_dict["k-5"] = kwargs.get("k-5", 1)
+
+    parameter_dict["w1"] = kwargs.get("w1", 1)
+    parameter_dict["w2"] = kwargs.get("w2", 1)
+    parameter_dict["n1"] = kwargs.get("n1", 1)
+    parameter_dict["n2"] = kwargs.get("n2", 1)
+    parameter_dict["q1"] = kwargs.get("q1", 1)
+    parameter_dict["q2"] = kwargs.get("q2", 1)
+
+    return parameter_dict
+
+
+parameters = dict_setter(*args.params)
 
 
 alpha = 0
 beta = m
 
 b = 100
-n = 100
-# b = 1
+n = 50
 
-u = 1
+u = n
 
 k = zeros(shape=(5, 2), dtype=float64)
 
 ks = np.empty(shape=2)
-ns = np.empty(shape=2)
-ws = np.empty(shape=2)
 qs = np.empty(shape=2)
+
+ns = np.array(args.ns)
+ws = np.array(args.ws)
+
 
 m_0 = 0
 
-ks[0] = k_1 = 0.7
-ks[1] = k_2 = 0.6
+k_1 = ks[0]
+k_2 = ks[1]
 
-ns[0] = n_1 = 100
-ns[1] = n_2 = 90
+n_1 = ns[0]
+n_2 = ns[1]
 
-ws[0] = w_1 = 0.15
-ws[1] = w_2 = 0.15
+w_1 = ws[0]
+w_2 = ws[1]
 
 qs[0] = q_1 = 0.85
 qs[1] = q_2 = 0.85
@@ -178,8 +243,8 @@ else:
 addons = []
 addons.append(f"num={initial.sum()}")
 if not is_ode:
-    k[0, 0] = k_1 = 1  # 0.55
-    k[0, 1] = k_m1 = 1  # 0.55
+    k[0, 0] = k_1 = 1
+    k[0, 1] = k_m1 = 1
 
     k[1, 0] = k_2 = 1
     k[2, 0] = k_3 = 1
@@ -195,16 +260,11 @@ if not is_ode:
     if var_count == 3:
         k[2:4, 0] *= b
 
-    # print(k)
-    # exit()
-
-    # anal_sol = -(k[2, 0] - k[0, 0]) / k[0, 1]
-
     addons.extend(
         [
             f"b={b}",
             f"k1={k_1}",
-            f"km1={k_m1}",
+            f"k-1={k_m1}",
             f"k2={k_2}",
             # f"km2{k_m2}",a
             f"k3={k_3}",
@@ -219,10 +279,8 @@ if not is_ode:
     k_sols = array([k_1 / (k_1 + k_2), k_2 / (k_1 + k_2)])
 
 else:
-    # k[0, :] *= u
-
     k[0, :] = ks
-    k[1, :] = ks * u
+    k[1, :] = ks * ns
     k[2, :] = ks / ns
     k[3, :] = ws
 
@@ -230,8 +288,7 @@ else:
 
     addons.extend(
         [
-            # f"num={m}",
-            f"u={u}",
+            f"n={u}",
             f"k1={k_1}",
             f"k2={k_2}",
             f"n1={n_1}",
@@ -259,19 +316,6 @@ if not is_ode and (var_count == 2):
 
     ## Simple if else so I can be lazy and not remember to add the naming conventions
     file_name += f"R{para_version[1:-1]}R"
-
-
-# print(file_name)
-# exit()
-# file_name += "_" + f"k1{k_1}"
-# file_name += "_" + f"k2{k_2}"
-
-
-# k_2 = 1
-# file_name += "_" + f"w1{w_1}"
-# file_name += "_" + f"w2{w_2}"
-# file_name += "_" + f"n1{n_1}"
-# file_name += "_" + f"n2{n_2}"
 
 
 # k = array([k_1, k_2])
@@ -315,6 +359,9 @@ steppy1 = dgs.ssa_stepper(model, initial, k)  # transitions, k)
 
 # steppy2 = dgs.ssa_stepper(model, init2, k)  # , transitions
 
+
+print("Test Mode")
+exit()
 
 date_time = time.time()
 

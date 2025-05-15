@@ -5,6 +5,7 @@ from .propensity_5_3 import *
 from .propensity_ode_2 import *
 from .propensity_ode_3 import *
 from .propensity_ode_3_2 import *
+from .propensity_ode_3_2_alt import *
 from .propensity_ode_3_3 import *
 from .propensity_ode_5_2 import *
 from .propensity_ode_5_3 import *

@@ -36,6 +36,7 @@ parser.add_argument(
         "ode_2_2",
         "ode_3",
         "ode_3_2",
+        "ode_3_2_alt",
         "ode_3_3",
         "ode_5_2",
         "ode_5_3",
@@ -388,6 +389,7 @@ if args.compare_plots:
         "r",
         init_cond_string,
         args.include_starts,
+        top=m,
     )
     gillespies.plot_hists(
         ax3,
@@ -406,6 +408,7 @@ if args.compare_plots:
         "b",
         init_cond_string,
         args.include_starts,
+        top=m,
     )
     gillespies.plot_hists(
         ax3,
