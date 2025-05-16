@@ -9,11 +9,12 @@ from matplotlib.backends.backend_pdf import PdfPages
 from pylab import *
 
 # figure_env = str(os.getenv("THESIS_FIGURE_PATH"))
-fig_env = str(os.getenv("FPE_FIGURE_ENV"))
+fig_env = str(os.getenv("THESIS_FIGURE_PATH"))
+fpe_env = str(os.getenv("FPE_FIGURE_ENV"))
 data_env = str(os.getenv("THESIS_DATA_PATH"))
 
-ode_dir = os.path.join(fig_env, "ode")
-fpe_dir = os.path.join(fig_env, "five_var")
+ode_dir = os.path.join(fpe_env, "ode")
+fpe_dir = os.path.join(fpe_env, "five_var")
 
 # file_dir = ode_dir
 
