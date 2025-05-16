@@ -9,11 +9,11 @@ from matplotlib.backends.backend_pdf import PdfPages
 from pylab import *
 
 # figure_env = str(os.getenv("THESIS_FIGURE_PATH"))
-fpe_env = str(os.getenv("FPE_FIGURE_ENV"))
+fig_env = str(os.getenv("FPE_FIGURE_ENV"))
 data_env = str(os.getenv("THESIS_DATA_PATH"))
 
-ode_dir = os.path.join(fpe_env, "ode")
-fpe_dir = os.path.join(fpe_env, "five_var")
+ode_dir = os.path.join(fig_env, "ode")
+fpe_dir = os.path.join(fig_env, "five_var")
 
 # file_dir = ode_dir
 
@@ -562,6 +562,7 @@ elif data_source == "phase":
     fig, ax = plt.subplots(figsize=(6, 6))
 
     phaseies.plot_phase_space(ax, c1, c2, dU, dV, **stream_kwargs)
+    ax.set_ylim(bottom=0)
 
 
 ## Taken from https://www.geeksforgeeks.org/save-multiple-matplotlib-figures-in-single-pdf-file-using-python/
@@ -593,6 +594,9 @@ if args.save:
         file_path = os.path.join(fpe_dir, file_name)
 
     save_image(file_path)
+
+latest_file = os.path.join(fig_env, "latest_plot")
+save_image(latest_file)
 
 if args.show:
     show()
