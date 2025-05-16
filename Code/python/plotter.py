@@ -411,7 +411,8 @@ if data_source == "ssa":
     ax2 = fig2.add_subplot()
     ax3 = fig3.add_subplot()
 
-    figs = [fig1, fig2, fig3]
+    # figs = [fig1, fig2, fig3]
+    figs = [plt.figure(i) for i in plt.get_fignums()]
     axes = [ax1, ax2, ax3]
 
     if args.compare_plots:
@@ -560,10 +561,18 @@ elif data_source == "phase":
         # "broken_streamlines":False,
     }
 
-    fig, ax = plt.subplots(figsize=(6, 6))
+    fig1 = figure(figsize=(6, 6))
+    ax1 = fig1.add_subplot()
 
-    phaseies.plot_phase_space(ax, c1, c2, dU, dV, **stream_kwargs)
-    ax.set_ylim(bottom=0)
+    phaseies.plot_phase_space(ax1, c1, c2, dU, dV, **stream_kwargs)
+
+    figs = [plt.figure(i) for i in plt.get_fignums()]
+
+    ax1.set_xlim(left=0, right=100)
+    ax1.set_ylim(bottom=0, top=100)
+
+    for fig in figs:
+        fig.tight_layout()
 
 
 ## Taken from https://www.geeksforgeeks.org/save-multiple-matplotlib-figures-in-single-pdf-file-using-python/
@@ -596,12 +605,16 @@ if args.save:
 
     save_image(file_path)
 
-latest_file = os.path.join(fig_env, "latest_plot")
-save_image(latest_file)
-
 if args.show:
     show()
 
-print("Done Plotting")
+
+latest_file = os.path.join(fig_env, "latest_plot")
+if len(figs) > 1:
+    save_image(latest_file)
+else:
+    plt.figure(1).savefig(latest_file + ".png", format="png")
+
+print("Done Plotting/Saving")
 
 exit()
