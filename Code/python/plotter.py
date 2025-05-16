@@ -581,20 +581,21 @@ def save_image(filename):
     # file so there is no clash and create
     # files with no error.
     filename += ".pdf"
-    p = PdfPages(filename)
 
-    # get_fignums Return list of existing
-    # figure numbers
-    fig_nums = plt.get_fignums()
-    figs = [plt.figure(n) for n in fig_nums]
+    ## We use a "with" statement to keep the system self contained
+    with PdfPages(filename) as p:
+        # get_fignums Return list of existing
+        # figure numbers
+        fig_nums = plt.get_fignums()
+        figs = [plt.figure(n) for n in fig_nums]
 
-    # iterating over the numbers in list
-    for fig in figs:
-        # and saving the files
-        fig.savefig(p, format="pdf")
+        # iterating over the numbers in list
+        for fig in figs:
+            # and saving the files
+            fig.savefig(p, format="pdf")
 
-    # close the object
-    p.close()
+    # # close the object
+    # p.close()
 
 
 if args.save:
@@ -605,15 +606,16 @@ if args.save:
 
     save_image(file_path)
 
-if args.show:
-    show()
-
 
 latest_file = os.path.join(fig_env, "latest_plot")
 if len(figs) > 1:
     save_image(latest_file)
 else:
     plt.figure(1).savefig(latest_file + ".png", format="png")
+
+
+if args.show:
+    show()
 
 print("Done Plotting/Saving")
 
