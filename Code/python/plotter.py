@@ -332,7 +332,7 @@ else:
 #     for item in file_choice["metadata"]:
 #         file_name += "_" + item
 
-file_name: str = "{}:M{}:".format(data_source, model).replace("_", "-")
+file_name: str = "{}:{}:".format(data_source, model).replace("_", "-")
 
 if not is_ode:
     if args.compare_plots:
