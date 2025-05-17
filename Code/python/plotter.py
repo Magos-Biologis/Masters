@@ -1,3 +1,4 @@
+#!../.venv/bin/python3
 import argparse
 import os
 import re
@@ -331,7 +332,7 @@ else:
 #     for item in file_choice["metadata"]:
 #         file_name += "_" + item
 
-file_name: str = "S{}M{}".format(data_source, model)
+file_name: str = "{}:M{}:".format(data_source, model).replace("_", "-")
 
 if not is_ode:
     if args.compare_plots:
@@ -343,16 +344,16 @@ if not is_ode:
 
 
 ## Adding the epoch time to ensure the files don't overwrite eachother
-file_name += "T"
 if args.compare_plots:
-    file_name += file_choice.loc[0, "t"]
+    epoch = file_choice.loc[0, "t"]
     data_set_quantity = 2
 else:
-    file_name += file_choice["t"]
+    epoch = file_choice["t"]
     data_set_quantity = 1
 
-file_name += "W{}".format(data_set_quantity)
-file_name += "I{}".format(model_choice)
+file_name += "I{}:".format(model_choice)
+file_name += "C{}:".format(data_set_quantity)
+file_name += "T{}".format(epoch)
 
 #######################
 
