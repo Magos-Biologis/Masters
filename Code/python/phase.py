@@ -112,8 +112,8 @@ alpha = 1
 c1_0 = n[0] - alpha
 c2_0 = alpha
 
+# "num={}".format(0),
 filename_addendum = [
-    "num={}".format(0),
     "m0={}".format(m_0),
     "k1={}".format(k[0]),
     "k2={}".format(k[1]),

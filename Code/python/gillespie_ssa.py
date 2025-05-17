@@ -46,6 +46,15 @@ parser.add_argument(
     type=str,
 )
 
+
+parser.add_argument(
+    "-r",
+    "--repeats",
+    dest="repeats",
+    type=int,
+    default=1,
+)
+
 parser.add_argument(
     "-ns",
     "--no-save",
@@ -87,8 +96,11 @@ parser.add_argument(
 )
 
 
+parameter_parser = re.compile(r"(\w+[-m]?\d*'?)\s?=\s?([^ ,]*)")
+
+
 def parse_parameters(string):
-    matches: list[tuple] = re.findall(r"(\w+[-m]?\d*'?)\s?=\s?(\S*)", string)
+    matches: list[tuple] = parameter_parser.findall(string)
     parameters = [
         (
             str(key).replace("-", "_").replace("m", "_").replace("'", "p"),
@@ -109,37 +121,22 @@ parser.add_argument(
 )
 
 
-# parser.add_argument(
-#     "-ks",
-#     "--k-params",
-#     dest="ks",
-#     help="Test",
-#     type=floatify,
-# )
-# parser.add_argument(
-#     "-ws",
-#     "--w-params",
-#     dest="ws",
-#     help="Test",
-#     type=floatify,
-#     default=[0.15, 0.15],
-# )
-# parser.add_argument(
-#     "-ns",
-#     "--n-params",
-#     dest="ns",
-#     help="Test",
-#     type=intify,
-#     default=[100, 90],
-# )
+parser.add_argument(
+    "--test-parameters",
+    dest="test",
+    help="Breaks the file to print out the parameter flag",
+    action="store_true",
+)
 
 
 args = parser.parse_args()
 
 
-# print(args.parameters)
-# exit()
+if args.test:
+    print(args.parameters)
+    exit()
 
+# exit()
 
 ## Compiling the defaults and the choice of parameters
 model: str = args.model
@@ -275,63 +272,37 @@ t_0 = 0
 dt = 0
 
 
-# max_val = 0
-# if parameters.k1 != parameters.k2:
-#     if m == 1:
-#         max_val = log(2.022121436749997)
-#     elif m == 10:
-#         max_val = log(674763.2054860857)
-#     elif m == 100:
-#         max_val = log(6.367225127715182e43)
-# else:
-#     pass
-
-# x_array = linspace(0, 1, num=500, endpoint=False)[1:]
-
-
 ## Step function
-
-
-# time_array, gillespie_results = step_function(100000, x_0)
 
 
 file_name += "S{:.0e}S".format(step_count)
 steppy1 = dgs.ssa_stepper(model, initial, parameters)  # transitions, k)
 
 
-date_time = time.time()
+for _ in range(args.repeats):
+    date_time = time.time()
+    t0 = time.time()
+    time_results, state_results = steppy1.step_function(step_count)
+    t1 = time.time()
 
-t0_1 = time.time()
-time_results_1, gillespie_results_1 = steppy1.step_function(step_count)
-t1_1 = time.time()
+    print("Stepper done \n\tTime taken: ", t1 - t0)
 
-print("Stepper done \n\tTime taken: ", t1_1 - t0_1)
+    save_name = file_name + f"I{initial}C" + "T{}".format(t1).replace(".", "")
+    full_file_path = os.path.join(data_env, save_name)
 
-# print("Test Mode")
-# exit()
+    if args.save:
+        np.savez(
+            full_file_path,
+            time=time_results,
+            states=state_results,
+        )
 
-# t0_2 = time.time()
-# time_results_2, gillespie_results_2 = steppy2.step_function(step_count)
-# t1_2 = time.time()
-#
-#
-# print("Stepper two done \n\tTime taken: ", t1_2 - t0_2)
+        print('saved as "{}"'.format(save_name))
+    else:
+        print('file name is "{}"'.format(save_name))
 
-
-final_name1 = file_name + f"I{initial}C" + f"T{round(t1_1)}"
-full_file_path1 = os.path.join(data_env, final_name1)
-
-if args.save:
-    np.savez(
-        full_file_path1,
-        time=time_results_1,
-        states=gillespie_results_1,
-    )
-
-    print('saved as "{}"'.format(final_name1))
-else:
-    print('file name is "{}"'.format(final_name1))
-
+if args.repeats > 1:
+    print("Done repeating")
 # np.savez(
 #     os.path.join(data_env, file_name + f"I{init2}C" + f"T{round(t1_2)}"),
 #     time=time_results_2,
