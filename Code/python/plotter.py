@@ -519,7 +519,7 @@ if data_source == "ssa":
         )
         if args.compare_plots:
             ax.set_xlabel(
-                "Distribution of the Count of {}".format(names[i]),
+                "Counts",
                 fontdict=font_kwargs,
             )
         else:
