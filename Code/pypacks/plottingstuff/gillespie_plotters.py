@@ -1,6 +1,7 @@
 import numpy as np
 from matplotlib import axes as axe
 
+from .fixedpoints import GillespieFixed
 from .plotting_class import plotting_class
 
 
@@ -152,3 +153,75 @@ class gillespie_plotters(plotting_class):
         ax.set_xlim(left=0)
         ax.set_yticks([y for y in range(y_min, y_max + 1, axis_step)])
         ax.set_ylim(bottom=y_min, top=y_max)
+
+    def _plot_hline(
+        self,
+        ax: axe.Axes,
+        model: str,
+        var: str,
+        xmax: float,
+        parameters: GillespieFixed,
+        **kwargs,
+    ):
+        assert type(parameters) is GillespieFixed, "You fucked the parameters somehow"
+
+        if model == "5_2":
+            fixed: np.float64 = parameters.Novel_5_2()[var]
+        elif model == "5_3":
+            fixed: np.float64 = parameters.Novel_5_3()[var]
+        else:
+            fixed: np.float64 = np.float64(0)
+
+        ax.hlines([fixed], 0, xmax, **self.lineargs, **kwargs)
+
+    def _plot_vline(
+        self,
+        ax: axe.Axes,
+        model: str,
+        var: str,
+        ymax: float,
+        parameters: GillespieFixed,
+        **kwargs,
+    ):
+        assert type(parameters) is GillespieFixed, "You fucked the parameters somehow"
+
+        if model == "5_2":
+            fixed = parameters.Novel_5_2()[var]
+        elif model == "5_3":
+            fixed = parameters.Novel_5_3()[var]
+        else:
+            fixed = np.float64(0)
+
+        ax.vlines([fixed], 0, ymax, **self.lineargs, **kwargs)
+
+    def plot_hist_fixed(
+        self,
+        ax: axe.Axes,
+        model: str,
+        var: str,
+        ymax: float,
+        parameters: dict | GillespieFixed,
+        **kwargs,
+    ):
+        if type(parameters) is dict:
+            parameters = GillespieFixed(**parameters)
+
+        assert type(parameters) is GillespieFixed, "You fucked the parameters somehow"
+
+        self._plot_vline(ax, model, var, ymax, parameters)
+
+    def plot_walk_fixed(
+        self,
+        ax: axe.Axes,
+        model: str,
+        var: str,
+        xmax: float,
+        parameters: dict | GillespieFixed,
+        **kwargs,
+    ):
+        if type(parameters) is dict:
+            parameters = GillespieFixed(**parameters)
+
+        assert type(parameters) is GillespieFixed, "You fucked the parameters somehow"
+
+        self._plot_hline(ax, model, var, xmax, parameters)

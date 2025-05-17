@@ -106,6 +106,13 @@ bool_args.add_argument(
     help="Include starts in legend",
     action="store_true",
 )
+bool_args.add_argument(
+    "-fp",
+    "---fixed-points",
+    dest="plot_fixedpoints",
+    help="Include the fixed points in the histogram and walks",
+    action="store_true",
+)
 
 
 parser.add_argument(
@@ -145,12 +152,9 @@ def parse_metadata(string):
 
 
 def parse_kwarg_string(string):
-    matches: list[tuple] = kwarg_string_parser.findall(string)
+    matches: list[tuple] = metadata_captures.findall(string)
     parameters = [
-        (
-            str(key).replace("-", "_").replace("m", "_").replace("'", "p"),
-            float(value),
-        )
+        (str(key).replace("-", "_").replace("m", "_").replace("'", "p"), float(value))
         for key, value in matches
     ]
     return dict(parameters)
@@ -254,6 +258,7 @@ defined_metadata = raw_frame["metadata"].map(lambda d: len(d) > 0)
 raw_frame = raw_frame.loc[defined_metadata]
 
 ssa_index = raw_frame.loc[raw_frame["datasource"] == "ssa"].index
+# print(raw_frame.loc[ssa_index, "metadata"])
 raw_frame.loc[ssa_index, "count"] = [
     dic.pop("num") for dic in raw_frame.loc[ssa_index, "metadata"]
 ]
@@ -315,12 +320,12 @@ file_name: str = "{}:{}:".format(data_source, model).replace("_", "-")
 
 para_version: str = ""
 if not is_ode:
-    if args.compare_plots:
-        para_version = r"${}$".format(file_choice.loc[0, "ratio"])
-    else:
-        para_version = r"${}$".format(file_choice["ratio"])
-
     if para_version != "":
+        if args.compare_plots:
+            para_version = r"${}$".format(file_choice.loc[0, "ratio"])
+        else:
+            para_version = r"${}$".format(file_choice["ratio"])
+
         file_name += "{}:".format(para_version).replace("$", "")
 
 
@@ -524,6 +529,20 @@ if data_source == "ssa":
 
     for fig in figs:
         fig.tight_layout()
+
+    if args.plot_fixedpoints:
+        inputs = [*filtered_frame.loc[model_choice, "metadata"].items()]
+        input_dict = dict([(string.replace("-", "_"), val) for string, val in inputs])
+        if args.compare_plots:
+            gillespies.plot_walk_fixed(ax1, model, "x", xmax=1e10, parameters=input_dict)
+        else:
+            gillespies.plot_walk_fixed(ax1, model, "x", xmax=1e10, parameters=input_dict)
+            gillespies.plot_walk_fixed(ax2, model, "y", xmax=1e10, parameters=input_dict)
+            gillespies.plot_hist_fixed(ax3, model, "x", ymax=1, parameters=input_dict)
+
+        # print(filtered_frame.loc[model_choice, "file_name"])
+        # print(filtered_frame.loc[model_choice, "metadata"])
+        # print(input_dict)
 
 # ax3.vlines(anal_sol, 0, 1, **line_kwargs, label="Analytical solution for $x$")
 
