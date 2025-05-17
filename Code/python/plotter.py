@@ -293,7 +293,7 @@ if args.filter is not None:
 
 if args.opts:
     print("{}".format(args.model))
-    print(filtered_frame[["initcond", "count", "steps", "t"]])
+    print(filtered_frame[["initcond", "count", "steps", "ratio", "t"]])
     exit()
 
 
@@ -323,15 +323,6 @@ else:
 #######################
 
 ## The base name
-
-## Subsequently adding stuff dependent on the resulting bool flags
-# if args.compare_plots:
-#     for item in file_choice.loc[0, "metadata"]:
-#         file_name += "_" + item
-# else:
-#     for item in file_choice["metadata"]:
-#         file_name += "_" + item
-
 file_name: str = "{}:{}:".format(data_source, model).replace("_", "-")
 
 if not is_ode:
@@ -340,7 +331,8 @@ if not is_ode:
     else:
         para_version = file_choice["ratio"]
 
-    file_name += "_" + para_version
+    if para_version != "":
+        file_name += "{}:".format(para_version)
 
 
 ## Adding the epoch time to ensure the files don't overwrite eachother
