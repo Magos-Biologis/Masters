@@ -23,6 +23,7 @@ fpe_dir = os.path.join(fpe_env, "five_var")
 parser = argparse.ArgumentParser(
     prog="Plotter",
     description="A python3 script that plots the data generated elsewhere",
+    prefix_chars="-+",
 )
 
 parser.add_argument(
@@ -58,14 +59,55 @@ parser.add_argument(
     type=str,
 )
 
-# parser.add_argument(
-#     "-st",
-#     "--steps",
-#     dest="steps",
-#     help="Number of Steps",
-#     type=int,
-#     default=int(1e5),
-# )
+
+bool_args = parser.add_argument_group(
+    "Boolean arguments",
+    "Arguments that exist as a boolean flag",
+)
+bool_args.add_argument(
+    "-o",
+    "--options",
+    dest="opts",
+    help="List options",
+    action="store_true",
+)
+bool_args.add_argument(
+    "-sh",
+    "--show",
+    dest="show",
+    help="Show Plot",
+    action="store_true",
+)
+bool_args.add_argument(
+    "-ns",
+    "--no-save",
+    dest="save",
+    help="Don't save plot",
+    action="store_false",
+)
+bool_args.add_argument(
+    "-nb",
+    "--not-both",
+    dest="both",
+    help="Don't plot both x and y",
+    action="store_false",
+)
+bool_args.add_argument(
+    "-cp",
+    "--compare-plots",
+    dest="compare_plots",
+    help="Compare Plots",
+    action="store_true",
+)
+bool_args.add_argument(
+    "-is",
+    "--include-starts",
+    dest="include_starts",
+    help="Include starts in legend",
+    action="store_true",
+)
+
+
 parser.add_argument(
     "-n",
     "--size",
@@ -74,8 +116,6 @@ parser.add_argument(
     type=int,
     default=int(100),
 )
-
-
 parser.add_argument(
     "-b",
     "--bins",
@@ -91,106 +131,58 @@ parser.add_argument(
     help="Which index",
     type=int,
 )
-parser.add_argument(
-    "-cp",
-    "--compare-plots",
-    dest="compare_plots",
-    help="Compare Plots",
-    action="store_true",
-)
 
 
 ## Taken from my parameter flag in the sim script
-capture_parameters = re.compile(r"(\w+[-m]?\d?p?)=([^_]*)_")
+metadata_captures = re.compile(r"(\w+[-m]?\d?p?)=([^_]*)_")
+kwarg_string_parser = re.compile(r"(\w+)\s?=\s?([^ ,]*)")
 
 
-def parse_parameters(string):
-    matches: list[tuple] = capture_parameters.findall(string)
+def parse_metadata(string):
+    matches: list[tuple] = metadata_captures.findall(string)
     parameters = [(str(key), float(value)) for key, value in matches]
     return parameters
+
+
+def parse_kwarg_string(string):
+    matches: list[tuple] = kwarg_string_parser.findall(string)
+    parameters = [
+        (
+            str(key).replace("-", "_").replace("m", "_").replace("'", "p"),
+            float(value),
+        )
+        for key, value in matches
+    ]
+    return dict(parameters)
 
 
 parser.add_argument(
     "-f",
     "--filter",
     dest="filter",
-    help="Filter",
-    type=parse_parameters,
+    help='Provide a list of parameters to filter by, "par = __ "',
+    type=parse_metadata,
 )
 
-# type=int,
-# const=1,
 
-parser.add_argument(
-    "-o",
-    "--options",
-    dest="opts",
-    help="List options",
-    action="store_true",
-)
-parser.add_argument(
-    "-sh",
-    "--show",
-    dest="show",
-    help="Show Plot",
-    action="store_true",
+kwarg_parse = parser.add_argument_group(
+    "Kwarg",
+    "Arguments for modifying plot kwargs",
+    prefix_chars="+",
+    argument_default=dict(),
 )
 
-parser.add_argument(
-    "-ns",
-    "--no-save",
-    dest="save",
-    help="Don't save plot",
-    action="store_false",
-)
 
-parser.add_argument(
-    "-nb",
-    "--not-both",
-    dest="both",
-    help="Don't plot both x and y",
-    action="store_false",
-)
-
-# parser.add_argument(
-#     "-ns",
-#     "--no-save",
-#     dest="save",
-#     help="Don't save plot",
-# )
-
-
-parser.add_argument(
-    "-ic",
-    "--initial-conds",
-    nargs="*",
-    dest="initial_conds",
-    help="Initial Conditions",
-    type=int,
-)
-
-parser.add_argument(
-    "-is",
-    "--include-starts",
-    dest="include_starts",
-    help="Include starts in legend",
-    action="store_true",
-)
-# default=[99, 1, 100],
-
-# parser.add_argument(
-#     "-ks",
-#     "--parameters",
-#     dest="k",
-#     help="Test",
-#     type=float,
-#     default=1,
-# )
+kwarg_parse.add_argument("+c", "++curve", dest="kwarg_curve", type=parse_kwarg_string)
+kwarg_parse.add_argument("+f", "++font", dest="kwarg_font", type=parse_kwarg_string)
+kwarg_parse.add_argument("+h", "++hist", dest="kwarg_hist", type=parse_kwarg_string)
+kwarg_parse.add_argument("+l", "++line", dest="kwarg_line", type=parse_kwarg_string)
+kwarg_parse.add_argument("+w", "++walk", dest="kwarg_walk", type=parse_kwarg_string)
+kwarg_parse.add_argument("+p", "++plot", dest="kwarg_plot", type=parse_kwarg_string)
 
 
 args = parser.parse_args()
 
-# print(args.k1)
 
 ## Compiling the defaults and the choice of parameters
 
@@ -218,12 +210,11 @@ capture_patterns: re.Pattern = re.compile(
 )
 
 
-file_names = os.listdir(data_env)
-
 ## So there are two methods, search, and match
 ## It seems that search is what works for what I want,
 ## match is more for if you are decomposing the entire string from the start
 records = []
+file_names = os.listdir(data_env)
 for fn in file_names:
     rec = dict()
 
@@ -244,15 +235,13 @@ for fn in file_names:
 raw_frame = pd.DataFrame(records)
 raw_frame.sort_values(by="t", inplace=True)  ## Sorting by unix epoch time, ascending
 
-# print(raw_frame[["ratio", "metadata"]])
-
 
 ## I need to update the metadata column, to be a column of dict type.
 ## Isolating all the matches in the strings so as to prepare a
 ## list of tuple[str, float] types— which can be turned into a dictionary
 ## For that I just use the same technique as for the filter flag type
 raw_frame.loc[:, "metadata"] = (
-    raw_frame["metadata"].map(parse_parameters).map(lambda d: dict(d))
+    raw_frame["metadata"].map(parse_metadata).map(lambda d: dict(d))
 )
 
 no_ratio = raw_frame["ratio"].isna()
@@ -268,8 +257,6 @@ raw_frame.loc[ssa_index, "count"] = [
     dic.pop("num") for dic in raw_frame.loc[ssa_index, "metadata"]
 ]
 
-# print(raw_frame["count"].astype(np.int_))
-# exit()
 
 ## From the list, we then count the number of times each model shows up,
 ## assigning the number of each step accordingly.
@@ -360,11 +347,9 @@ curv_kwargs: dict = {
     "linewidth": 4,
     "alpha": 0.7,
 }
-
 font_kwargs: dict = {
     "fontsize": 12,
 }
-
 line_kwargs: dict = {
     "linewidth": 3,
     "alpha": 0.8,
@@ -380,17 +365,21 @@ hist_kwargs: dict = {
     "align": "mid",
     # "normed": True,
 }
-
-
 walk_kwargs: dict = {
     "linewidth": 1,
     "alpha": 0.7,
 }
-
 plot_kwargs: dict = {
     "top": m,
 }
 
+
+curv_kwargs.update(args.kwarg_curve)
+font_kwargs.update(args.kwarg_font)
+line_kwargs.update(args.kwarg_line)
+hist_kwargs.update(args.kwarg_hist)
+walk_kwargs.update(args.kwarg_walk)
+plot_kwargs.update(args.kwarg_plot)
 
 if is_ode:
     x_name = r"$c_1$"

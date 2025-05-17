@@ -55,11 +55,21 @@ parser.add_argument(
     default=1,
 )
 
-parser.add_argument(
+bool_args = parser.add_argument_group(
+    "Boolean arguments",
+    "Arguments that exist as a boolean flag",
+)
+bool_args.add_argument(
     "-ns",
     "--no-save",
     dest="save",
     action="store_false",
+)
+bool_args.add_argument(
+    "--test-parameters",
+    dest="test",
+    help="Breaks the file to print out the parameter flag",
+    action="store_true",
 )
 
 
@@ -84,7 +94,6 @@ parser.add_argument(
     type=int,
     default=int(100),
 )
-
 
 parser.add_argument(
     "-ic",
@@ -118,14 +127,6 @@ parser.add_argument(
     help="Takes a string of equalities, and creates a dict from it",
     type=parse_parameters,
     default=parameter_default,
-)
-
-
-parser.add_argument(
-    "--test-parameters",
-    dest="test",
-    help="Breaks the file to print out the parameter flag",
-    action="store_true",
 )
 
 
