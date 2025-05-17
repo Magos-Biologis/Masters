@@ -40,16 +40,18 @@ class gillespie_plotters(plotting_class):
         ax: axe.Axes,
         results: np.ndarray[tuple[int], np.dtype[np.float64]],
         color: str,
-        label: str = "[m,0]",
+        label: str | None = None,
         **kwargs,
     ) -> None:
         # start_cond: str = kwargs.get("label", "Start Condition {}".format(label))
+
+        if label is not None:
+            kwargs.update(label="{}".format(label))
 
         self._plot_hist(
             ax,
             results=results,
             color=color,
-            label=label,
             **kwargs,
         )
 
@@ -90,7 +92,7 @@ class gillespie_plotters(plotting_class):
         y_max: int = plot_kwargs.get("top", 100)
         axis_step: int = plot_kwargs.get("axis_step", 30)
 
-        label = "Walk of {}".format(plot_kwargs.get("label", r"$x$"))
+        label = "Walk of {}".format(plot_kwargs.get("label", self.x_name))
         color = "{}".format(plot_kwargs.get("color", "r"))
 
         if plot_starts:
@@ -104,13 +106,6 @@ class gillespie_plotters(plotting_class):
             label=label,
             **kwargs,
         )
-
-        ax.set_xlabel("Time", fontsize=12)
-        ax.set_ylabel("Count", fontsize=12)
-
-        ax.set_xlim(left=0)
-        ax.set_yticks([y for y in range(y_min, y_max + 1, axis_step)])
-        ax.set_ylim(bottom=y_min, top=y_max)
 
     def plot_steps(
         self,

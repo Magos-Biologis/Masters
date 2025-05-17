@@ -325,14 +325,15 @@ else:
 ## The base name
 file_name: str = "{}:{}:".format(data_source, model).replace("_", "-")
 
+para_version: str = ""
 if not is_ode:
     if args.compare_plots:
-        para_version = file_choice.loc[0, "ratio"]
+        para_version = r"${}$".format(file_choice.loc[0, "ratio"])
     else:
-        para_version = file_choice["ratio"]
+        para_version = r"${}$".format(file_choice["ratio"])
 
     if para_version != "":
-        file_name += "{}:".format(para_version)
+        file_name += "{}:".format(para_version).replace("$", "")
 
 
 ## Adding the epoch time to ensure the files don't overwrite eachother
@@ -413,13 +414,15 @@ if data_source == "ssa":
         y_name=y_name,
     )
 
-    fig1 = figure(figsize=(5, 2.5))
-    fig2 = figure(figsize=(5, 2.5))
-    fig3 = figure(figsize=(5, 5))
+    fig1 = plt.figure(figsize=(5, 2.5))
+    fig2 = plt.figure(figsize=(5, 2.5))
+    fig3 = plt.figure(figsize=(5, 5))
+    fig4 = plt.figure(figsize=(5, 5))
 
     ax1 = fig1.add_subplot()
     ax2 = fig2.add_subplot()
     ax3 = fig3.add_subplot()
+    ax4 = fig4.add_subplot()
 
     # figs = [fig1, fig2, fig3]
     figs = [plt.figure(i) for i in plt.get_fignums()]
@@ -428,9 +431,6 @@ if data_source == "ssa":
     hist_axes = [ax3]
 
     if args.compare_plots:
-        fig4 = figure(figsize=(5, 5))
-        ax4 = fig4.add_subplot()
-
         figs.append(fig4)
         all_axes.append(ax4)
         hist_axes.append(ax4)
@@ -482,8 +482,14 @@ if data_source == "ssa":
                 plot_starts=args.include_starts,
             )
 
+            y_max = max(states[i, :].max(), 100)
+            ax.set_yticks([y for y in np.linspace(0, y_max + 1, 5, dtype=np.int_)])
+            ax.set_xlim(left=0)
+            ax.set_ylim(bottom=0, top=y_max)
+
+        for i, ax in enumerate(hist_axes):
             gillespies.plot_hist(
-                ax3,
+                ax,
                 results=states[i, :],
                 color=colors[i],
                 label=names[i],
@@ -498,7 +504,7 @@ if data_source == "ssa":
     else:
         for ax in hist_axes:
             ax.set_title(
-                "Distribution of Gene Copy Number\n" + para_version,
+                "Distribution of Gene Copy Number\n {}".format(para_version),
                 fontdict=font_kwargs,
             )
 
@@ -542,7 +548,7 @@ elif data_source == "phase":
         y_name=y_name,
     )
 
-    file_path = os.path.join(data_env, file_choice.loc[i, "file_name"])
+    file_path = os.path.join(data_env, file_choice.loc["file_name"])
     numpy_data = np.load(file_path)
 
     c1, c2 = numpy_data["c1"], numpy_data["c2"]
