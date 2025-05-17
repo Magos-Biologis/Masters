@@ -167,7 +167,7 @@ parser.add_argument(
 
 kwarg_parse = parser.add_argument_group(
     "Kwarg",
-    "Arguments for modifying plot kwargs",
+    "Arguments for modifying the kwargs for various aspects of the plots",
     prefix_chars="+",
     argument_default=dict(),
 )
@@ -178,6 +178,7 @@ kwarg_parse.add_argument("+f", "++font", dest="kwarg_font", type=parse_kwarg_str
 kwarg_parse.add_argument("+h", "++hist", dest="kwarg_hist", type=parse_kwarg_string)
 kwarg_parse.add_argument("+l", "++line", dest="kwarg_line", type=parse_kwarg_string)
 kwarg_parse.add_argument("+w", "++walk", dest="kwarg_walk", type=parse_kwarg_string)
+kwarg_parse.add_argument("+s", "++stream", dest="kwarg_stream", type=parse_kwarg_string)
 kwarg_parse.add_argument("+p", "++plot", dest="kwarg_plot", type=parse_kwarg_string)
 
 
@@ -556,6 +557,7 @@ elif data_source == "phase":
         # "arrowsize":0,
         # "broken_streamlines":False,
     }
+    stream_kwargs.update(args.kwarg_stream)
 
     fig1 = figure(figsize=(6, 6))
     ax1 = fig1.add_subplot()
