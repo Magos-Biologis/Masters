@@ -189,8 +189,8 @@ kwarg_parse.add_argument("+p", "++plot", dest="kwarg_plot", type=parse_kwarg_str
 args = parser.parse_args()
 
 
-print(args.filter)
-exit()
+# print(args.filter)
+# exit()
 
 ## Compiling the defaults and the choice of parameters
 
@@ -530,7 +530,7 @@ if data_source == "ssa":
             )
         else:
             ax.set_xlabel(
-                "Distribution of cell states",
+                "Cell Counts",
                 fontdict=font_kwargs,
             )
 
