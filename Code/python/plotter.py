@@ -141,22 +141,22 @@ parser.add_argument(
 
 
 ## Taken from my parameter flag in the sim script
-metadata_captures = re.compile(r"(\w+[-m]?\d?p?)=([^_]*)_")
-kwarg_string_parser = re.compile(r"(\w+)\s?=\s?([^ ,]*)")
+filter_captures = re.compile(r"(\w[^=]*)=\s?([^ ,]*)")
+kwarg_string_parser = re.compile(r"(\w[^=]*)=\s?([^ ,]*)")
 
 
-def parse_metadata(string):
-    matches: list[tuple] = metadata_captures.findall(string)
-    parameters = [(str(key), float(value)) for key, value in matches]
+def parse_filters(string):
+    matches: list[tuple] = filter_captures.findall(string)
+    parameters = [
+        (str(key).replace("-", "_").replace("'", "p").replace(" ", ""), float(value))
+        for key, value in matches
+    ]
     return parameters
 
 
 def parse_kwarg_string(string):
-    matches: list[tuple] = metadata_captures.findall(string)
-    parameters = [
-        (str(key).replace("-", "_").replace("m", "_").replace("'", "p"), float(value))
-        for key, value in matches
-    ]
+    matches: list[tuple] = kwarg_string_parser.findall(string)
+    parameters = [(str(key).replace(" ", ""), value) for key, value in matches]
     return dict(parameters)
 
 
@@ -165,7 +165,7 @@ parser.add_argument(
     "--filter",
     dest="filter",
     help='Provide a list of parameters to filter by, "par = __ "',
-    type=parse_metadata,
+    type=parse_filters,
 )
 
 
@@ -188,6 +188,9 @@ kwarg_parse.add_argument("+p", "++plot", dest="kwarg_plot", type=parse_kwarg_str
 
 args = parser.parse_args()
 
+
+print(args.filter)
+exit()
 
 ## Compiling the defaults and the choice of parameters
 
@@ -245,9 +248,20 @@ raw_frame.sort_values(by="t", inplace=True)  ## Sorting by unix epoch time, asce
 ## Isolating all the matches in the strings so as to prepare a
 ## list of tuple[str, float] types— which can be turned into a dictionary
 ## For that I just use the same technique as for the filter flag type
-raw_frame.loc[:, "metadata"] = (
-    raw_frame["metadata"].map(parse_metadata).map(lambda d: dict(d))
-)
+metadata_captures = re.compile(r"(\w[^=]*)=([^_]*)_")
+
+
+def parse_metadata(string):
+    matches: list[tuple] = metadata_captures.findall(string)
+    parameters = [(str(key).replace("-", "_"), float(value)) for key, value in matches]
+    return dict(parameters)
+
+
+raw_frame.loc[:, "metadata"] = raw_frame["metadata"].map(parse_metadata)
+
+
+# print(raw_frame.loc[:, "metadata"])
+# exit()
 
 no_ratio = raw_frame["ratio"].isna()
 raw_frame.loc[no_ratio, "ratio"] = ""
@@ -258,7 +272,6 @@ defined_metadata = raw_frame["metadata"].map(lambda d: len(d) > 0)
 raw_frame = raw_frame.loc[defined_metadata]
 
 ssa_index = raw_frame.loc[raw_frame["datasource"] == "ssa"].index
-# print(raw_frame.loc[ssa_index, "metadata"])
 raw_frame.loc[ssa_index, "count"] = [
     dic.pop("num") for dic in raw_frame.loc[ssa_index, "metadata"]
 ]
