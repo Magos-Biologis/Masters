@@ -8,6 +8,7 @@ class plotting_class:
         walk_kwargs: dict,
         x_name: str = "x",
         y_name: str = "y",
+        n_name: str = "n",
     ) -> None:
         self.curvargs: dict = curv_kwargs
         self.histargs: dict = hist_kwargs
@@ -17,3 +18,4 @@ class plotting_class:
 
         self.x_name: str = x_name
         self.y_name: str = y_name
+        self.n_name: str = n_name

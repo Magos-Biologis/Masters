@@ -154,9 +154,19 @@ def parse_filters(string):
     return parameters
 
 
+# @njit
+def string_or_float(input: str) -> str | float:
+    try:
+        return float(input)
+    except:
+        return input
+
+
 def parse_kwarg_string(string):
     matches: list[tuple] = kwarg_string_parser.findall(string)
-    parameters = [(str(key).replace(" ", ""), value) for key, value in matches]
+    parameters = [
+        (str(key).replace(" ", ""), string_or_float(value)) for key, value in matches
+    ]
     return dict(parameters)
 
 
@@ -382,6 +392,7 @@ hist_kwargs: dict = {
     "edgecolor": "black",
     "alpha": 0.6,
     "align": "mid",
+    "linewidth": 0.2,
     # "normed": True,
 }
 walk_kwargs: dict = {
@@ -403,9 +414,11 @@ plot_kwargs.update(args.kwarg_plot)
 if is_ode:
     x_name = r"$c_1$"
     y_name = r"$c_2$"
+    n_name = r"$n$"
 else:
     x_name = r"$x$"
     y_name = r"$y$"
+    n_name = r"$n$"
 
 
 names = [x_name, y_name]
@@ -420,6 +433,7 @@ if data_source == "ssa":
         walk_kwargs=walk_kwargs,
         x_name=x_name,
         y_name=y_name,
+        n_name=n_name,
     )
 
     fig1 = plt.figure(figsize=(5, 2.5))
@@ -458,7 +472,6 @@ if data_source == "ssa":
                 ax=ax,
                 time=time,
                 results=states,
-                color=colors[i],
                 xstart=init_cond_string,
                 plot_starts=args.include_starts,
                 plot_kwargs=plot_kwargs,
@@ -467,8 +480,6 @@ if data_source == "ssa":
             gillespies.plot_hists(
                 hist_axes[i],
                 states,
-                colors,
-                init_cond_string,
             )
 
     else:

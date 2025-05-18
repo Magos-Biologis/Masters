@@ -60,24 +60,38 @@ class gillespie_plotters(plotting_class):
         self,
         ax: axe.Axes,
         results: np.ndarray[tuple[int, int], np.dtype[np.float64]],
-        color: list[str],
-        labels: str,
+        # color: list[str],
+        # labels: str,
         **kwargs,
     ) -> None:
-        self._plot_hist(
-            ax,
-            results[0, :],
-            color=color[0],
-            label="Distribution of {} states".format(self.x_name),
-            **kwargs,
-        )
-        self._plot_hist(
-            ax,
-            results[1, :],
-            color=color[1],
-            label="Distribution of {} states".format(self.y_name),
-            **kwargs,
-        )
+        x_label = "Distribution of {} states".format(self.x_name)
+        y_label = "Distribution of {} states".format(self.y_name)
+        n_label = "Distribution of {} states".format(self.n_name)
+
+        labels = [x_label, y_label, n_label]
+        colors = ["b", "r", "g"]
+
+        for i, result in enumerate(results):
+            self._plot_hist(
+                ax,
+                result,
+                color=colors[i],
+                label=labels[i],
+                **kwargs,
+            )
+        # self._plot_hist(
+        #     ax,
+        #     results[0, :],
+        #     color=color[0],
+        #     **kwargs,
+        # )
+        # self._plot_hist(
+        #     ax,
+        #     results[1, :],
+        #     color=color[1],
+        #     label="Distribution of {} states".format(self.y_name),
+        #     **kwargs,
+        # )
 
     def plot_walk(
         self,
@@ -113,7 +127,6 @@ class gillespie_plotters(plotting_class):
         ax: axe.Axes,
         time: np.ndarray[tuple[int], np.dtype[np.float64]],
         results: np.ndarray[tuple[int, int], np.dtype[np.int_]],
-        color: str,
         plot_kwargs: dict,
         xstart: str = "[m,0]",
         plot_starts: bool = False,
@@ -125,27 +138,33 @@ class gillespie_plotters(plotting_class):
 
         x_label = "Walk of {}".format(self.x_name)
         y_label = "Walk of {}".format(self.y_name)
+        n_label = "Walk of {}".format(self.n_name)
+
+        labels = [x_label, y_label, n_label]
+        colors = ["b", "r", "g"]
 
         if plot_starts:
             x_label += " with start {}".format(xstart)
             y_label += " with start {}".format(xstart)
 
-        self._plot_step(
-            ax,
-            time,
-            results[0, :],
-            color=color,
-            label=x_label,
-            **kwargs,
-        )
-        self._plot_step(
-            ax,
-            time,
-            results[1, :],
-            color="g",
-            label=y_label,
-            **kwargs,
-        )
+        for i, result in enumerate(results):
+            self._plot_step(
+                ax,
+                time,
+                result,
+                color=colors[i],
+                label=labels[i],
+                **kwargs,
+            )
+
+        # self._plot_step(
+        #     ax,
+        #     time,
+        #     results[1, :],
+        #     color="g",
+        #     label=y_label,
+        #     **kwargs,
+        # )
 
         ax.set_xlabel("Time", fontdict=self.fontargs)
         ax.set_ylabel("Count", fontdict=self.fontargs)
