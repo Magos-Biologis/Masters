@@ -14,6 +14,10 @@ spec = [
     ("k_4", float64),
     ("k5", float64),
     ("k_5", float64),
+    ("k6", float64),
+    ("k_6", float64),
+    ("k7", float64),
+    ("k_7", float64),
     ("m0", float64),
     ("w1", float64),
     ("w2", float64),
@@ -44,6 +48,10 @@ class ParameterClass:
         k_4,
         k5,
         k_5,
+        k6,
+        k_6,
+        k7,
+        k_7,
         m0,
         w1,
         w2,
@@ -65,6 +73,10 @@ class ParameterClass:
         self.k_4 = k_4
         self.k5 = k5
         self.k_5 = k_5
+        self.k6 = k6
+        self.k_6 = k_6
+        self.k7 = k7
+        self.k_7 = k_7
 
         self.m0 = m0
         self.w1 = w1
@@ -80,9 +92,6 @@ class ParameterClass:
         self.k4p = self.k4 * self.b
 
     def divide(self, m: float64):
-        # self.n = self.n / m
-        # self.b = self.b / m
-
         self.k1 = self.k1 / m
         self.k_1 = self.k_1 / m
         self.k2 = self.k2 / m
@@ -93,6 +102,10 @@ class ParameterClass:
         self.k_4 = self.k_4 / m
         self.k5 = self.k5 / m
         self.k_5 = self.k_5 / m
+        self.k6 = self.k6 / m
+        self.k_6 = self.k_6 / m
+        self.k7 = self.k7 / m
+        self.k_7 = self.k_7 / m
 
         self.m0 = self.m0 / m
         self.w1 = self.w1 / m
@@ -124,6 +137,10 @@ parameter_default = dict(
         ("k_4", 0),
         ("k5", 1),
         ("k_5", 0),
+        ("k6", 1),
+        ("k_6", 0),
+        ("k7", 1),
+        ("k_7", 0),
         ("m0", 0),
         ("w1", 0.15),
         ("w2", 0.15),
