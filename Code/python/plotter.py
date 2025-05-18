@@ -333,12 +333,13 @@ file_name: str = "{}:{}:".format(data_source, model).replace("_", "-")
 
 para_version: str = ""
 if not is_ode:
-    if para_version != "":
-        if args.compare_plots:
-            para_version = r"${}$".format(file_choice.loc[0, "ratio"])
-        else:
-            para_version = r"${}$".format(file_choice["ratio"])
+    if args.compare_plots:
+        para_version = r"${}$".format(file_choice.loc[0, "ratio"])
+    else:
+        para_version = r"${}$".format(file_choice["ratio"])
 
+    # if para_version != "":
+    if model == "5_2":
         file_name += "{}:".format(para_version).replace("$", "")
 
 
