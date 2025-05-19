@@ -287,29 +287,30 @@ dt = 0
 
 steppy = dgs.ssa_stepper(model, initial, parameters)  # transitions, k)
 for _ in range(args.repeats):
+    save_name = file_name
+
     date_time = time.time()
     t0 = time.time()
-    time_results, state_results = steppy.step_function(step_count)
-    time_res = time_results
-    states_res = state_results[~np.isnan(state_results)]
+    time_results, states_results = steppy.step_function(step_count)
     t1 = time.time()
 
     print("Stepper done \n\tTime taken: ", t1 - t0)
 
-    print((time_res))
-    save_name = (
-        file_name
-        + "S{:.0e}S".format(len(time_res))
-        + "I{}C".format(initial)
-        + "T{}".format(t1).replace(".", "")
-    )
+    # print((time_results))
+    if len(time_results) == step_count:
+        save_name += "S{:.0e}S".format(len(time_results))
+    else:
+        save_name += "S{}S".format(len(time_results))
+    save_name += "I{}C".format(initial)
+    save_name += "T{}".format(t1).replace(".", "")
+
     full_file_path = os.path.join(data_env, save_name)
 
     if args.save:
         np.savez(
             full_file_path,
-            time=time_res,
-            states=states_res,
+            time=time_results,
+            states=states_results,
         )
 
         print('saved as "{}"'.format(save_name))
