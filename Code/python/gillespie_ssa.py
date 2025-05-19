@@ -107,14 +107,14 @@ parser.add_argument(
 )
 
 
-parameter_parser = re.compile(r"(\w+[-m]?\d*'?)\s?=\s?([^ ,]*)")
+parameter_parser = re.compile(r"(\w+[^=]*)=\s?([^ ,]*)")
 
 
 def parse_parameters(string):
     matches: list[tuple] = parameter_parser.findall(string)
     parameters = [
         (
-            str(key).replace("-", "_").replace("m", "_").replace("'", "p"),
+            str(key).replace("-", "_").replace("'", "p").replace(" ", ""),
             float(value),
         )
         for key, value in matches

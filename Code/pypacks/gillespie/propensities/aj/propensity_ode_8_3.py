@@ -1,7 +1,6 @@
 import numpy as np
-from numba import njit
-
 from gillespie.parameter_class import ParameterClass
+from numba import njit
 
 
 @njit
@@ -27,8 +26,8 @@ def main(
     a_4 = p.k1 * c1 * c2
     a_5 = p.k2 * c1 * c2
 
-    a_6 = p.q2 * b * c2
-    a_7 = p.q1 * b * c1
-    a_8 = p.m0
+    a_6 = p.m0
+    a_7 = p.q2 * b * c2
+    a_8 = p.q1 * b * c1
 
     return np.array([a_1, a_m1, a_2, a_m2, a_3, a_m3, a_4, a_5, a_6, a_7, a_8])
