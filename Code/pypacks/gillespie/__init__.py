@@ -76,7 +76,6 @@ def step_function(
     m: int = x0.sum()
     k.divide(m)
 
-    ## Other
     gillespie_results = np.empty((len(x0), steps), dtype=np.int_)
     time_array = np.empty(steps, dtype=np.float64)
 
@@ -110,15 +109,18 @@ class ssa_stepper:
         x0: np.ndarray[tuple[int], np.dtype[np.int_]],
         params: ParameterClass,
     ) -> None:
+        """
+        model <- expects the name of the model as str
+        x0 <- expects initial condition as int array
+        params <- expects jit class named ParameterClass
+        """
+
         self.sub_step_module = self.step_module + ".step_function_" + model
         self.sub_propensity_module = self.propensity_module + ".propensity_" + model
         self.state_changes = self.vj["vj_" + model]
 
         self.x0 = x0
         self.params = params
-
-        # modu = import_module(self.sub_propensity_module)
-        # self.propensity_function = getattr(modu, "main")
 
     def step_function(
         self,
@@ -130,4 +132,10 @@ class ssa_stepper:
         modu = import_module(self.sub_propensity_module)
         propensity = getattr(modu, "main")
 
-        return step_function(steps, self.x0, self.state_changes, self.params, propensity)
+        return step_function(
+            steps,
+            self.x0,
+            self.state_changes,
+            self.params,
+            propensity,
+        )

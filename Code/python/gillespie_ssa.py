@@ -234,6 +234,12 @@ if not is_ode:
             "k-4={}".format(parameters.k_4),
             "k5={}".format(parameters.k5),
             "k-5={}".format(parameters.k_5),
+            "k6={}".format(parameters.k6),
+            "k-6={}".format(parameters.k_6),
+            "k7={}".format(parameters.k7),
+            "k-7={}".format(parameters.k_7),
+            "k8={}".format(parameters.k8),
+            "k-8={}".format(parameters.k_8),
         ]
     )
 

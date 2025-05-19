@@ -18,6 +18,8 @@ spec = [
     ("k_6", float64),
     ("k7", float64),
     ("k_7", float64),
+    ("k8", float64),
+    ("k_8", float64),
     ("m0", float64),
     ("w1", float64),
     ("w2", float64),
@@ -52,6 +54,8 @@ class ParameterClass:
         k_6,
         k7,
         k_7,
+        k8,
+        k_8,
         m0,
         w1,
         w2,
@@ -77,6 +81,8 @@ class ParameterClass:
         self.k_6 = k_6
         self.k7 = k7
         self.k_7 = k_7
+        self.k8 = k8
+        self.k_8 = k_8
 
         self.m0 = m0
         self.w1 = w1
@@ -106,6 +112,8 @@ class ParameterClass:
         self.k_6 = self.k_6 / m
         self.k7 = self.k7 / m
         self.k_7 = self.k_7 / m
+        self.k8 = self.k8 / m
+        self.k_8 = self.k_8 / m
 
         self.m0 = self.m0 / m
         self.w1 = self.w1 / m
@@ -141,6 +149,8 @@ parameter_default = dict(
         ("k_6", 0),
         ("k7", 1),
         ("k_7", 0),
+        ("k8", 1),
+        ("k_8", 0),
         ("m0", 0),
         ("w1", 0.15),
         ("w2", 0.15),
