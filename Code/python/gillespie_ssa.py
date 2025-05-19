@@ -298,9 +298,9 @@ for _ in range(args.repeats):
 
     # print((time_results))
     if len(time_results) == step_count:
-        save_name += "S{:.0e}S".format(len(time_results))
+        save_name += "S{:.0e}".format(len(time_results))
     else:
-        save_name += "S{}S".format(len(time_results))
+        save_name += "S{}".format(len(time_results))
     save_name += "I{}C".format(initial)
     save_name += "T{}".format(t1).replace(".", "")
 
