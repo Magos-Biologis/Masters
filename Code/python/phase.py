@@ -138,7 +138,7 @@ import time
 
 t = time.time()
 
-file_name += "T" + "{}".format(round(t))
+file_name += "T" + "{}".format(0)
 
 
 dt = 0.01
@@ -223,20 +223,25 @@ full_file_path = os.path.join(data_env, file_name)
 # q[0] * (m_0 / (q[1] * c2)) * c1 -
 
 
+margin = 0.01
+c1s = np.linspace(c1_min + margin, c1_max - margin, 200)
+c2s = np.linspace(c2_min + margin, c2_max - margin, 200)
+
+
 def c1_sol(c1):
-    num = c1 * (omega_1 - k_1 * c1)
+    num = -c1 * (omega_1 - k_1 * c1)
     den = w[1] - k_1 * c1
     return num / den
 
 
 def c2_sol(c2):
-    num = -(c2 * (omega_2 - k_2 * c2))
+    num = -c2 * (omega_2 - k_2 * c2)
     den = w[0] - k_2 * c2
     return num / den
 
 
-c1_nullcline = np.array([c1, c1_sol(c1)])
-c2_nullcline = np.array([c2_sol(c2), c2])
+c1_nullcline = np.array([c2_sol(c2s), c2s])
+c2_nullcline = np.array([c1s, c1_sol(c1s)])
 
 np.savez(
     full_file_path,

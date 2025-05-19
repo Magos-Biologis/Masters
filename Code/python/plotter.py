@@ -12,6 +12,8 @@ from pylab import *
 # figure_env = str(os.getenv("THESIS_FIGURE_PATH"))
 fig_env = str(os.getenv("THESIS_FIGURE_PATH"))
 fpe_env = str(os.getenv("FPE_FIGURE_ENV"))
+phs_env = str(os.getenv("PHS_FIGURE_ENV"))
+
 data_env = str(os.getenv("THESIS_DATA_PATH"))
 
 ode_dir = os.path.join(fpe_env, "ode")
@@ -313,9 +315,14 @@ if args.filter is not None:
         filtered_frame = filtered_frame.loc[filtered_frame[str] == val]
 
 if args.opts:
-    print("{}".format(args.model))
-    print(filtered_frame[["initcond", "count", "steps", "ratio", "t"]])
-    exit()
+    if data_source == "ssa":
+        print("{}".format(args.model))
+        print(filtered_frame[["initcond", "count", "steps", "ratio", "t"]])
+        exit()
+    elif data_source == "phase":
+        print("{}".format(args.model))
+        print(filtered_frame[["metadata", "t"]])
+        exit()
 
 
 if args.compare_plots:
@@ -612,6 +619,9 @@ elif data_source == "phase":
     c1, c2 = numpy_data["c1"], numpy_data["c2"]
     dU, dV = numpy_data["dU"], numpy_data["dV"]
 
+    c1_null = numpy_data["c1_nullcline"]
+    c2_null = numpy_data["c2_nullcline"]
+
     speed = np.sqrt(dU**2 + dV**2)
     lw = np.log(speed / speed.max()) / 5
     stream_kwargs = {
@@ -632,8 +642,13 @@ elif data_source == "phase":
 
     phaseies.plot_phase_space(ax1, c1, c2, dU, dV, **stream_kwargs)
 
+    ax1.plot(c1_null[0], c1_null[1], color="b", label="$c_1$ Nullcline")
+    ax1.plot(c2_null[0], c2_null[1], color="r", label="$c_2$ Nullcline")
+
     ax1.set_xlim(left=0, right=100)
     ax1.set_ylim(bottom=0, top=100)
+
+    ax1.legend()
 
 
 figs = [plt.figure(i) for i in plt.get_fignums()]
@@ -666,10 +681,15 @@ def save_image(filename):
 
 latest_file = os.path.join(fig_env, "latest_plot")
 if args.save:
-    if is_ode:
-        file_path = os.path.join(ode_dir, file_name)
+    if data_source == "ssa":
+        if is_ode:
+            file_path = os.path.join(ode_dir, file_name)
+        else:
+            file_path = os.path.join(fpe_dir, file_name)
+    elif data_source == "phase":
+        file_path = os.path.join(phs_env, file_name)
     else:
-        file_path = os.path.join(fpe_dir, file_name)
+        file_path = os.path.join(data_env, file_name)
 
     save_image(file_path)
 
