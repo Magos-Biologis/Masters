@@ -120,8 +120,8 @@ class ParameterClass:
         self.w2 = self.w2 / m
         self.q1 = self.q1 / m
         self.q2 = self.q2 / m
-        self.n1 = self.n1 / m
-        self.n2 = self.n2 / m
+        # self.n1 = self.n1 / m
+        # self.n2 = self.n2 / m
 
         self.k1p = self.k1p / m
         self.k2p = self.k2p / m
@@ -133,7 +133,7 @@ class ParameterClass:
 
 parameter_default = dict(
     [
-        ("n", 50),
+        ("n", 100),
         ("b", 0),
         ("k1", 1),
         ("k_1", 1),
@@ -155,8 +155,8 @@ parameter_default = dict(
         ("w1", 0.15),
         ("w2", 0.15),
         ("q1", 0.85),
-        ("q2", 0.9),
+        ("q2", 0.85),
         ("n1", 100),
-        ("n2", 90),
+        ("n2", 100),
     ]
 )
