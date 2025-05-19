@@ -73,6 +73,7 @@ def step_function(
     np.ndarray[tuple[int], np.dtype[np.float64]],
     np.ndarray[tuple[int, int], np.dtype[np.int_]],
 ]:
+    final_step: int | np.int_ = steps
     m: int = x0.sum()
     parameters.divide(m)
 
@@ -87,12 +88,12 @@ def step_function(
         j, dt = ssa_event(a_j)
 
         if j == -1:
+            final_step: int | np.int_ = i
             break
 
         gillespie_results[:, i] = np.add(gillespie_results[:, i - 1], v[j])
         time_array[i] = time_array[i - 1] + dt
 
-    final_step: int = i
     return time_array[:final_step], gillespie_results[:, :final_step]
 
 
