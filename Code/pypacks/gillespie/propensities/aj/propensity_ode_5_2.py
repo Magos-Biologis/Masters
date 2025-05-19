@@ -5,7 +5,7 @@ from gillespie.parameter_class import ParameterClass
 
 
 @njit
-def aj_ode_5_2(
+def main(
     cs: np.ndarray[tuple[int], np.dtype[np.int_]],
     p: ParameterClass,
 ) -> np.ndarray[tuple[int], np.dtype[np.float64]]:
@@ -13,7 +13,7 @@ def aj_ode_5_2(
     For a logistically restricted system that looks like the ode system
     It is presumed that the substitutions have been made.
     """
-    c1, c2 = cs
+    main, c2 = cs
 
     a_1 = p.w1 * c1
     a_m1 = p.w2 * c2

@@ -42,6 +42,8 @@ parser.add_argument(
         "ode_3_3",
         "ode_5_2",
         "ode_5_3",
+        "ode_7_2",
+        "ode_8_3",
     ],
     type=str,
 )
@@ -149,6 +151,7 @@ set_of_3 = [
     "ode_3",
     "ode_3_3",
     "ode_5_3",
+    "ode_8_3",
 ]
 
 set_of_2 = [
@@ -159,6 +162,7 @@ set_of_2 = [
     "ode_2_2",
     "ode_3_2",
     "ode_3_2_alt",
+    "ode_7_2",
     "ode_5_2",
 ]
 
@@ -211,8 +215,6 @@ else:
 
 addons = []
 addons.append(f"num={initial.sum()}")
-if var_count == 2:
-    addons.append("n={}".format(parameters.n))
 
 alpha = 0
 beta = m
@@ -220,6 +222,7 @@ beta = m
 if not is_ode:
     addons.extend(
         [
+            "n={}".format(parameters.n),
             "b={}".format(parameters.b),
             "k1={}".format(parameters.k1),
             "k-1={}".format(parameters.k_1),
@@ -276,7 +279,6 @@ dt = 0
 ## Step function
 
 
-file_name += "S{:.0e}S".format(step_count)
 steppy1 = dgs.ssa_stepper(model, initial, parameters)  # transitions, k)
 
 
@@ -288,7 +290,12 @@ for _ in range(args.repeats):
 
     print("Stepper done \n\tTime taken: ", t1 - t0)
 
-    save_name = file_name + f"I{initial}C" + "T{}".format(t1).replace(".", "")
+    save_name = (
+        file_name
+        + "S{:.0e}S".format(len(time_results))
+        + "I{}C".format(initial)
+        + "T{}".format(t1).replace(".", "")
+    )
     full_file_path = os.path.join(data_env, save_name)
 
     if args.save:

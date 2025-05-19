@@ -5,7 +5,7 @@ from gillespie.parameter_class import ParameterClass
 
 
 @njit
-def aj_ode_3(
+def main(
     cs: np.ndarray[tuple[int], np.dtype[np.int_]],
     p: ParameterClass,
 ) -> np.ndarray[tuple[int], np.dtype[np.float64]]:

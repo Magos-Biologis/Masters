@@ -62,6 +62,41 @@ def ssa_event(
     return j, tau
 
 
+@njit
+def step_function(
+    steps: int | np.int_,
+    x0: np.ndarray[tuple[int], np.dtype[np.int_]],
+    v: list[np.ndarray[tuple[int], np.dtype[np.int_]]],
+    k: ParameterClass,
+    propensities,
+) -> tuple[
+    np.ndarray[tuple[int], np.dtype[np.float64]],
+    np.ndarray[tuple[int, int], np.dtype[np.int_]],
+]:
+    m: int = x0.sum()
+    k.divide(m)
+
+    ## Other
+    gillespie_results = np.empty((len(x0), steps), dtype=np.int_)
+    time_array = np.empty(steps, dtype=np.float64)
+
+    gillespie_results[:, 0] = x0
+
+    for i in range(1, steps):
+        x: np.ndarray[tuple[int], np.dtype[np.int_]] = gillespie_results[:, i - 1]
+        a_j: np.ndarray[tuple[int], np.dtype[np.float64]] = propensities(x, k)
+        j, dt = ssa_event(a_j)
+
+        if j == -1:
+            break
+
+        gillespie_results[:, i] = np.add(gillespie_results[:, i - 1], v[j])
+        time_array[i] = time_array[i - 1] + dt
+
+    final_step: int = i
+    return time_array[:final_step], gillespie_results[:, :final_step]
+
+
 class ssa_stepper:
     step_module: str = "gillespie.steppers"
     propensity_module: str = "gillespie.propensities.aj"
@@ -71,13 +106,13 @@ class ssa_stepper:
 
     def __init__(
         self,
-        variation: str,
+        model: str,
         x0: np.ndarray[tuple[int], np.dtype[np.int_]],
         params: ParameterClass,
     ) -> None:
-        self.sub_step_module = self.step_module + ".step_function_" + variation
-        self.sub_propensity_module = self.propensity_module + ".aj_" + variation
-        self.state_changes = self.vj["vj_" + variation]
+        self.sub_step_module = self.step_module + ".step_function_" + model
+        self.sub_propensity_module = self.propensity_module + ".propensity_" + model
+        self.state_changes = self.vj["vj_" + model]
 
         self.x0 = x0
         self.params = params
@@ -92,52 +127,7 @@ class ssa_stepper:
         np.ndarray[tuple[int], np.dtype[np.float64]],
         np.ndarray[tuple[int, int], np.dtype[np.int_]],
     ]:
-        modu = import_module(self.sub_step_module)
-        step_function = getattr(modu, "main")
+        modu = import_module(self.sub_propensity_module)
+        propensity = getattr(modu, "main")
 
-        return step_function(steps, self.x0, self.state_changes, self.params)
-
-    #
-    # def _get_propensity_function(
-    #     self,
-    #     x: np.ndarray[tuple[int], np.dtype[np.int_]],
-    # ) -> np.ndarray[tuple[int], np.dtype[np.float64]]:
-    #     modu = import_module(self.sub_propensity_module)
-    #     aj = getattr(modu, "main")
-    #
-    #     return aj(x, self.params)
-
-
-# @njit
-# def main(
-#     steps: int | np.int_,
-#     x0: np.ndarray[tuple[int], np.dtype[np.int_]],
-#     v: list[np.ndarray[tuple[int], np.dtype[np.int_]]],
-#     k: ParameterClass,
-#     # k: np.ndarray[tuple[int, int], np.dtype[np.float64]],
-# ) -> tuple[
-#     np.ndarray[tuple[int], np.dtype[np.float64]],
-#     np.ndarray[tuple[int, int], np.dtype[np.int_]],
-# ]:
-#     m: int = x0.sum()
-#     k.divide(m)
-#
-#     ## Other
-#     gillespie_results = np.empty((len(x0), steps), dtype=np.int_)
-#     time_array = np.empty(steps, dtype=np.float64)
-#
-#     gillespie_results[:, 0] = x0
-#
-#     for i in range(1, steps):
-#         x: np.ndarray[tuple[int], np.dtype[np.int_]] = gillespie_results[:, i - 1]
-#         a_j: np.ndarray[tuple[int], np.dtype[np.float64]] = propensities(x, k)
-#         j, dt = ssa_event(a_j)
-#
-#         if j == -1:
-#             break
-#
-#         gillespie_results[:, i] = np.add(gillespie_results[:, i - 1], v[j])
-#         time_array[i] = time_array[i - 1] + dt
-#
-#     final_step: int = i
-#     return time_array[:final_step], gillespie_results[:, :final_step]
+        return step_function(steps, self.x0, self.state_changes, self.params, propensity)

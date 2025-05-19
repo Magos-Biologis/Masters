@@ -55,6 +55,8 @@ parser.add_argument(
         "ode_3_3",
         "ode_5_2",
         "ode_5_3",
+        "ode_7_2",
+        "ode_8_3",
     ],
     type=str,
 )
