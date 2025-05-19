@@ -1,5 +1,6 @@
 #!./.venv/bin/python
 import os
+import re
 
 import numpy as np
 from matplotlib import pyplot as plt
@@ -35,7 +36,7 @@ parser = argparse.ArgumentParser(
 
 
 def parse_parameters(string):
-    matches: list[tuple] = re.findall(r"(\w[^=]*)=\s?(\S*)", string)
+    matches: list[tuple] = re.findall(r"(\w[^=]*)=\s?([^, ]*)", string)
     parameters = [
         (
             str(key).replace("-", "_").replace(" ", "").replace("'", "p"),
