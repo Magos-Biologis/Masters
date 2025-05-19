@@ -157,11 +157,14 @@ def parse_filters(string):
 
 
 # @njit
-def string_or_float(input: str) -> str | float:
-    try:
-        return float(input)
-    except:
-        return input
+def string_or_float(input: str) -> str | float | bool:
+    if input == "True" or "False":
+        return bool(input)
+    else:
+        try:
+            return float(input)
+        except:
+            return input
 
 
 def parse_kwarg_string(string):
@@ -201,7 +204,7 @@ kwarg_parse.add_argument("+p", "++plot", dest="kwarg_plot", type=parse_kwarg_str
 args = parser.parse_args()
 
 
-# print(args.filter)
+# print(args.kwarg_hist)
 # exit()
 
 ## Compiling the defaults and the choice of parameters
@@ -374,9 +377,22 @@ beta = m
 boxes = arange(alpha, beta + 1, 1, dtype=np.int_)
 xlims = (alpha, beta)
 
+# plt.rcParams.update(
+#     {
+#         "axes.labelsize": 20,
+#         "axes.titleweight": "bold",
+#         "xtick.labelsize": 15,
+#         "ytick.labelsize": 15,
+#         # "axes.titlecolor": "white",
+#         # "xtick.labelcolor": "white",
+#         # "ytick.labelcolor": "white",
+#         # "savefig.facecolor": "#c0c0ca",
+#     }
+# )
+
 curv_kwargs: dict = {
     "linewidth": 4,
-    "alpha": 0.7,
+    "alpha": 0.6,
 }
 font_kwargs: dict = {
     "fontsize": 12,
@@ -391,15 +407,15 @@ line_kwargs: dict = {
 hist_kwargs: dict = {
     "bins": boxes,
     "density": True,
-    "edgecolor": "black",
-    "alpha": 0.6,
+    "histtype": "stepfilled",
+    "linewidth": 1.25,
+    "edgecolor": "k",
+    "alpha": 0.4,
     "align": "mid",
-    "linewidth": 0.2,
-    # "normed": True,
 }
 walk_kwargs: dict = {
     "linewidth": 1,
-    "alpha": 0.7,
+    "alpha": 0.6,
 }
 plot_kwargs: dict = {
     "top": m,

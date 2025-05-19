@@ -35,10 +35,10 @@ parser = argparse.ArgumentParser(
 
 
 def parse_parameters(string):
-    matches: list[tuple] = re.findall(r"(\w+[-m]?\d*'?)\s?=\s?(\S*)", string)
+    matches: list[tuple] = re.findall(r"(\w[^=]*)=\s?(\S*)", string)
     parameters = [
         (
-            str(key).replace("-", "_").replace("m", "_").replace("'", "p"),
+            str(key).replace("-", "_").replace(" ", "").replace("'", "p"),
             float(value),
         )
         for key, value in matches
@@ -125,6 +125,7 @@ filename_addendum = [
     "q2={}".format(q[1]),
 ]
 
+
 file_name += "M" + model
 file_name += "P"
 for entry in filename_addendum:
@@ -196,12 +197,13 @@ c1, c2 = np.meshgrid(c1s, c2s)
 # exit()
 
 
-def vector_space(c1, c2, m=m_0 / (c2 * q[1])):
+def vector_space(c1, c2):
+    m = m_0 / (c2 * q[1])
+
     dc1 = (k[0] * (1 - (c1 + c2) / n[0]) - w[0]) * c1 + w[1] * c2 - q[0] * m * c1
     dc2 = (k[1] * (1 - (c1 + c2) / n[1]) - w[1]) * c2 + w[0] * c1
-    dm = m_0 - q[1] * m * c2
 
-    return (dc1, dc2, dm)
+    return (dc1, dc2)
 
 
 # vector_field = vector_space(c1, c2, m)
@@ -209,7 +211,6 @@ vector_field = vector_space(c1, c2)
 
 dU = vector_field[0]
 dV = vector_field[1]
-dW = vector_field[2]
 
 # final_name = file_name
 full_file_path = os.path.join(data_env, file_name)
@@ -218,12 +219,32 @@ full_file_path = os.path.join(data_env, file_name)
 # print(dU.shape, dV.shape)
 # exit()
 
+# q[0] * (m_0 / (q[1] * c2)) * c1 -
+
+
+def c1_sol(c1):
+    num = c1 * (omega_1 - k_1 * c1)
+    den = w[1] - k_1 * c1
+    return num / den
+
+
+def c2_sol(c2):
+    num = -(c2 * (omega_2 - k_2 * c2))
+    den = w[0] - k_2 * c2
+    return num / den
+
+
+c1_nullcline = np.array([c1, c1_sol(c1)])
+c2_nullcline = np.array([c2_sol(c2), c2])
+
 np.savez(
     full_file_path,
     c1=c1,
     c2=c2,
     dU=dU,
     dV=dV,
+    c1_nullcline=c1_nullcline,
+    c2_nullcline=c2_nullcline,
 )
 exit()
 
@@ -361,16 +382,16 @@ def example_plot():
 ## Nullcline
 
 
-def c1_sol(c1, c2):
-    num = q[0] * (m_0 / (q[1] * c2)) * c1 - (c1 * (omega_1 - k_1 * c1))
-    den = w[1] - k_1 * c1
-    return num / den
-
-
-def c2_sol(c2):
-    num = -(c2 * (omega_2 - k_2 * c2))
-    den = w[0] - k_2 * c2
-    return num / den
+# def c1_sol(c1, c2):
+#     num = q[0] * (m_0 / (q[1] * c2)) * c1 - (c1 * (omega_1 - k_1 * c1))
+#     den = w[1] - k_1 * c1
+#     return num / den
+#
+#
+# def c2_sol(c2):
+#     num = -(c2 * (omega_2 - k_2 * c2))
+#     den = w[0] - k_2 * c2
+#     return num / den
 
 
 dx = 0.01

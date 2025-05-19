@@ -26,12 +26,10 @@ class gillespie_plotters(plotting_class):
         self,
         ax: axe.Axes,
         results: np.ndarray[tuple[int], np.dtype[np.float64]],
-        color: str | list[str],
         **kwargs,
     ) -> None:
         ax.hist(
             results,
-            color=color,
             **self.histargs,
             **kwargs,
         )
@@ -52,7 +50,8 @@ class gillespie_plotters(plotting_class):
         self._plot_hist(
             ax,
             results=results,
-            color=color,
+            facecolor=color,
+            # edgecolor=color,
             **kwargs,
         )
 
@@ -60,8 +59,6 @@ class gillespie_plotters(plotting_class):
         self,
         ax: axe.Axes,
         results: np.ndarray[tuple[int, int], np.dtype[np.float64]],
-        # color: list[str],
-        # labels: str,
         **kwargs,
     ) -> None:
         x_label = "Distribution of {} states".format(self.x_name)
@@ -70,28 +67,18 @@ class gillespie_plotters(plotting_class):
 
         labels = [x_label, y_label, n_label]
         colors = ["b", "r", "g"]
+        patterns = ["/", "\\", "."]
 
         for i, result in enumerate(results):
             self._plot_hist(
                 ax,
                 result,
-                color=colors[i],
+                facecolor=colors[i],
+                # edgecolor=colors[i],
+                # hatch=patterns[i],
                 label=labels[i],
                 **kwargs,
             )
-        # self._plot_hist(
-        #     ax,
-        #     results[0, :],
-        #     color=color[0],
-        #     **kwargs,
-        # )
-        # self._plot_hist(
-        #     ax,
-        #     results[1, :],
-        #     color=color[1],
-        #     label="Distribution of {} states".format(self.y_name),
-        #     **kwargs,
-        # )
 
     def plot_walk(
         self,
@@ -156,15 +143,6 @@ class gillespie_plotters(plotting_class):
                 label=labels[i],
                 **kwargs,
             )
-
-        # self._plot_step(
-        #     ax,
-        #     time,
-        #     results[1, :],
-        #     color="g",
-        #     label=y_label,
-        #     **kwargs,
-        # )
 
         ax.set_xlabel("Time", fontdict=self.fontargs)
         ax.set_ylabel("Count", fontdict=self.fontargs)
