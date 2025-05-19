@@ -416,15 +416,22 @@ plot_kwargs.update(args.kwarg_plot)
 if is_ode:
     x_name = r"$c_1$"
     y_name = r"$c_2$"
-    n_name = r"$n$"
 else:
     x_name = r"$x$"
     y_name = r"$y$"
-    n_name = r"$n$"
 
 
-names = [x_name, y_name]
-colors = ["b", "r"]
+if is_ode:
+    if model == "ode_8_3":
+        z_name = r"$b$"
+    else:
+        z_name = r"$n$"
+else:
+    z_name = r"$n$"
+
+
+names = [x_name, y_name, z_name]
+colors = ["b", "r", "g"]
 
 if data_source == "ssa":
     gillespies = ps.gillespie_plotters(
@@ -435,7 +442,7 @@ if data_source == "ssa":
         walk_kwargs=walk_kwargs,
         x_name=x_name,
         y_name=y_name,
-        n_name=n_name,
+        n_name=z_name,
     )
 
     fig1 = plt.figure(figsize=(5, 2.5))
