@@ -1,5 +1,4 @@
 import os
-
 from dataclasses import dataclass, field
 
 import numpy as np
@@ -7,23 +6,37 @@ import numpy as np
 
 @dataclass
 class parameter_class:
-    m: int
-
-    m_0: float
-    k: float | np.ndarray[tuple[int], np.dtype[np.float64]]
-    n: float | np.ndarray[tuple[int], np.dtype[np.float64]]
-    q: float | np.ndarray[tuple[int], np.dtype[np.float64]]
-    w: float | np.ndarray[tuple[int], np.dtype[np.float64]]
+    m: int = 2
+    k: float | np.ndarray[tuple[int], np.dtype[np.float64]] = 1
+    n: float | np.ndarray[tuple[int], np.dtype[np.float64]] = 100
+    q: float | np.ndarray[tuple[int], np.dtype[np.float64]] = 0.085
+    w: float | np.ndarray[tuple[int], np.dtype[np.float64]] = 0.015
+    generalize: bool = False
+    m0: float = 0
+    k1: float = 1
+    k2: float = 1
+    n1: float = 100
+    n2: float = 100
+    q1: float = 0.085
+    q2: float = 0.085
+    w1: float = 0.015
+    w2: float = 0.015
 
     W: None | np.ndarray[tuple[int, int], np.dtype[np.float64]] = None
     K: None | np.ndarray[tuple[int, int], np.dtype[np.float64]] = None
 
     ## The dataclass equivilant of initialization functions
     def __post_init__(self):
-        self.k = self.__size_verification(self.k)
-        self.n = self.__size_verification(self.n)
-        self.q = self.__size_verification(self.q)
-        self.w = self.__size_verification(self.w)
+        if self.generalize:
+            self.k = self.__size_verification(self.k)
+            self.n = self.__size_verification(self.n)
+            self.q = self.__size_verification(self.q)
+            self.w = self.__size_verification(self.w)
+        else:
+            self.k = np.array([self.k1, self.k2], dtype=float)
+            self.n = np.array([self.n1, self.n2], dtype=float)
+            self.q = np.array([self.q1, self.q2], dtype=float)
+            self.w = np.array([self.w1, self.w2], dtype=float)
 
         self.W, self.K = self.__set_matrices()
 

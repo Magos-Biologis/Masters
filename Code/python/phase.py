@@ -145,7 +145,7 @@ dt = 0.01
 t_end = 250
 t_array = np.arange(0, t_end, dt)
 
-parameters1 = parameter_class(m=2, m_0=m_0, k=k, n=n, q=q, w=w)
+parameters1 = parameter_class(**parameter_default)
 # parameters2 = parameter_class(m=2, m_0=m_0, k=k1, n=n1, q=q, w=w)
 # parameters3 = parameter_class(m=2, m_0=0, k=k, n=n2, q=q, w=w)
 
@@ -161,7 +161,7 @@ init_conds3 = np.array([c1_0, c2_0, m_0])
 #     init_conds2 = np.array([c2_0, c1_0])
 #     init_conds3 = np.array([100, 100])
 
-model1 = ODEModel((0, t_end), parameters1, init_conds1)
+model1 = ODEModel(parameters1, t_range=(0, t_end), initial_condition=init_conds1)
 # model2 = ODEModel((0, t_end), parameters2, init_conds2)
 # model3 = ODEModel((0, t_end), parameters3, init_conds3)
 
@@ -539,11 +539,10 @@ def y_format(val, pos):
         return int(val)
 
 
-# print(c2_root)
-
-
 ax.xaxis.set_major_formatter(FuncFormatter(x_format))
 ax.yaxis.set_major_formatter(FuncFormatter(y_format))
+
+# print(c2_root)
 
 
 # plt.tight_layout()

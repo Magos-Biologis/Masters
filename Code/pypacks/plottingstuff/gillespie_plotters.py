@@ -11,15 +11,14 @@ class gillespie_plotters(plotting_class):
         ax: axe.Axes,
         time: np.ndarray[tuple[int], np.dtype[np.float64]],
         results: np.ndarray[tuple[int], np.dtype[np.int_]],
-        color: str,
         **kwargs,
     ) -> None:
+        self.walkargs.update(kwargs)
+
         ax.step(
             time,
             results,
-            color=color,
             **self.walkargs,
-            **kwargs,
         )
 
     def _plot_hist(
@@ -28,10 +27,11 @@ class gillespie_plotters(plotting_class):
         results: np.ndarray[tuple[int], np.dtype[np.float64]],
         **kwargs,
     ) -> None:
+        self.histargs.update(kwargs)
+
         ax.hist(
             results,
             **self.histargs,
-            **kwargs,
         )
 
     def plot_hist(
@@ -44,14 +44,13 @@ class gillespie_plotters(plotting_class):
     ) -> None:
         # start_cond: str = kwargs.get("label", "Start Condition {}".format(label))
 
+        kwargs.update(facecolor=color)
         if label is not None:
             kwargs.update(label="{}".format(label))
 
         self._plot_hist(
             ax,
             results=results,
-            facecolor=color,
-            # edgecolor=color,
             **kwargs,
         )
 
@@ -66,17 +65,16 @@ class gillespie_plotters(plotting_class):
         n_label = "Distribution of {} states".format(self.n_name)
 
         labels = [x_label, y_label, n_label]
-        colors = ["b", "r", "g"]
         patterns = ["/", "\\", "."]
 
         for i, result in enumerate(results):
+            kwargs.update(
+                facecolor=self.colors[i],
+                label=labels[i],
+            )
             self._plot_hist(
                 ax,
                 result,
-                facecolor=colors[i],
-                # edgecolor=colors[i],
-                # hatch=patterns[i],
-                label=labels[i],
                 **kwargs,
             )
 
@@ -100,12 +98,14 @@ class gillespie_plotters(plotting_class):
         if plot_starts:
             label += " with start {}".format(xstart)
 
+        kwargs.update(
+            color=color,
+            label=label,
+        )
         self._plot_step(
             ax,
             time,
             steps,
-            color=color,
-            label=label,
             **kwargs,
         )
 
@@ -128,19 +128,20 @@ class gillespie_plotters(plotting_class):
         n_label = "Walk of {}".format(self.n_name)
 
         labels = [x_label, y_label, n_label]
-        colors = ["b", "r", "g"]
 
         if plot_starts:
             x_label += " with start {}".format(xstart)
             y_label += " with start {}".format(xstart)
 
         for i, result in enumerate(results):
+            kwargs.update(
+                color=self.colors[i],
+                label=labels[i],
+            )
             self._plot_step(
                 ax,
                 time,
                 result,
-                color=colors[i],
-                label=labels[i],
                 **kwargs,
             )
 
@@ -169,7 +170,8 @@ class gillespie_plotters(plotting_class):
         else:
             fixed: np.float64 = np.float64(0)
 
-        ax.hlines([fixed], 0, xmax, **self.lineargs, **kwargs)
+        self.lineargs.update(kwargs)
+        ax.hlines([fixed], 0, xmax, **self.lineargs)
 
     def _plot_vline(
         self,
@@ -189,7 +191,8 @@ class gillespie_plotters(plotting_class):
         else:
             fixed = np.float64(0)
 
-        ax.vlines([fixed], 0, ymax, **self.lineargs, **kwargs)
+        self.lineargs.update(kwargs)
+        ax.vlines([fixed], 0, ymax, **self.lineargs)
 
     def plot_hist_fixed(
         self,
@@ -205,7 +208,7 @@ class gillespie_plotters(plotting_class):
 
         assert type(parameters) is GillespieFixed, "You fucked the parameters somehow"
 
-        self._plot_vline(ax, model, var, ymax, parameters)
+        self._plot_vline(ax, model, var, ymax, parameters, **kwargs)
 
     def plot_walk_fixed(
         self,
@@ -221,4 +224,4 @@ class gillespie_plotters(plotting_class):
 
         assert type(parameters) is GillespieFixed, "You fucked the parameters somehow"
 
-        self._plot_hline(ax, model, var, xmax, parameters)
+        self._plot_hline(ax, model, var, xmax, parameters, **kwargs)

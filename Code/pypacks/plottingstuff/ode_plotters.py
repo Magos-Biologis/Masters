@@ -1,10 +1,17 @@
 import numpy as np
 from matplotlib import axes as axe
+from matplotlib.ticker import FuncFormatter
+from myodestuff import ODEModel
 
 from .plotting_class import plotting_class
 
 
 class ode_plotters(plotting_class):
+    def __init__(self, stream_kwargs: dict, *args, **kwargs):
+        self.streamargs = stream_kwargs
+        super().__init__(*args, **kwargs)
+        # self.init_something(param2)
+
     def plot_curves(
         self,
         ax: axe.Axes,
@@ -39,75 +46,93 @@ class ode_plotters(plotting_class):
                 color=color,
             )
 
-    def _fixed_point_format(self, val, pos):
-        if val == solutions[0]:
-            return fixed_point_tick_labels[0]
-        elif val == solutions[1]:
-            return fixed_point_tick_labels[1]
-        else:
-            return int(np.round(val, 3))
-
     def _plot_nullcline(
         self,
         ax: axe.Axes,
-        x_points,
-        y_points,
+        x_points: np.ndarray[tuple[int], np.dtype[np.float64]],
+        y_points: np.ndarray[tuple[int], np.dtype[np.float64]],
         **kwargs,
     ) -> None:
+        self.curvargs.update(kwargs)
+
         ax.plot(
             x_points,
             y_points,
             **self.curvargs,
-            **kwargs,
         )
 
     def plot_nullclines(
         self,
         ax: axe.Axes,
-        x_range,
-        y_range,
-        dx_nullcline,
-        dy_nullcline,
+        dx_domain: np.ndarray[tuple[int], np.dtype[np.float64]],
+        dx_range: np.ndarray[tuple[int], np.dtype[np.float64]],
+        dy_domain: np.ndarray[tuple[int], np.dtype[np.float64]],
+        dy_range: np.ndarray[tuple[int], np.dtype[np.float64]],
+        **kwargs,
     ) -> None:
         self._plot_nullcline(
             ax,
-            x_range,
-            dy_nullcline(x_range),
-            label=r"$c_1$ Nullcline",
-            color=c2_col,
+            dx_domain,
+            dx_range,
+            label="{} Nullcline".format(self.x_name),
+            color=self.colors[0],
+            **kwargs,
         )
         self._plot_nullcline(
             ax,
-            dx_nullcline(y_range),
-            y_range,
-            label=r"$c_2$ Nullcline",
-            color=c2_col,
+            dy_domain,
+            dy_range,
+            label="{} Nullcline".format(self.y_name),
+            color=self.colors[1],
+            **kwargs,
         )
 
     def plot_phase_fixed_points(
         self,
         ax: axe.Axes,
-        sol1,
-        sol2,
-        color1: str,
-        color2: str,
-        xmax: float = 100,
-        ymax: float = 100,
+        parameters: dict[str, float],
+        **kwargs,
     ) -> None:
-        ax.vlines(
-            sol1,
-            0,
-            xmax,
-            color=color1,
-            **self.lineargs,
-        )
-        ax.hlines(
-            sol2,
-            0,
-            ymax,
-            color=color2,
-            **self.lineargs,
-        )
+        col1 = kwargs.pop("color1", self.x_color)
+        col2 = kwargs.pop("color2", self.y_color)
+
+        model = ODEModel(parameters=parameters)
+        sol1, sol2 = model.roots()
+
+        new_x_ticks = np.array([sol1])
+        new_y_ticks = np.array([sol2])
+        ticks = np.arange(0, 101, 20)
+        for tick in ticks:
+            if np.abs(sol1 - tick) > 5:
+                new_x_ticks = np.append(new_x_ticks, tick)
+
+            if np.abs(sol2 - tick) > 5:
+                new_y_ticks = np.append(new_y_ticks, tick)
+
+        ax.set_xticks(new_x_ticks)
+        ax.set_yticks(new_y_ticks)
+
+        fixed_point_tick_labels = [
+            "{}".format(self.x_name) + r"$^*$",
+            "{}".format(self.y_name) + r"$^*$",
+        ]
+
+        def fixed_point_format(val, pos):
+            if val == sol1:
+                return fixed_point_tick_labels[0]
+            elif val == sol2:
+                return fixed_point_tick_labels[1]
+            else:
+                return int(np.round(val, 3))
+
+        xmax = kwargs.pop("xmax", 100)
+        ymax = kwargs.pop("ymax", 100)
+
+        ax.xaxis.set_major_formatter(FuncFormatter(fixed_point_format))
+        ax.yaxis.set_major_formatter(FuncFormatter(fixed_point_format))
+
+        self._plot_vline(ax, sol1, ymax, color=col1, **kwargs)
+        self._plot_hline(ax, sol2, xmax, color=col2, **kwargs)
 
     def plot_phase_space(
         self,
@@ -118,4 +143,31 @@ class ode_plotters(plotting_class):
         v: np.ndarray[tuple[int, int], np.dtype[np.float64]],
         **kwargs,
     ) -> None:
-        ax.streamplot(x, y, u, v, **kwargs)
+        scale = self.streamargs.pop("widthscalar", 6)
+        speed = np.sqrt(u**2 + v**2)
+        lw = speed / speed.max() * scale
+
+        self.streamargs.update(kwargs)
+        self.streamargs.update(linewidth=lw)
+
+        ax.streamplot(x, y, u, v, **self.streamargs)
+
+    def _plot_hline(
+        self,
+        ax: axe.Axes,
+        fixed,
+        max,
+        **kwargs,
+    ):
+        self.lineargs.update(kwargs)
+        ax.hlines([fixed], 0, max, **self.lineargs)
+
+    def _plot_vline(
+        self,
+        ax: axe.Axes,
+        fixed,
+        max,
+        **kwargs,
+    ):
+        self.lineargs.update(kwargs)
+        ax.vlines([fixed], 0, max, **self.lineargs)

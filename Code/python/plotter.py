@@ -220,13 +220,15 @@ is_ode = False
 check_ode = re.compile(r"ode").search(model)
 if check_ode is not None:
     is_ode = True
+if data_source == "phase":
+    is_ode = True
 
 
 ratio_pattern: re.Pattern = re.compile(r"R(?P<ratio>b.n)R")
 capture_patterns: re.Pattern = re.compile(
     r"(?P<datasource>^[^M]*)"  # phase, ssa, etc.
     r"M(?P<model>[^P]*)"  # Model specifier
-    r"P(?P<metadata>[^SR]*)"  # Parameters and
+    r"P(?P<rawmetadata>[^SR]*)"  # Parameters and
     r"[^S]*"  # a stupid way to ignore the ratio
     r"S(?P<steps>[^T]*)"  # Step count
     r"I(?P<initcond>[^CT]*)C"  # Initial conditions
@@ -274,7 +276,7 @@ def parse_metadata(string):
     return dict(parameters)
 
 
-raw_frame.loc[:, "metadata"] = raw_frame["metadata"].map(parse_metadata)
+raw_frame["metadata"] = raw_frame["rawmetadata"].map(parse_metadata)
 
 
 # print(raw_frame.loc[:, "metadata"])
@@ -373,7 +375,10 @@ else:
     data_set_quantity = 1
 
 file_name += "I{}:".format(model_choice)
-file_name += "C{}:".format(data_set_quantity)
+if data_source != "phase":
+    file_name += "C{}:".format(data_set_quantity)
+else:
+    file_name += "C{}:".format(file_choice["rawmetadata"])
 file_name += "T{}".format(epoch)
 
 #######################
@@ -384,32 +389,32 @@ beta = m
 boxes = arange(alpha, beta + 1, 1, dtype=np.int_)
 xlims = (alpha, beta)
 
-# plt.rcParams.update(
-#     {
-#         "axes.labelsize": 20,
-#         "axes.titleweight": "bold",
-#         "xtick.labelsize": 15,
-#         "ytick.labelsize": 15,
-#         # "axes.titlecolor": "white",
-#         # "xtick.labelcolor": "white",
-#         # "ytick.labelcolor": "white",
-#         # "savefig.facecolor": "#c0c0ca",
-#     }
-# )
+plt.rcParams.update(
+    {
+        "axes.labelsize": 20,
+        "axes.titleweight": "bold",
+        "xtick.labelsize": 15,
+        "ytick.labelsize": 15,
+        # "axes.titlecolor": "white",
+        # "xtick.labelcolor": "white",
+        # "ytick.labelcolor": "white",
+        # "savefig.facecolor": "#c0c0ca",
+    }
+)
 
 curv_kwargs: dict = {
     "linewidth": 4,
     "alpha": 0.6,
+    "zorder": 3,
 }
 font_kwargs: dict = {
     "fontsize": 12,
 }
 line_kwargs: dict = {
     "linewidth": 3,
-    "alpha": 0.8,
+    "alpha": 0.2,
     "linestyle": "-.",
-    "color": "black",
-    "zorder": 11,
+    "zorder": 2,
 }
 hist_kwargs: dict = {
     "bins": boxes,
@@ -435,6 +440,9 @@ line_kwargs.update(args.kwarg_line)
 hist_kwargs.update(args.kwarg_hist)
 walk_kwargs.update(args.kwarg_walk)
 plot_kwargs.update(args.kwarg_plot)
+
+
+legend_font_size = font_kwargs.pop("legend_fontsize", 16)
 
 if is_ode:
     x_name = r"$c_1$"
@@ -579,9 +587,14 @@ if data_source == "ssa":
 
     # ax3.set_ylabel("Density", fontsize=12)
     # ax4.set_ylabel("Density", fontsize=12)
+    # for ax in hist_axes:
+    #     lines = ax.get_lines()
+    #     for ln in lines:
+    #         ln.set_alpha(1)
+    #         ln.set_linewidth(10)
 
     for ax in all_axes:
-        ax.legend(loc="upper right", fontsize=10)
+        ax.legend(loc="upper right", fontsize=legend_font_size)
 
     for fig in figs:
         fig.tight_layout()
@@ -600,19 +613,10 @@ if data_source == "ssa":
         # print(filtered_frame.loc[model_choice, "metadata"])
         # print(input_dict)
 
+
 # ax3.vlines(anal_sol, 0, 1, **line_kwargs, label="Analytical solution for $x$")
 
 elif data_source == "phase":
-    phaseies = ps.ode_plotters(
-        curv_kwargs=curv_kwargs,
-        font_kwargs=font_kwargs,
-        hist_kwargs=hist_kwargs,
-        line_kwargs=line_kwargs,
-        walk_kwargs=walk_kwargs,
-        x_name=x_name,
-        y_name=y_name,
-    )
-
     file_path = os.path.join(data_env, file_choice.loc["file_name"])
     numpy_data = np.load(file_path)
 
@@ -622,33 +626,44 @@ elif data_source == "phase":
     c1_null = numpy_data["c1_nullcline"]
     c2_null = numpy_data["c2_nullcline"]
 
-    speed = np.sqrt(dU**2 + dV**2)
-    lw = np.log(speed / speed.max()) / 5
     stream_kwargs = {
         "density": 1.7,
-        "linewidth": lw,
+        "color": "k",
         "arrowstyle": "->",
-        "color": "black",
-        # "color":lw,
-        # "norm":norm,
-        # "cmap":"gist_heat_r",
-        # "arrowsize":0,
-        # "broken_streamlines":False,
     }
+
     stream_kwargs.update(args.kwarg_stream)
 
-    fig1 = figure(figsize=(6, 6))
+    phaseies = ps.ode_plotters(
+        stream_kwargs=stream_kwargs,
+        curv_kwargs=curv_kwargs,
+        font_kwargs=font_kwargs,
+        hist_kwargs=hist_kwargs,
+        line_kwargs=line_kwargs,
+        walk_kwargs=walk_kwargs,
+        x_name=x_name,
+        y_name=y_name,
+    )
+
+    fig1 = plt.figure(figsize=(6, 6))
     ax1 = fig1.add_subplot()
 
-    phaseies.plot_phase_space(ax1, c1, c2, dU, dV, **stream_kwargs)
+    # fig2 = plt.figure(figsize=(6, 6))
+    # ax2 = fig2.add_subplot()
 
-    ax1.plot(c1_null[0], c1_null[1], color="b", label="$c_1$ Nullcline")
-    ax1.plot(c2_null[0], c2_null[1], color="r", label="$c_2$ Nullcline")
+    phaseies.plot_phase_space(ax1, c1, c2, dU, dV)
+    phaseies.plot_nullclines(ax1, *c1_null, *c2_null)
+
+    if args.plot_fixedpoints:
+        parameters: dict[str, float] = file_choice.loc["metadata"]
+        phaseies.plot_phase_fixed_points(ax1, parameters, xmax=100, ymax=100)
+        # print(parameters)
+        # exit()
 
     ax1.set_xlim(left=0, right=100)
     ax1.set_ylim(bottom=0, top=100)
 
-    ax1.legend()
+    ax1.legend(loc="upper right", fontsize=legend_font_size)
 
 
 figs = [plt.figure(i) for i in plt.get_fignums()]
@@ -692,12 +707,15 @@ if args.save:
         file_path = os.path.join(data_env, file_name)
 
     save_image(file_path)
+    # if data_source != "phase":
+    # else:
+    #     plt.figure(1).savefig(file_path + ".pdf", format="pdf")
 
 
-if len(figs) > 1:
-    save_image(latest_file)
-else:
-    plt.figure(1).savefig(latest_file + ".png", format="png")
+# if len(figs) > 1:
+save_image(latest_file)
+# else:
+#     plt.figure(1).savefig(latest_file + ".png", format="png")
 
 
 if args.show:

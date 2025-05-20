@@ -1,21 +1,32 @@
-import os
 import itertools
-
-from myodestuff.parameter_class import parameter_class
+import os
+from typing import ParamSpecArgs
 
 import numpy as np
 from numpy import polynomial as npp
+
+from myodestuff.parameter_class import parameter_class
 
 
 class ODEModel:
     def __init__(
         self,
-        t_range: tuple[int, int],
-        parameters: parameter_class | tuple[int, float, float, float, float],
+        parameters: parameter_class
+        | tuple[int, float, float, float, float, float]
+        | dict[str, float],
+        t_range: tuple[int, int] | None = None,
         initial_condition: np.ndarray[tuple[int], np.dtype[np.float64]] | None = None,
         **kwargs,
     ):
-        assert type(parameters) is parameter_class, "Incorrect format of parameters"
+        # if type(parameters) is dict():
+        try:
+            parameters = parameter_class(**parameters)
+        except TypeError:
+            assert type(parameters) is parameter_class, "Incorrect format of parameters"
+
+        if initial_condition is None:
+            initial_condition = np.array([0, 0, 0])
+
         assert type(initial_condition) is np.ndarray, (
             "Initial conditions should be ndarray"
         )
@@ -37,7 +48,7 @@ class ODEModel:
             else [self.n_max] + self.m * [0]
         )
 
-        self.t_span: tuple[int, int] = t_range
+        self.t_span: tuple[int, int] = t_range if t_range is not None else (0, 1)
         self.dt: np.float64 = kwargs.get("dt", 0.01)
         self.t_array: np.ndarray = np.arange(*self.t_span, self.dt)
 
@@ -125,7 +136,7 @@ class ODEModel:
 
         return np.array([c1_root, c2_root])
 
-    def _medless_normal_roots(self) -> np.ndarray[tuple[int], np.dtype[np.float64]]:
+    def _medless_equal_normal_roots(self) -> np.ndarray[tuple[int], np.dtype[np.float64]]:
         # assert type(self.p) is parameter_class
         assert type(self.p.k) is np.ndarray
         assert type(self.p.n) is np.ndarray
@@ -227,7 +238,7 @@ class ODEModel:
             - self.p.w[1] * c2
             + self.p.w[0] * c1
         )
-        step[2] = -self.p.q[1] * m * c2 + self.p.m_0
+        step[2] = -self.p.q[1] * m * c2 + self.p.m0
 
         return step
 
@@ -271,10 +282,15 @@ class ODEModel:
         assert type(generalized) is bool
 
         if generalized:
-            return self._medless_normal_roots()
+            return self._medless_equal_normal_roots()
         else:
-            if self.p.m_0 == 0:
-                return self._medless_normal_roots()
+            if self.p.m0 == 0:
+                assert type(self.p.k) is np.ndarray
+                assert type(self.p.n) is np.ndarray
+                if self.p.k[0] == self.p.k[1] or self.p.n[0] == self.p.n[1]:
+                    return self._medless_equal_normal_roots()
+                else:
+                    return self._medless_equal_normal_roots()
             else:
                 return self._normal_roots()
 
