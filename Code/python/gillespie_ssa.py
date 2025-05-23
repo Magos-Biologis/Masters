@@ -204,6 +204,10 @@ ws = np.array([parameters.w1, parameters.w2])
 m_0 = parameters.m0
 
 
+# print(parameters.m0)
+# exit()
+
+
 file_name: str = "ssa"
 file_name += f"M{model}"
 check_ode = re.compile(r"ode").search(model)

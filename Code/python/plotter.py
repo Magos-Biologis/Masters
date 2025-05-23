@@ -45,6 +45,7 @@ parser.add_argument(
     help="State which model to run",
     choices=[
         "jesper",
+        "ode",
         "2S",
         "2L",
         "5_2",
@@ -112,9 +113,16 @@ bool_args.add_argument(
 )
 bool_args.add_argument(
     "-fp",
-    "---fixed-points",
+    "--fixed-points",
     dest="plot_fixedpoints",
     help="Include the fixed points in the histogram and walks",
+    action="store_true",
+)
+bool_args.add_argument(
+    "-op",
+    "--on-phase",
+    dest="plot_on_phase",
+    help="Plots the stochastic system on the associated phase diagram",
     action="store_true",
 )
 
@@ -146,7 +154,7 @@ parser.add_argument(
 
 ## Taken from my parameter flag in the sim script
 filter_captures = re.compile(r"(\w[^=]*)=\s?([^ ,]*)")
-kwarg_string_parser = re.compile(r"(\w[^=]*)=\s?([^ ,]*)")
+# kwarg_string_parser = re.compile(r"(\w[^=]*)=\s?([^ ,]*)")
 
 
 def parse_filters(string):
@@ -159,18 +167,18 @@ def parse_filters(string):
 
 
 # @njit
-def string_or_float(input: str) -> str | float | bool:
-    if input == "True" or "False":
+def string_or_float(input: str) -> str | float:
+    if input.lower() == "true" or input.lower() == "false":
         return bool(input)
     else:
         try:
             return float(input)
         except:
-            return input
+            return str(input)
 
 
 def parse_kwarg_string(string):
-    matches: list[tuple] = kwarg_string_parser.findall(string)
+    matches: list[tuple] = filter_captures.findall(string)
     parameters = [
         (str(key).replace(" ", ""), string_or_float(value)) for key, value in matches
     ]
@@ -215,6 +223,7 @@ args = parser.parse_args()
 data_source: str = args.source
 model: str = args.model
 model_count: int = args.index
+
 
 is_ode = False
 check_ode = re.compile(r"ode").search(model)
@@ -290,10 +299,9 @@ raw_frame.loc[no_ratio, "ratio"] = ""
 defined_metadata = raw_frame["metadata"].map(lambda d: len(d) > 0)
 raw_frame = raw_frame.loc[defined_metadata]
 
+## That dict.pop has a default for missing entries is a literal godsend
 ssa_index = raw_frame.loc[raw_frame["datasource"] == "ssa"].index
-raw_frame.loc[ssa_index, "count"] = [
-    dic.pop("num") for dic in raw_frame.loc[ssa_index, "metadata"]
-]
+raw_frame["count"] = [d.pop("num", np.nan) for d in raw_frame.loc[:, "metadata"]]
 
 
 ## From the list, we then count the number of times each model shows up,
@@ -301,45 +309,55 @@ raw_frame.loc[ssa_index, "count"] = [
 ## From which multi-index is generated for the dataframe
 ## so as to have an easier time choosing which file to plot
 raw_frame["model_index"] = raw_frame.groupby("model").cumcount()
-raw_frame = raw_frame.set_index(["datasource", "model", "model_index"]).sort_index()
+file_frame = raw_frame.set_index(["datasource", "model", "model_index"]).sort_index()
 
-parameters = raw_frame["metadata"].apply(pd.Series)
-file_frame = pd.concat([raw_frame, parameters], axis=1)
+parameters = file_frame["metadata"].apply(pd.Series)
+file_frame = pd.concat([file_frame, parameters], axis=1)
+sourced_frame = file_frame.loc[(data_source, model)]
 
-filtered_frame = file_frame.loc[data_source]
 
-if args.model is not None:
-    filtered_frame = filtered_frame.loc[args.model]
+def filter_frames(filters: list[tuple[str, float]], df: pd.DataFrame) -> pd.DataFrame:
+    for string, value in filters:
+        try:
+            df_temp = df.loc[df[string] == value]
+            if df_temp.empty:
+                continue
+            df = df_temp
+        except:
+            assert type(df) is pd.DataFrame, "Not a dataframe"
+            continue
+
+    return df
 
 
 if args.filter is not None:
-    for str, val in args.filter:
-        filtered_frame = filtered_frame.loc[filtered_frame[str] == val]
+    sourced_frame = filter_frames(args.filter, sourced_frame).reset_index()
+
 
 if args.opts:
     if data_source == "ssa":
         print("{}".format(args.model))
-        print(filtered_frame[["initcond", "count", "steps", "ratio", "t"]])
+        print(sourced_frame[["initcond", "count", "steps", "ratio", "t"]])
         exit()
     elif data_source == "phase":
         print("{}".format(args.model))
-        print(filtered_frame[["metadata", "t"]])
+        print(sourced_frame[["metadata", "t"]])
         exit()
 
 
 if args.compare_plots:
     if args.index is None:
-        model_choice = filtered_frame.index.values[-2]
+        model_choice = sourced_frame.index.values[-2]
     else:
         model_choice = args.index
-    file_choice = filtered_frame.loc[model_choice : model_choice + 1].reset_index()
+    file_choice = sourced_frame.loc[model_choice : model_choice + 1].reset_index()
 else:
     if args.index == None:
-        model_choice = filtered_frame.index.values[-1]
+        model_choice = sourced_frame.index.values[-1]
     else:
         model_choice = args.index
 
-    file_choice = filtered_frame.loc[model_choice]
+    file_choice = sourced_frame.loc[model_choice]
 
 
 if args.bin_count is not None:
@@ -384,10 +402,11 @@ file_name += "T{}".format(epoch)
 #######################
 
 alpha = 0
-beta = m
+beta = m  # file_choice["count"]
 
 boxes = arange(alpha, beta + 1, 1, dtype=np.int_)
 xlims = (alpha, beta)
+ylims = (alpha, beta)
 
 plt.rcParams.update(
     {
@@ -464,6 +483,28 @@ else:
 names = [x_name, y_name, z_name]
 colors = ["b", "r", "g"]
 
+
+if (data_source == "phase") or args.plot_on_phase:
+    stream_kwargs = {
+        "density": 1.7,
+        "color": "k",
+        "arrowstyle": "->",
+    }
+
+    stream_kwargs.update(args.kwarg_stream)
+
+    phaseies = ps.ode_plotters(
+        stream_kwargs=stream_kwargs,
+        curv_kwargs=curv_kwargs,
+        font_kwargs=font_kwargs,
+        hist_kwargs=hist_kwargs,
+        line_kwargs=line_kwargs,
+        walk_kwargs=walk_kwargs,
+        x_name=x_name,
+        y_name=y_name,
+    )
+
+
 if data_source == "ssa":
     gillespies = ps.gillespie_plotters(
         curv_kwargs=curv_kwargs,
@@ -488,6 +529,8 @@ if data_source == "ssa":
 
     # figs = [fig1, fig2, fig3]
     figs = [plt.figure(i) for i in plt.get_fignums()]
+    # axes = [fig.add_subplot() for fig in figs]
+
     all_axes = [ax1, ax2, ax3]
     walk_axes = [ax1, ax2]
     hist_axes = [ax3]
@@ -541,18 +584,34 @@ if data_source == "ssa":
                 plot_starts=args.include_starts,
             )
 
-            y_max = max(states[i, :].max(), 100)
+            y_max = min(states[i, :].max(), 100)
             ax.set_yticks([y for y in np.linspace(0, y_max + 1, 5, dtype=np.int_)])
             ax.set_xlim(left=0)
             ax.set_ylim(bottom=0, top=y_max)
 
-        for i, ax in enumerate(hist_axes):
-            gillespies.plot_hist(
-                ax,
-                results=states[i, :],
-                color=colors[i],
-                label=names[i],
+        if model in ["2L"]:
+            # for i, ax in enumerate(hist_axes):
+            x_temp = states[0, :]
+            y_temp = states[1, :]
+            ax3.hist2d(
+                x_temp,
+                y_temp,
+                bins=boxes,
+                density=True,
+                label="Distribution of chemical species",
             )
+        else:
+            for i, ax in enumerate(hist_axes):
+                gillespies.plot_hist(
+                    ax,
+                    results=states[i, :],
+                    color=colors[i],
+                    label=names[i],
+                )
+
+            # break
+            # plt.show()
+            # exit()
 
     if is_ode:
         for ax in hist_axes:
@@ -600,18 +659,58 @@ if data_source == "ssa":
         fig.tight_layout()
 
     if args.plot_fixedpoints:
-        inputs = [*filtered_frame.loc[model_choice, "metadata"].items()]
-        input_dict = dict([(string.replace("-", "_"), val) for string, val in inputs])
+        inputs = sourced_frame.loc[
+            model_choice, "metadata"
+        ]  # input_dict = dict([(string.replace("-", "_"), val) for string, val in inputs])
+        # print(inputs)
+        # exit()
         if args.compare_plots:
-            gillespies.plot_walk_fixed(ax1, model, "x", xmax=1e10, parameters=input_dict)
-        else:
-            gillespies.plot_walk_fixed(ax1, model, "x", xmax=1e10, parameters=input_dict)
-            gillespies.plot_walk_fixed(ax2, model, "y", xmax=1e10, parameters=input_dict)
-            gillespies.plot_hist_fixed(ax3, model, "x", ymax=1, parameters=input_dict)
+            gillespies.plot_walk_fixed(ax1, model, "x", xmax=1e10, parameters=inputs)
+            gillespies.plot_walk_fixed(ax2, model, "y", xmax=1e10, parameters=inputs)
 
-        # print(filtered_frame.loc[model_choice, "file_name"])
-        # print(filtered_frame.loc[model_choice, "metadata"])
-        # print(input_dict)
+            gillespies.plot_hist_fixed(ax3, model, "x", ymax=1, parameters=inputs)
+            gillespies.plot_hist_fixed(ax3, model, "y", ymax=1, parameters=inputs)
+        else:
+            gillespies.plot_walk_fixed(ax1, model, "x", xmax=1e10, parameters=inputs)
+            gillespies.plot_walk_fixed(ax2, model, "y", xmax=1e10, parameters=inputs)
+
+            gillespies.plot_hist_fixed(ax3, model, "x", ymax=1, parameters=inputs)
+            gillespies.plot_hist_fixed(ax3, model, "y", ymax=1, parameters=inputs)
+
+    if args.plot_on_phase:
+        plt.close("all")
+        # for fig in figs:
+        #     fig.clear()
+
+        # fig4.()
+
+        fig1 = plt.figure(figsize=(6, 6))
+        ax1 = fig1.add_subplot()
+
+        phase_frame = file_frame.loc[("phase", "jesper")]
+        file_choice["metadata"]["n1"] *= 2
+        file_choice["metadata"]["n2"] *= 2
+        phase_filters: list[tuple[str, float]] = [*file_choice["metadata"].items()]
+
+        filtered_phase = filter_frames(phase_filters, phase_frame)
+        phase_name = filtered_phase.reset_index().loc[0, "file_name"]
+        phase_path = os.path.join(data_env, phase_name)
+        phase_data = np.load(phase_path)
+
+        c1, c2 = phase_data["c1"], phase_data["c2"]
+        dU, dV = phase_data["dU"], phase_data["dV"]
+
+        phaseies.plot_phase_space(ax1, c1, c2, dU, dV)
+        phaseies.plot_trajectories(ax1, states[0, :], states[1, :])
+        # phaseies.plot_trajectories(ax1, *states)
+
+        ax1.set_xlim(0, 100)
+        ax1.set_ylim(0, 100)
+
+
+# print(filtered_frame.loc[model_choice, "file_name"])
+# print(filtered_frame.loc[model_choice, "metadata"])
+# print(input_dict)
 
 
 # ax3.vlines(anal_sol, 0, 1, **line_kwargs, label="Analytical solution for $x$")
@@ -625,25 +724,6 @@ elif data_source == "phase":
 
     c1_null = numpy_data["c1_nullcline"]
     c2_null = numpy_data["c2_nullcline"]
-
-    stream_kwargs = {
-        "density": 1.7,
-        "color": "k",
-        "arrowstyle": "->",
-    }
-
-    stream_kwargs.update(args.kwarg_stream)
-
-    phaseies = ps.ode_plotters(
-        stream_kwargs=stream_kwargs,
-        curv_kwargs=curv_kwargs,
-        font_kwargs=font_kwargs,
-        hist_kwargs=hist_kwargs,
-        line_kwargs=line_kwargs,
-        walk_kwargs=walk_kwargs,
-        x_name=x_name,
-        y_name=y_name,
-    )
 
     fig1 = plt.figure(figsize=(6, 6))
     ax1 = fig1.add_subplot()
@@ -669,6 +749,9 @@ elif data_source == "phase":
 figs = [plt.figure(i) for i in plt.get_fignums()]
 for fig in figs:
     fig.tight_layout()
+
+if model == "2L":
+    ax3.set_title("2D histogram of chemical species distribution")
 
 
 ## Taken from https://www.geeksforgeeks.org/save-multiple-matplotlib-figures-in-single-pdf-file-using-python/

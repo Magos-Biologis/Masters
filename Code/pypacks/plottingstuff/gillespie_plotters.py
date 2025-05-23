@@ -1,7 +1,7 @@
 import numpy as np
 from matplotlib import axes as axe
 
-from .fixedpoints import GillespieFixed
+from .fixedpoints import GillespieFixed, ODEFixed
 from .plotting_class import plotting_class
 
 
@@ -158,17 +158,25 @@ class gillespie_plotters(plotting_class):
         model: str,
         var: str,
         xmax: float,
-        parameters: GillespieFixed,
+        parameters: GillespieFixed | ODEFixed,
         **kwargs,
     ):
-        assert type(parameters) is GillespieFixed, "You fucked the parameters somehow"
+        # assert type(parameters) is GillespieFixed or , "You fucked the parameters somehow"
 
-        if model == "5_2":
-            fixed: np.float64 = parameters.Novel_5_2()[var]
-        elif model == "5_3":
-            fixed: np.float64 = parameters.Novel_5_3()[var]
+        if model in ["5_2", "5_3"]:
+            if model == "5_2":
+                fixed: np.float64 = parameters.Novel_5_2()[var]
+            elif model == "5_3":
+                fixed: np.float64 = parameters.Novel_5_3()[var]
+            else:
+                fixed: np.float64 = np.float64(0)
         else:
-            fixed: np.float64 = np.float64(0)
+            if model == "ode_5_2":
+                fixed: np.float64 = parameters.ode_5_2()[var]
+            if model == "ode_5_3":
+                fixed: np.float64 = parameters.ode_5_3()[var]
+            else:
+                fixed: np.float64 = np.float64(0)
 
         self.lineargs.update(kwargs)
         ax.hlines([fixed], 0, xmax, **self.lineargs)
@@ -182,14 +190,20 @@ class gillespie_plotters(plotting_class):
         parameters: GillespieFixed,
         **kwargs,
     ):
-        assert type(parameters) is GillespieFixed, "You fucked the parameters somehow"
-
-        if model == "5_2":
-            fixed = parameters.Novel_5_2()[var]
-        elif model == "5_3":
-            fixed = parameters.Novel_5_3()[var]
+        if model in ["5_2", "5_3"]:
+            if model == "5_2":
+                fixed: np.float64 = parameters.Novel_5_2()[var]
+            elif model == "5_3":
+                fixed: np.float64 = parameters.Novel_5_3()[var]
+            else:
+                fixed: np.float64 = np.float64(0)
         else:
-            fixed = np.float64(0)
+            if model == "ode_5_2":
+                fixed: np.float64 = parameters.ode_5_2()[var]
+            if model == "ode_5_3":
+                fixed: np.float64 = parameters.ode_5_3()[var]
+            else:
+                fixed: np.float64 = np.float64(0)
 
         self.lineargs.update(kwargs)
         ax.vlines([fixed], 0, ymax, **self.lineargs)
@@ -203,10 +217,15 @@ class gillespie_plotters(plotting_class):
         parameters: dict | GillespieFixed,
         **kwargs,
     ):
-        if type(parameters) is dict:
-            parameters = GillespieFixed(**parameters)
+        if model in ["5_2", "5_3"]:
+            if type(parameters) is dict:
+                parameters = GillespieFixed(**parameters)
+            assert type(parameters) is GillespieFixed, "You fucked the parameters somehow"
 
-        assert type(parameters) is GillespieFixed, "You fucked the parameters somehow"
+        else:
+            if type(parameters) is dict:
+                parameters = ODEFixed(**parameters)
+            assert type(parameters) is ODEFixed, "You fucked the parameters somehow"
 
         self._plot_vline(ax, model, var, ymax, parameters, **kwargs)
 
@@ -219,9 +238,14 @@ class gillespie_plotters(plotting_class):
         parameters: dict | GillespieFixed,
         **kwargs,
     ):
-        if type(parameters) is dict:
-            parameters = GillespieFixed(**parameters)
+        if model in ["5_2", "5_3"]:
+            if type(parameters) is dict:
+                parameters = GillespieFixed(**parameters)
+            assert type(parameters) is GillespieFixed, "You fucked the parameters somehow"
 
-        assert type(parameters) is GillespieFixed, "You fucked the parameters somehow"
+        else:
+            if type(parameters) is dict:
+                parameters = ODEFixed(**parameters)
+            assert type(parameters) is ODEFixed, "You fucked the parameters somehow"
 
         self._plot_hline(ax, model, var, xmax, parameters, **kwargs)

@@ -46,11 +46,13 @@ class ode_plotters(plotting_class):
                 color=color,
             )
 
-    def _plot_nullcline(
+    def _plot_phase_curve(
         self,
         ax: axe.Axes,
-        x_points: np.ndarray[tuple[int], np.dtype[np.float64]],
-        y_points: np.ndarray[tuple[int], np.dtype[np.float64]],
+        x_points: np.ndarray[tuple[int], np.dtype[np.float64]]
+        | np.ndarray[tuple[int], np.dtype[np.int_]],
+        y_points: np.ndarray[tuple[int], np.dtype[np.float64]]
+        | np.ndarray[tuple[int], np.dtype[np.int_]],
         **kwargs,
     ) -> None:
         self.curvargs.update(kwargs)
@@ -59,6 +61,26 @@ class ode_plotters(plotting_class):
             x_points,
             y_points,
             **self.curvargs,
+        )
+
+    def plot_trajectories(
+        self,
+        ax: axe.Axes,
+        dx: np.ndarray[tuple[int], np.dtype[np.float64]]
+        | np.ndarray[tuple[int], np.dtype[np.int_]],
+        dy: np.ndarray[tuple[int], np.dtype[np.float64]]
+        | np.ndarray[tuple[int], np.dtype[np.int_]],
+        **kwargs,
+    ) -> None:
+        label = kwargs.pop("label", self.x_name)
+        color = kwargs.pop("color", self.colors[0])
+        self._plot_phase_curve(
+            ax,
+            dx,
+            dy,
+            label=label,
+            color=color,
+            **kwargs,
         )
 
     def plot_nullclines(
@@ -70,7 +92,7 @@ class ode_plotters(plotting_class):
         dy_range: np.ndarray[tuple[int], np.dtype[np.float64]],
         **kwargs,
     ) -> None:
-        self._plot_nullcline(
+        self._plot_phase_curve(
             ax,
             dx_domain,
             dx_range,
@@ -78,7 +100,7 @@ class ode_plotters(plotting_class):
             color=self.colors[0],
             **kwargs,
         )
-        self._plot_nullcline(
+        self._plot_phase_curve(
             ax,
             dy_domain,
             dy_range,

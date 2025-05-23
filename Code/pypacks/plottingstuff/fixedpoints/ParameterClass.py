@@ -19,6 +19,7 @@ class ParameterClass:
     k5: float64 = float64(1)
     k_5: float64 = float64(1)
 
+    m0: float64 = float64(0.0)
     w1: float64 = float64(0.15)
     w2: float64 = float64(0.15)
     q1: float64 = float64(1)
