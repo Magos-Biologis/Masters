@@ -358,19 +358,26 @@ if args.opts:
 ## When choosing which index
 if args.index is None:
     if args.compare_plots:
-        model_choice = sourced_frame.index.values[-2]
+        m_index = sourced_frame.index.values[-2]
     else:
-        model_choice = sourced_frame.index.values[-1]
+        m_index = sourced_frame.index.values[-1]
 else:
-    model_choice = args.index
+    m_index = args.index
 
 ## For if it is a comparison
+## We try to set as many things up here to make it easier in the future
+### Placing things in lists so we can use indices to generalize
+path_list = []
 if args.compare_plots:
-    file_choice = sourced_frame.loc[model_choice : model_choice + 1].reset_index(
-        drop=True
-    )
+    data_set_quantity = 2
+    file_choice = sourced_frame.loc[m_index : m_index + 1].reset_index(drop=True)
+    path_list.extend([path for path in file_choice.pop("file_name")])
+    data_frame = file_choice.loc[0]
 else:
-    file_choice = sourced_frame.loc[model_choice]
+    data_set_quantity = 1
+    file_choice = sourced_frame.loc[m_index]
+    path_list.append(file_choice.pop("file_name"))
+    data_frame = file_choice
 
 
 ## For custom plotting counts
@@ -386,31 +393,21 @@ else:
 
 ## The base name
 file_name: str = "{}:{}:".format(data_source, model).replace("_", "-")
-
-para_version: str = ""
-# if not is_ode:
 if model == "5_2":
-    if args.compare_plots:
-        para_version = r"${}$".format(file_choice.loc[0, "ratio"])
-    else:
-        para_version = r"${}$".format(file_choice["ratio"])
-
+    para_version = data_frame["ratio"]
     file_name += "{}:".format(para_version).replace("$", "")
 
 
 ## Adding the epoch time to ensure the files don't overwrite eachother
-if args.compare_plots:
-    epoch = file_choice.loc[0, "t"]
-    data_set_quantity = 2
-else:
-    epoch = file_choice["t"]
-    data_set_quantity = 1
-
-file_name += "I{}:".format(model_choice)
+epoch = data_frame["t"]
 if data_source != "phase":
-    file_name += "C{}:".format(data_set_quantity)
+    c_data = data_set_quantity
 else:
-    file_name += "C{}:".format(file_choice["rawmetadata"])
+    c_data = file_choice["rawmetadata"]
+
+# Format rapidfire
+file_name += "I{}:".format(m_index)
+file_name += "C{}:".format(c_data)
 file_name += "T{}".format(epoch)
 
 #######################
@@ -421,6 +418,10 @@ beta = m  # file_choice["count"]
 boxes = arange(alpha, beta + 1, 1, dtype=np.int_)
 xlims = (alpha, beta)
 ylims = (alpha, beta)
+
+##########################
+#   Default Plot Stuff   #
+##########################
 
 plt.rcParams.update(
     {
@@ -471,7 +472,6 @@ stream_kwargs: dict = {
     "arrowstyle": "->",
 }
 
-
 if is_ode:
     plot_kwargs.update(x_name=r"$c_1$")
     plot_kwargs.update(y_name=r"$c_2$")
@@ -488,6 +488,8 @@ if is_ode:
 else:
     plot_kwargs.update(z_name=r"$n$")
 
+
+##########################
 
 curv_kwargs.update(args.kwarg_curve)
 font_kwargs.update(args.kwarg_font)
@@ -514,19 +516,6 @@ names = [x_name, y_name, z_name]
 colors = [x_color, y_color, z_color]
 
 
-if (data_source == "phase") or args.plot_on_phase:
-    phaseies = ps.odePlotters(
-        stream_kwargs=stream_kwargs,
-        curv_kwargs=curv_kwargs,
-        font_kwargs=font_kwargs,
-        hist_kwargs=hist_kwargs,
-        line_kwargs=line_kwargs,
-        walk_kwargs=walk_kwargs,
-        x_name=x_name,
-        y_name=y_name,
-    )
-
-
 if data_source == "ssa":
     gillespies = ps.gillespiePlotters(
         curv_kwargs=curv_kwargs,
@@ -539,39 +528,50 @@ if data_source == "ssa":
         n_name=z_name,
     )
 
+if (data_source == "phase") or args.plot_on_phase:
+    phaseies = ps.odePlotters(
+        stream_kwargs=stream_kwargs,
+        curv_kwargs=curv_kwargs,
+        font_kwargs=font_kwargs,
+        hist_kwargs=hist_kwargs,
+        line_kwargs=line_kwargs,
+        walk_kwargs=walk_kwargs,
+        x_name=x_name,
+        y_name=y_name,
+    )
+
+    # try:
+    #     gillespies
+    # except NameError:
+    #     var_exists = False
+    # else:
+    #     var_exists = True
+    # assert var_exists, "Gillespie gone"
+
+if data_source == "ssa":
+    assert "gillespies" in locals(), "How did this happen"
+    assert type(gillespies) is ps.gillespiePlotters, "How did this happen"
+
     fig1 = plt.figure(figsize=(5, 2.5))
     fig2 = plt.figure(figsize=(5, 2.5))
     fig3 = plt.figure(figsize=(5, 5))
-    fig4 = plt.figure(figsize=(5, 5))
-
-    ax1 = fig1.add_subplot()
-    ax2 = fig2.add_subplot()
-    ax3 = fig3.add_subplot()
-    ax4 = fig4.add_subplot()
-
-    # figs = [fig1, fig2, fig3]
-    figs = [plt.figure(i) for i in plt.get_fignums()]
-    # axes = [fig.add_subplot() for fig in figs]
-
-    all_axes = [ax1, ax2, ax3]
-    walk_axes = [ax1, ax2]
-    hist_axes = [ax3]
-
     if args.compare_plots:
-        figs.append(fig4)
-        all_axes.append(ax4)
-        hist_axes.append(ax4)
+        fig4 = plt.figure(figsize=(5, 5))
+
+    figs = [plt.figure(i) for i in plt.get_fignums()]
+    axes = [fig.add_subplot() for fig in figs]
+
+    walk_axes = axes[:2]
+    hist_axes = axes[2:]
 
     if args.compare_plots:
         for i, ax in enumerate(walk_axes):
             init_cond_string: str = "{}".format(file_choice.loc[i, "initcond"])
-            file_path = os.path.join(data_env, file_choice.loc[i, "file_name"])
+            file_path = os.path.join(data_env, path_list[i])
 
             numpy_data = np.load(file_path)
             time = numpy_data["time"]
             states = numpy_data["states"]
-            # print(time)
-            # continue
 
             gillespies.plot_steps(
                 ax=ax,
@@ -589,7 +589,7 @@ if data_source == "ssa":
 
     else:
         init_cond_string: str = "{}".format(file_choice.loc["initcond"])
-        file_path = os.path.join(data_env, file_choice.loc["file_name"])
+        file_path = os.path.join(data_env, path_list[0])
 
         numpy_data = np.load(file_path)
         time, states = numpy_data["time"], numpy_data["states"]
@@ -615,7 +615,7 @@ if data_source == "ssa":
             # for i, ax in enumerate(hist_axes):
             x_temp = states[0, :]
             y_temp = states[1, :]
-            ax3.hist2d(
+            hist_axes[0].hist2d(
                 x_temp,
                 y_temp,
                 bins=boxes,
@@ -674,7 +674,7 @@ if data_source == "ssa":
     #         ln.set_alpha(1)
     #         ln.set_linewidth(10)
 
-    for ax in all_axes:
+    for ax in axes:
         ax.legend(loc="upper right", fontsize=legend_font_size)
 
     for fig in figs:
@@ -682,22 +682,33 @@ if data_source == "ssa":
 
     if args.plot_fixedpoints:
         inputs = sourced_frame.loc[
-            model_choice, "metadata"
+            m_index, "metadata"
         ]  # input_dict = dict([(string.replace("-", "_"), val) for string, val in inputs])
-        # print(inputs)
-        # exit()
         if args.compare_plots:
-            gillespies.plot_walk_fixed(ax1, model, "x", xmax=1e10, parameters=inputs)
-            gillespies.plot_walk_fixed(ax2, model, "y", xmax=1e10, parameters=inputs)
+            gillespies.plot_walk_fixed(
+                walk_axes[0], model, "x", xmax=1e10, parameters=inputs
+            )
+            gillespies.plot_walk_fixed(
+                walk_axes[1], model, "y", xmax=1e10, parameters=inputs
+            )
 
-            gillespies.plot_hist_fixed(ax3, model, "x", ymax=1, parameters=inputs)
-            gillespies.plot_hist_fixed(ax3, model, "y", ymax=1, parameters=inputs)
+            gillespies.plot_hist_fixed(
+                hist_axes[0], model, "x", ymax=1, parameters=inputs
+            )
+            gillespies.plot_hist_fixed(
+                hist_axes[1], model, "y", ymax=1, parameters=inputs
+            )
         else:
-            gillespies.plot_walk_fixed(ax1, model, "x", xmax=1e10, parameters=inputs)
-            gillespies.plot_walk_fixed(ax2, model, "y", xmax=1e10, parameters=inputs)
+            gillespies.plot_walk_fixed(
+                walk_axes[0], model, "x", xmax=1e10, parameters=inputs
+            )
+            gillespies.plot_walk_fixed(
+                walk_axes[1], model, "y", xmax=1e10, parameters=inputs
+            )
 
-            gillespies.plot_hist_fixed(ax3, model, "x", ymax=1, parameters=inputs)
-            gillespies.plot_hist_fixed(ax3, model, "y", ymax=1, parameters=inputs)
+            gillespies.plot_hist_fixed(
+                hist_axes[0], model, "x", ymax=1, parameters=inputs
+            )
 
     if args.plot_on_phase:
         plt.close("all")
@@ -729,13 +740,6 @@ if data_source == "ssa":
         ax1.set_xlim(0, 100)
         ax1.set_ylim(0, 100)
 
-
-# print(filtered_frame.loc[model_choice, "file_name"])
-# print(filtered_frame.loc[model_choice, "metadata"])
-# print(input_dict)
-
-
-# ax3.vlines(anal_sol, 0, 1, **line_kwargs, label="Analytical solution for $x$")
 
 elif data_source == "phase":
     file_path = os.path.join(data_env, file_choice.loc["file_name"])
@@ -816,15 +820,14 @@ if args.save:
     # else:
     #     plt.figure(1).savefig(file_path + ".pdf", format="pdf")
 
-
-# if len(figs) > 1:
-save_image(latest_file)
-# else:
-#     plt.figure(1).savefig(latest_file + ".png", format="png")
-
+# save_image(latest_file)
 
 if args.show:
     show()
+
+print("TESTING MODE")
+exit()
+
 
 print("Done Plotting/Saving")
 
