@@ -367,16 +367,19 @@ else:
 ## For if it is a comparison
 ## We try to set as many things up here to make it easier in the future
 ### Placing things in lists so we can use indices to generalize
+initial_list = []
 path_list = []
 if args.compare_plots:
     data_set_quantity = 2
     file_choice = sourced_frame.loc[m_index : m_index + 1].reset_index(drop=True)
     path_list.extend([path for path in file_choice.pop("file_name")])
+    initial_list.extend([init for init in file_choice.pop("initcond")])
     data_frame = file_choice.loc[0]
 else:
     data_set_quantity = 1
     file_choice = sourced_frame.loc[m_index]
     path_list.append(file_choice.pop("file_name"))
+    initial_list.append(file_choice.pop("initcond"))
     data_frame = file_choice
 
 
@@ -493,8 +496,8 @@ else:
 
 curv_kwargs.update(args.kwarg_curve)
 font_kwargs.update(args.kwarg_font)
-line_kwargs.update(args.kwarg_line)
 hist_kwargs.update(args.kwarg_hist)
+line_kwargs.update(args.kwarg_line)
 walk_kwargs.update(args.kwarg_walk)
 plot_kwargs.update(args.kwarg_plot)
 stream_kwargs.update(args.kwarg_stream)
@@ -515,125 +518,129 @@ z_color = plot_kwargs.pop("z_color", "g")
 names = [x_name, y_name, z_name]
 colors = [x_color, y_color, z_color]
 
+#############################################################################
+#                                                                           #
+#   I've thought about it, realistically this isn't super memory intense,   #
+#   so I'm just gonna load both plot classes into memory and not really     #
+#   care one way or the other                                               #
+#                                                                           #
+#############################################################################
 
-if data_source == "ssa":
-    gillespies = ps.gillespiePlotters(
-        curv_kwargs=curv_kwargs,
-        font_kwargs=font_kwargs,
-        hist_kwargs=hist_kwargs,
-        line_kwargs=line_kwargs,
-        walk_kwargs=walk_kwargs,
-        x_name=x_name,
-        y_name=y_name,
-        n_name=z_name,
-    )
+gillespies = ps.gillespiePlotters(
+    curv_kwargs=curv_kwargs,
+    font_kwargs=font_kwargs,
+    hist_kwargs=hist_kwargs,
+    line_kwargs=line_kwargs,
+    walk_kwargs=walk_kwargs,
+    x_name=x_name,
+    y_name=y_name,
+    n_name=z_name,
+)
 
-if (data_source == "phase") or args.plot_on_phase:
-    phaseies = ps.odePlotters(
-        stream_kwargs=stream_kwargs,
-        curv_kwargs=curv_kwargs,
-        font_kwargs=font_kwargs,
-        hist_kwargs=hist_kwargs,
-        line_kwargs=line_kwargs,
-        walk_kwargs=walk_kwargs,
-        x_name=x_name,
-        y_name=y_name,
-    )
+phaseies = ps.odePlotters(
+    stream_kwargs=stream_kwargs,
+    curv_kwargs=curv_kwargs,
+    font_kwargs=font_kwargs,
+    hist_kwargs=hist_kwargs,
+    line_kwargs=line_kwargs,
+    walk_kwargs=walk_kwargs,
+    x_name=x_name,
+    y_name=y_name,
+)
 
-    # try:
-    #     gillespies
-    # except NameError:
-    #     var_exists = False
-    # else:
-    #     var_exists = True
-    # assert var_exists, "Gillespie gone"
+
+fig1 = plt.figure(num=1, figsize=(5, 2.5))
+fig3 = plt.figure(num=3, figsize=(5, 5))
+
+if args.compare_plots:
+    fig2 = plt.figure(num=2, figsize=(5, 2.5))
+    fig4 = plt.figure(num=4, figsize=(5, 5))
+
+figs = [plt.figure(i) for i in plt.get_fignums()]
+axes = [fig.add_subplot() for fig in figs]
+
+## By partitioning the axes list where the first half is the hists, and the
+## second half is the walks, we can just use the data_set_quantity to split it
+walk_axes = axes[:data_set_quantity]
+hist_axes = axes[data_set_quantity:]
+
 
 if data_source == "ssa":
     assert "gillespies" in locals(), "How did this happen"
     assert type(gillespies) is ps.gillespiePlotters, "How did this happen"
 
-    fig1 = plt.figure(figsize=(5, 2.5))
-    fig2 = plt.figure(figsize=(5, 2.5))
-    fig3 = plt.figure(figsize=(5, 5))
-    if args.compare_plots:
-        fig4 = plt.figure(figsize=(5, 5))
-
-    figs = [plt.figure(i) for i in plt.get_fignums()]
-    axes = [fig.add_subplot() for fig in figs]
-
-    walk_axes = axes[:2]
-    hist_axes = axes[2:]
-
-    if args.compare_plots:
-        for i, ax in enumerate(walk_axes):
-            init_cond_string: str = "{}".format(file_choice.loc[i, "initcond"])
-            file_path = os.path.join(data_env, path_list[i])
-
-            numpy_data = np.load(file_path)
-            time = numpy_data["time"]
-            states = numpy_data["states"]
-
-            gillespies.plot_steps(
-                ax=ax,
-                time=time,
-                results=states,
-                xstart=init_cond_string,
-                plot_starts=args.include_starts,
-                plot_kwargs=plot_kwargs,
-            )
-
-            gillespies.plot_hists(
-                hist_axes[i],
-                states,
-            )
-
-    else:
-        init_cond_string: str = "{}".format(file_choice.loc["initcond"])
-        file_path = os.path.join(data_env, path_list[0])
+    # if args.compare_plots:
+    for i, ax in enumerate(walk_axes):
+        init_cond_string: str = "{}".format(initial_list[i])
+        # init_cond_string: str = "{}".format(file_choice.loc[i, "initcond"])
+        file_path = os.path.join(data_env, path_list[i])
 
         numpy_data = np.load(file_path)
-        time, states = numpy_data["time"], numpy_data["states"]
+        time = numpy_data["time"]
+        states = numpy_data["states"]
 
-        for i, ax in enumerate(walk_axes):
-            plot_kwargs.update(label=names[i], color=colors[i])
+        plot_kwargs.update(label=names[i], color=colors[i])
 
-            gillespies.plot_walk(
-                ax,
-                time=time,
-                steps=states[i, :],
-                plot_kwargs=plot_kwargs,
-                xstart=init_cond_string,
-                plot_starts=args.include_starts,
-            )
+        gillespies.plot_steps(
+            ax=ax,
+            time=time,
+            results=states,
+            xstart=init_cond_string,
+            plot_starts=args.include_starts,
+            plot_kwargs=plot_kwargs,
+        )
 
-            y_max = min(states[i, :].max(), 100)
-            ax.set_yticks([y for y in np.linspace(0, y_max + 1, 5, dtype=np.int_)])
-            ax.set_xlim(left=0)
-            ax.set_ylim(bottom=0, top=y_max)
+        gillespies.plot_hists(
+            hist_axes[i],
+            states,
+        )
 
-        if model in ["2L"]:
-            # for i, ax in enumerate(hist_axes):
-            x_temp = states[0, :]
-            y_temp = states[1, :]
-            hist_axes[0].hist2d(
-                x_temp,
-                y_temp,
-                bins=boxes,
-                density=True,
-                label="Distribution of chemical species",
-            )
-        else:
-            for i, ax in enumerate(hist_axes):
-                gillespies.plot_hist(
-                    ax,
-                    results=states[i, :],
-                    color=colors[i],
-                    label=names[i],
-                )
-
-            # break
-            # plt.show()
-            # exit()
+    # else:
+    #     init_cond_string: str = "{}".format(file_choice.loc["initcond"])
+    #     file_path = os.path.join(data_env, path_list[0])
+    #
+    #     numpy_data = np.load(file_path)
+    #     time, states = numpy_data["time"], numpy_data["states"]
+    #
+    #     for i, ax in enumerate(walk_axes):
+    #         plot_kwargs.update(label=names[i], color=colors[i])
+    #
+    #         gillespies.plot_walk(
+    #             ax,
+    #             time=time,
+    #             steps=states[i, :],
+    #             plot_kwargs=plot_kwargs,
+    #             xstart=init_cond_string,
+    #             plot_starts=args.include_starts,
+    #         )
+    #
+    #         y_max = min(states[i, :].max(), 100)
+    #         ax.set_yticks([y for y in np.linspace(0, y_max + 1, 5, dtype=np.int_)])
+    #         ax.set_xlim(left=0)
+    #         ax.set_ylim(bottom=0, top=y_max)
+    #
+    #     if model in ["2L"]:
+    #         # for i, ax in enumerate(hist_axes):
+    #         x_temp = states[0, :]
+    #         y_temp = states[1, :]
+    #         hist_axes[0].hist2d(
+    #             x_temp,
+    #             y_temp,
+    #             bins=boxes,
+    #             density=True,
+    #             label="Distribution of chemical species",
+    #         )
+    #     else:
+    #         for i, ax in enumerate(hist_axes):
+    #             gillespies.plot_hist(
+    #                 ax,
+    #                 results=states[i, :],
+    #                 color=colors[i],
+    #                 label=names[i],
+    #             )
+    # break
+    # plt.show()
+    # exit()
 
     if is_ode:
         for ax in hist_axes:
@@ -644,7 +651,8 @@ if data_source == "ssa":
     else:
         for ax in hist_axes:
             ax.set_title(
-                "Distribution of Gene Copy Number\n {}".format(para_version),
+                "Distribution of Gene Copy Number\n"
+                + "${}$".format(para_version.replace("$", "")),
                 fontdict=font_kwargs,
             )
 
@@ -655,16 +663,10 @@ if data_source == "ssa":
             "Fraction of States",
             fontdict=font_kwargs,
         )
-        if args.compare_plots:
-            ax.set_xlabel(
-                "Counts",
-                fontdict=font_kwargs,
-            )
-        else:
-            ax.set_xlabel(
-                "Cell Counts",
-                fontdict=font_kwargs,
-            )
+        ax.set_xlabel(
+            "Counts",
+            fontdict=font_kwargs,
+        )
 
     # ax3.set_ylabel("Density", fontsize=12)
     # ax4.set_ylabel("Density", fontsize=12)
@@ -712,10 +714,6 @@ if data_source == "ssa":
 
     if args.plot_on_phase:
         plt.close("all")
-        # for fig in figs:
-        #     fig.clear()
-
-        # fig4.()
 
         fig1 = plt.figure(figsize=(6, 6))
         ax1 = fig1.add_subplot()
@@ -735,7 +733,6 @@ if data_source == "ssa":
 
         phaseies.plot_phase_space(ax1, c1, c2, dU, dV)
         phaseies.plot_trajectories(ax1, states[0, :], states[1, :])
-        # phaseies.plot_trajectories(ax1, *states)
 
         ax1.set_xlim(0, 100)
         ax1.set_ylim(0, 100)
@@ -777,14 +774,13 @@ for fig in figs:
     fig.tight_layout()
 
 if model == "2L":
-    ax3.set_title("2D histogram of chemical species distribution")
+    hist_axes[0].set_title("2D histogram of chemical species distribution")
 
 
 ## Taken from https://www.geeksforgeeks.org/save-multiple-matplotlib-figures-in-single-pdf-file-using-python/
+# PdfPages is a wrapper around pdf file so there is no clash
+# and create files with no error.
 def save_image(filename):
-    # PdfPages is a wrapper around pdf
-    # file so there is no clash and create
-    # files with no error.
     filename += ".pdf"
 
     ## We use a "with" statement to keep the system self contained
@@ -799,9 +795,6 @@ def save_image(filename):
             # and saving the files
             fig.savefig(p, format="pdf")
 
-    # # close the object
-    # p.close()
-
 
 latest_file = os.path.join(fig_env, "latest_plot")
 if args.save:
@@ -815,10 +808,8 @@ if args.save:
     else:
         file_path = os.path.join(data_env, file_name)
 
+    ## Just making sure the shit is sorted
     save_image(file_path)
-    # if data_source != "phase":
-    # else:
-    #     plt.figure(1).savefig(file_path + ".pdf", format="pdf")
 
 # save_image(latest_file)
 
