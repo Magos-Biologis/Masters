@@ -6,7 +6,7 @@ from myodestuff import ODEModel
 from .plotting_class import plotting_class
 
 
-class ode_plotters(plotting_class):
+class odePlotters(plotting_class):
     def __init__(self, stream_kwargs: dict, *args, **kwargs):
         self.streamargs = stream_kwargs
         super().__init__(*args, **kwargs)

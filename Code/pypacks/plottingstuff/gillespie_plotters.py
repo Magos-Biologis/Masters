@@ -5,7 +5,7 @@ from .fixedpoints import GillespieFixed, ODEFixed
 from .plotting_class import plotting_class
 
 
-class gillespie_plotters(plotting_class):
+class gillespiePlotters(plotting_class):
     def _plot_step(
         self,
         ax: axe.Axes,

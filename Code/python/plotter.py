@@ -313,9 +313,19 @@ file_frame = raw_frame.set_index(["datasource", "model", "model_index"]).sort_in
 
 parameters = file_frame["metadata"].apply(pd.Series)
 file_frame = pd.concat([file_frame, parameters], axis=1)
-sourced_frame = file_frame.loc[(data_source, model)]
+sourced_frame = (
+    file_frame.loc[(data_source, model)]
+    .dropna(axis="columns", how="all")
+    .reset_index(drop=True)
+)
+
+#
+# print(sourced_frame)
+# exit()
 
 
+## Just brute forces a sorting method, which is designed to fail if the list
+## gets too small. Returns the next best in that case
 def filter_frames(filters: list[tuple[str, float]], df: pd.DataFrame) -> pd.DataFrame:
     for string, value in filters:
         try:
@@ -345,21 +355,25 @@ if args.opts:
         exit()
 
 
-if args.compare_plots:
-    if args.index is None:
+## When choosing which index
+if args.index is None:
+    if args.compare_plots:
         model_choice = sourced_frame.index.values[-2]
     else:
-        model_choice = args.index
-    file_choice = sourced_frame.loc[model_choice : model_choice + 1].reset_index()
-else:
-    if args.index == None:
         model_choice = sourced_frame.index.values[-1]
-    else:
-        model_choice = args.index
+else:
+    model_choice = args.index
 
+## For if it is a comparison
+if args.compare_plots:
+    file_choice = sourced_frame.loc[model_choice : model_choice + 1].reset_index(
+        drop=True
+    )
+else:
     file_choice = sourced_frame.loc[model_choice]
 
 
+## For custom plotting counts
 if args.bin_count is not None:
     m: int = args.bin_count
 else:
@@ -451,6 +465,28 @@ walk_kwargs: dict = {
 plot_kwargs: dict = {
     "top": m,
 }
+stream_kwargs: dict = {
+    "density": 1.7,
+    "color": "k",
+    "arrowstyle": "->",
+}
+
+
+if is_ode:
+    plot_kwargs.update(x_name=r"$c_1$")
+    plot_kwargs.update(y_name=r"$c_2$")
+else:
+    plot_kwargs.update(x_name=r"$x$")
+    plot_kwargs.update(y_name=r"$y$")
+
+
+if is_ode:
+    if model == "ode_8_3":
+        plot_kwargs.update(z_name=r"$b$")
+    else:
+        plot_kwargs.update(z_name=r"$n$")
+else:
+    plot_kwargs.update(z_name=r"$n$")
 
 
 curv_kwargs.update(args.kwarg_curve)
@@ -459,41 +495,27 @@ line_kwargs.update(args.kwarg_line)
 hist_kwargs.update(args.kwarg_hist)
 walk_kwargs.update(args.kwarg_walk)
 plot_kwargs.update(args.kwarg_plot)
+stream_kwargs.update(args.kwarg_stream)
 
 
-legend_font_size = font_kwargs.pop("legend_fontsize", 16)
+legend_font_size = font_kwargs.pop("legend_fontsize", 11)
 
-if is_ode:
-    x_name = r"$c_1$"
-    y_name = r"$c_2$"
-else:
-    x_name = r"$x$"
-    y_name = r"$y$"
+x_name = plot_kwargs.pop("x_name")
+y_name = plot_kwargs.pop("y_name")
+z_name = plot_kwargs.pop("z_name")
 
-
-if is_ode:
-    if model == "ode_8_3":
-        z_name = r"$b$"
-    else:
-        z_name = r"$n$"
-else:
-    z_name = r"$n$"
+x_color = plot_kwargs.pop("x_color", "r")
+y_color = plot_kwargs.pop("y_color", "b")
+z_color = plot_kwargs.pop("z_color", "g")
+# w_color = plot_kwargs.pop("w_color", "k")
 
 
 names = [x_name, y_name, z_name]
-colors = ["b", "r", "g"]
+colors = [x_color, y_color, z_color]
 
 
 if (data_source == "phase") or args.plot_on_phase:
-    stream_kwargs = {
-        "density": 1.7,
-        "color": "k",
-        "arrowstyle": "->",
-    }
-
-    stream_kwargs.update(args.kwarg_stream)
-
-    phaseies = ps.ode_plotters(
+    phaseies = ps.odePlotters(
         stream_kwargs=stream_kwargs,
         curv_kwargs=curv_kwargs,
         font_kwargs=font_kwargs,
@@ -506,7 +528,7 @@ if (data_source == "phase") or args.plot_on_phase:
 
 
 if data_source == "ssa":
-    gillespies = ps.gillespie_plotters(
+    gillespies = ps.gillespiePlotters(
         curv_kwargs=curv_kwargs,
         font_kwargs=font_kwargs,
         hist_kwargs=hist_kwargs,
