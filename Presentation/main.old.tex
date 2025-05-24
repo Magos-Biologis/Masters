@@ -76,9 +76,119 @@
 
 
         \column{0.5\framewidth}
-
+        
     \end{columns}
 
+    \begin{tikzpicture}[overlay, remember picture]
+        \coordinate (s) at (frame cs:0.1,0.5);
+        \coordinate (e) at (frame cs:0.55,0.5);
+
+        \draw (s) to (e);
+
+        \path (s) to node[pos=0.3, sloped] (h1) {} (e);
+        \path (s) to node[pos=0.7, sloped] (h2) {} (e);
+
+        \path (s) to node[pos=0.1, sloped] (t11) {} (e);
+        \path (s) to node[pos=0.25, sloped] (t21) {} (e);
+
+        \path (s) to node[pos=0.9, sloped] (t12) {} (e);
+        \path (s) to node[pos=0.75, sloped] (t22) {} (e);
+
+
+        \draw[line width = 6, color=red] (h1) to (h2);
+
+        \draw[line width = 4] (t11) to (t21);
+        \draw[line width = 4] (t12) to (t22);
+
+        \node[anchor = south east] at (s) {5'};
+        \node[anchor = south west] at (e) {3'};
+
+    \end{tikzpicture}
+
+    \begin{tikzpicture}[overlay, remember picture]
+        \coordinate (s) at (frame cs:0.1,0);
+        \coordinate (e) at (frame cs:0.55,0);
+        \coordinate (s2) at (frame cs:0.40,0);
+        \coordinate (e2) at (frame cs:0.85,0);
+
+        \draw (s) to (e);
+        \draw (e) to (e2);
+
+        \path (s) to node[pos=0.3, sloped] (h1) {} (e);
+        \path (s) to node[pos=0.7, sloped] (h2) {} (e);
+
+
+        \path (s) to node[pos=0.1, sloped] (t11) {} (e);
+        \path (s) to node[pos=0.25, sloped] (t21) {} (e);
+
+        \path (s) to node[pos=0.9, sloped] (t12) {} (e);
+        \path (s) to node[pos=0.75, sloped] (t22) {} (e);
+
+
+        \draw[line width = 6, color=red] (h1) to (h2);
+
+        \draw[line width = 4] (t11) to (t21);
+        \draw[line width = 4] (t12) to (t22);
+
+
+        \path (s2) to node[pos=0.3, sloped] (h3) {} (e2);
+        \path (s2) to node[pos=0.7, sloped] (h4) {} (e2);
+
+        \path (s2) to node[pos=0.9, sloped] (t13) {} (e2);
+        \path (s2) to node[pos=0.75, sloped] (t23) {} (e2);
+
+
+        \draw[line width = 6, color=red] (h3) to (h4);
+
+        \draw[line width = 4] (t13) to (t23);
+
+        \node[anchor = south east] at (s) {5'};
+        \node[anchor = south west] at (e2) {3'};
+
+    \end{tikzpicture}
+
+    \begin{tikzpicture}[overlay, remember picture]
+        \coordinate (s) at (frame cs:0.1,-0.5);
+        \coordinate (e) at (frame cs:0.55,-0.5);
+
+        \draw (s) to (e);
+
+        \path (s) to node[pos=0.3, sloped] (h1) {} (e);
+        \path (s) to node[pos=0.7, sloped] (h2) {} (e);
+
+        \path (s) to node[pos=0.1, sloped] (t11) {} (e);
+        \path (s) to node[pos=0.25, sloped] (t21) {} (e);
+
+        \path (s) to node[pos=0.9, sloped] (t12) {} (e);
+        \path (s) to node[pos=0.75, sloped] (t22) {} (e);
+
+
+        \draw[line width = 6, color=red] (h1) to (h2);
+
+        \draw[line width = 4] (t11) to (t21);
+        \draw[line width = 4] (t12) to (t22);
+
+        \begin{scope}[node distance=5mm]
+        \node (p1) [above=of t11] {};
+        \node (p2) [below=of t11] {};
+
+        \node (p3) [above=of t12] {};
+        \node (p4) [below=of t12] {};
+
+        \end{scope}
+
+        \begin{scope}[node distance=0mm]
+            \node [right= of p4] {n};
+        \end{scope}
+
+        \draw (p1) to[bend right] (p2);
+        \draw (p3) to[bend left] (p4);
+
+
+        \node[anchor = south east] at (s) {5'};
+        \node[anchor = south west] at (e) {3'};
+
+    \end{tikzpicture}
 
     \begin{tikzpicture}[overlay, remember picture, shorten >= 7, shorten <= 7, thick]
         \draw[->] (frame cs:0.3,0.0) to[bend right] node[midway,anchor = west] {$\times n$} (frame cs:0.3,-0.5) ;
@@ -133,16 +243,16 @@
     \end{itemize}
     \vspace {1em}
 
-    \begin{system}
+    \begin{system} 
         \ode{c_1} &= k_1 c_1\left({n_1 - c_t \over n_1}\right) - w_1 c_1 + w_2 c_2 - q_1 m c_1 \nonumber \\
         \ode{c_2} &= k_2 c_2\left({n_2 - c_t \over n_2}\right) - w_2 c_2 + w_1 c_1\nonumber\\
         \ode{m}   &= m_0 - q_m m c_2 \nonumber
-    \end{system}
+    \end{system} 
 
     \column{0.3\framewidth}
 \end{columns}
 
-
+    
 \end{frame}
 
 
@@ -151,8 +261,8 @@
     \begin{itemize}
         \item The \emph{Fokker-Planck equation}
             \begin{equation*}
-                \pde*[t] P\of{x,t} =
-                -\pde*[x] \br{a^{(1)}_t \of x \cdot P\of{x,t}} +
+                \pde*[t] P\of{x,t} = 
+                -\pde*[x] \br{a^{(1)}_t \of x \cdot P\of{x,t}} + 
                 {1 \over 2} \pde*[x]^2 \br{a^{(2)}_t \of x\cdot P\of{x,t}}
             \end{equation*}
 
@@ -160,7 +270,7 @@
         \item Probability distribution as a partial differential equation
         \item Can be defined analytically or numerically
     \end{itemize}
-
+    
 \end{frame}
 
 \begin{frame}{Markov Chains}
@@ -168,13 +278,13 @@
     \begin{columns}
         \column{0.5\framewidth}
         \begin{itemize}
-            \item The probability of transitioning from any state to any other
+            \item The probability of transitioning from any state to any other 
                 state must not be influence by previous states
             \item Time discrete lends well to cells
             \item The steady state is defined as \(\vec{\pi} M = \vec{\pi}\)
         \end{itemize}
         \column{0.5\framewidth}
-
+        
     \end{columns}
 
 \begin{tikzpicture}[thick,overlay, remember picture]
@@ -195,14 +305,14 @@
                         P\of{y\to x} & P\of{y\to y}
                     \end{matrix}
                 \right]
-                =
+                = 
                 \left[
                     \begin{matrix}
                         1-p_1 & p_1 \\ p_2 & 1-p_2
                     \end{matrix}
                 \right]\) };
 \end{tikzpicture}
-
+    
 \end{frame}
 
 \section{Analytical Examples}
@@ -219,7 +329,7 @@
 
         Solving \(\ode* m = 0\) under the assumption that \(m_0=0\),
         \begin{equation*}
-            \ode* m = -q_m m c_2 = 0 \implies
+            \ode* m = -q_m m c_2 = 0 \implies 
             \begin{cases}
                 m\of t = 0 \\
                 c_2\of t = 0
@@ -233,11 +343,11 @@
             \ode* c_2 &= c_1\pa{w_1 - \k_{2} c_2} + c_2 \pa{\omega_{2} - \k_{2} c_2}\nonumber
         \end{system}
 
-
+        
 helping us in order to find our nullclines.
 \begin{align*}
     c_2 &= -{ c_1 \pa{ \omega_{1} - \k_{1} c_1} \over w_2 - \k_{1} c_1 }
-    \intertext{Similarly, solving for \(c_1\) from \(\ode* c_2\) results in}
+    \intertext{Similarly, solving for \(c_1\) from \(\ode* c_2\) results in} 
     -{c_2\pa{\omega_{2} - \k_{2} c_2} \over w_1 - \k_{2}c_2} &= c_1
 \end{align*}
     \end{columns}
@@ -252,7 +362,7 @@ helping us in order to find our nullclines.
             \item Any solution must have a balance
 
             \item We can define a level set in the phase space,
-                \begin{align*}
+                \begin{align*} 
                     c_T
             &=
             \left\{
@@ -267,8 +377,8 @@ helping us in order to find our nullclines.
         \begin{itemize}
             \item Therefor, we find the point of intersection
                 \begin{align*}
-                    n_2\pa{1 - {c_1 \over n_1}}  &=
-                    -{c_1\pa{\omega_{1} - \k_{1} c_1} \over w_2 - \k_{1}c_1}
+                    n_2\pa{1 - {c_1 \over n_1}}  &= 
+                    -{c_1\pa{\omega_{1} - \k_{1} c_1} \over w_2 - \k_{1}c_1} 
                 \end{align*}
         \end{itemize}
 
@@ -277,16 +387,16 @@ helping us in order to find our nullclines.
 
 \begin{frame}{Analytical Solution}
     Which simplifies to solving the polynomial
-    \begin{align*}
-        \k_1\pa{{n_2 \over n_1}-1} c_1^2
+    \begin{align*} 
+        \k_1\pa{{n_2 \over n_1}-1} c_1^2 
         - \pa{\omega_{1} - n_2\pa{{w_2 \over n_1} + \k_1}} c_1
         + n_2 w_2
             &= 0 & c_1\in ]w_2/\k_{1}, \omega_1/\k_1[
-            \intertext{by symmetry,}
-            \k_2\pa{{n_1 \over n_2}-1} c_2^2
+            \intertext{by symmetry,} 
+            \k_2\pa{{n_1 \over n_2}-1} c_2^2 
             - \pa{\omega_{2} - n_1\pa{{w_1 \over n_2} + \k_2}} c_2
             + n_1 w_1
-            &= 0 & c_2\in ]w_1/\k_{2}, \omega_2/\k_2[
+            &= 0 & c_2\in ]w_1/\k_{2}, \omega_2/\k_2[ 
     \end{align*}
 
     Resulting in our analytically defined fixed points of \(\vec{p}_1:=\pa{\cfp 1, \cfp 2, 0}\),
@@ -323,7 +433,7 @@ helping us in order to find our nullclines.
 \begin{frame}{Basic Markov Chain Solution}
     Finding the stationary distribution of a markov chain in the simplest case is done as,
 \begin{align*}
-    \vec{\pi} M = \vec{\pi}
+    \vec{\pi} M = \vec{\pi} 
     &\implies \pa{\vec{\pi}M}^{\mathrm{T}} = \vec{\pi}^{\mathrm{T}} \\
     % &\implies \pa{M^{\mathrm{T}}\vec{\pi}^{\mathrm{T}}-\vec{\pi}^{\mathrm{T}}}
     % =\pa{M^{\mathrm{T}}-I} \vec{\pi}^{\mathrm{T}}= 0 \\
@@ -379,7 +489,7 @@ with respect to the simple system
         \begin{matrix}
             \cfrac{p_2}{p_2 + p_2} & \cfrac{p_1}{p_1 + p_2}
         \end{matrix}
-    \right]
+    \right] 
 \end{equation*}
 \end{frame}
 

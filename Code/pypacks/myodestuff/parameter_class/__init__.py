@@ -5,13 +5,12 @@ import numpy as np
 
 
 @dataclass
-class parameter_class:
+class ODEParameters:
     m: int = 2
     k: float | np.ndarray[tuple[int], np.dtype[np.float64]] = 1
     n: float | np.ndarray[tuple[int], np.dtype[np.float64]] = 100
     q: float | np.ndarray[tuple[int], np.dtype[np.float64]] = 0.085
     w: float | np.ndarray[tuple[int], np.dtype[np.float64]] = 0.015
-    generalize: bool = False
     m0: float = 0
     k1: float = 1
     k2: float = 1
@@ -21,6 +20,8 @@ class parameter_class:
     q2: float = 0.085
     w1: float = 0.015
     w2: float = 0.015
+
+    generalize: bool = False
 
     W: None | np.ndarray[tuple[int, int], np.dtype[np.float64]] = None
     K: None | np.ndarray[tuple[int, int], np.dtype[np.float64]] = None
@@ -37,6 +38,21 @@ class parameter_class:
             self.n = np.array([self.n1, self.n2], dtype=float)
             self.q = np.array([self.q1, self.q2], dtype=float)
             self.w = np.array([self.w1, self.w2], dtype=float)
+
+            self._k1: float = self.k1 / self.n1
+            self._k2: float = self.k2 / self.n2
+
+            self.o1: float = self.k1 - self.w1
+            self.o2: float = self.k2 - self.w2
+
+            c2_range = [self.w1 / self._k2, self.o2 / self._k2]
+            c1_range = [self.w2 / self._k1, self.o1 / self._k1]
+
+            self.c1_min: float = min(c1_range)
+            self.c1_max: float = max(c1_range)
+
+            self.c2_min: float = min(c2_range)
+            self.c2_max: float = max(c2_range)
 
         self.W, self.K = self.__set_matrices()
 

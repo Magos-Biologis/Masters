@@ -1,20 +1,13 @@
-#!./.venv/bin/python
+# !./.venv/bin/python
 import os
-from pprint import pprint as pp
-from sys import exit
 
 import numpy as np
-from numpy import polynomial as npp
-
-
 from matplotlib import pyplot as plt
-from matplotlib.pyplot import FuncFormatter
+from matplotlib.ticker import FuncFormatter
+
 # import sympy as sy
-
 # import myodestuff
-from myodestuff import ODEModel
-from myodestuff import parameter_class
-
+from myodestuff import ODEModel, ODEParameters
 
 print("")
 
@@ -29,7 +22,6 @@ file_name = "ode_solution"
 ### Variables
 # Growth Constant, same because same cell
 n = np.zeros(2, dtype=np.float64)
-
 k = np.zeros(2, dtype=np.float64)
 w = np.zeros(2, dtype=np.float64)
 q = np.zeros(2, dtype=np.float64)
@@ -40,7 +32,7 @@ k[:] = 0.2
 n[0] = 100
 n[1] = 90
 
-w[0] = 0.015
+w[0] = 0.15
 w[1] = 0.015
 
 # w[1] = 0.14
@@ -51,12 +43,26 @@ w[1] = 0.015
 # q[1] = 0.8
 
 q[:] = 1
-m_0 = 1.0
+m_0 = 0.0
 
 
 alpha = 0
 c1_0 = n[0] - alpha
 c2_0 = alpha
+
+
+parameter_dict = {
+    "m0": m_0,
+    "k1": k[0],
+    "k2": k[1],
+    "n1": n[0],
+    "n2": n[1],
+    "w1": w[0],
+    "w2": w[1],
+    "q1": q[0],
+    "q2": q[1],
+}
+
 
 filename_addendum = (
     "_m0"
@@ -85,18 +91,41 @@ t_end = 150
 t_array = np.arange(0, t_end, dt)
 # sol1 = np.zeros((len(t_array), 3))
 
-
-parameters = parameter_class(2, m_0, k, n, q, w)
 init_conds1 = np.array([c1_0, c2_0, m_0])
-model1 = ODEModel((0, t_end), parameters, init_conds1)
+# print(len(init_conds1))
+# exit()
+#
+parameters = ODEParameters(**parameter_dict)
+model = ODEModel(parameters, (0, t_end), init_conds1)
 
+
+# print()
+
+# line1, line2 = model.roots()
+#
+# plt.scatter(line1[0, :], line1[1, :], label="level set")
+# plt.scatter(line2[0, :], line2[1, :], label="nullcline")
+#
+# plt.legend()
+# # plt.plot(line2[0, :], line2[1, :])
+# # plt.plot(*line2)
+#
+#
+# plt.show()
+
+
+# exit()
 
 ### Integration
 
+
 # parameters1 = parameter_class(*parameters)
 
-t_array, sol1 = model1.integrate()
-solutions = model1.roots()
+t_array, sol1 = model.integrate()
+solutions = model.roots()
+
+# print(solutions)
+# exit()
 
 cq = sum(n) / len(n)
 
@@ -161,6 +190,8 @@ for i, curve in enumerate(sol1):
     ax.plot(t_array, curve, label=curve_name, color=color)
 
 
+# ax.plot(solutions[0], solutions[1], label="hi")
+
 # total = sol1.T[0] + sol1.T[1]
 # percent_total = np.divide(sol1.T[0], n[0]) + np.divide(sol1.T[1], n[1])
 
@@ -194,7 +225,7 @@ ax.yaxis.set_label_position("right")
 ax.set_xlabel("Time")
 ax.set_ylabel("Count")
 
-ax.legend(loc="center right")
+ax.legend(loc="upper right")
 plt.tight_layout()
 
 file_path = os.path.join(figure_path, file_name)

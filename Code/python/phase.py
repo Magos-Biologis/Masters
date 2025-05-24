@@ -7,7 +7,7 @@ from matplotlib import pyplot as plt
 from matplotlib.pyplot import FuncFormatter
 
 # from numpy.polynomial import Polynomial
-from myodestuff import ODEModel, parameter_class
+from myodestuff import ODEModel, ODEParameters
 
 figure_env = str(os.getenv("THESIS_FIGURE_PATH"))
 phase_path = os.path.join(figure_env, "phase")
@@ -145,7 +145,7 @@ dt = 0.01
 t_end = 250
 t_array = np.arange(0, t_end, dt)
 
-parameters1 = parameter_class(**parameter_default)
+parameters1 = ODEParameters(**parameter_default)
 # parameters2 = parameter_class(m=2, m_0=m_0, k=k1, n=n1, q=q, w=w)
 # parameters3 = parameter_class(m=2, m_0=0, k=k, n=n2, q=q, w=w)
 

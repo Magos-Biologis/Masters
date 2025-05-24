@@ -2,7 +2,7 @@ import os
 
 import numpy as np
 from myodestuff.ODEModel import ODEModel
-from myodestuff.parameter_class import parameter_class
+from myodestuff.parameter_class import ODEParameters
 
 from .ParameterClass import ParameterClass
 
@@ -27,7 +27,7 @@ class GillespieFixed(ParameterClass):
 
 
 class ODEFixed(ParameterClass):
-    from myodestuff import ODEModel, parameter_class
+    from myodestuff import ODEModel, ODEParameters
 
     def ode_5_2(self) -> dict[str, np.dtype[np.float64]]:
         temp_dict = {
@@ -42,7 +42,7 @@ class ODEFixed(ParameterClass):
             "n2": self.n2,
         }
 
-        params = parameter_class(**temp_dict)
+        params = ODEParameters(**temp_dict)
         model = ODEModel(params)
 
         output = dict()
@@ -65,7 +65,7 @@ class ODEFixed(ParameterClass):
             "n2": self.n2,
         }
 
-        params = parameter_class(**temp_dict)
+        params = ODEParameters(**temp_dict)
         model = ODEModel(params)
 
         output = dict()

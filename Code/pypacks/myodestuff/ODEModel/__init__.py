@@ -3,15 +3,18 @@ import os
 from typing import ParamSpecArgs
 
 import numpy as np
+from contourpy import contour_generator
 from numpy import polynomial as npp
 
-from myodestuff.parameter_class import parameter_class
+# from matplotlib import pyplot as plt
+# from matplotlib import
+from myodestuff.parameter_class import ODEParameters
 
 
 class ODEModel:
     def __init__(
         self,
-        parameters: parameter_class
+        parameters: ODEParameters
         | tuple[int, float, float, float, float, float]
         | dict[str, float],
         t_range: tuple[int, int] | None = None,
@@ -20,9 +23,9 @@ class ODEModel:
     ):
         # if type(parameters) is dict():
         try:
-            parameters = parameter_class(**parameters)
+            parameters = ODEParameters(**parameters)
         except TypeError:
-            assert type(parameters) is parameter_class, "Incorrect format of parameters"
+            assert type(parameters) is ODEParameters, "Incorrect format of parameters"
 
         if initial_condition is None:
             initial_condition = np.array([0, 0, 0])
@@ -31,7 +34,8 @@ class ODEModel:
             "Initial conditions should be ndarray"
         )
 
-        self.p: parameter_class = parameters
+        self.p: ODEParameters = parameters
+        self.t_span: tuple[int, int] = t_range if t_range is not None else (0, 1)
 
         self.m: int = self.p.m
         self.ran: range = (
@@ -40,7 +44,7 @@ class ODEModel:
             else range(self.p.m)
         )
 
-        self.n_max = kwargs.get("n_max", np.max(self.p.n))
+        self.n_max = kwargs.pop("n_max", np.max(self.p.n))
 
         self.init_cond = (
             initial_condition
@@ -48,48 +52,95 @@ class ODEModel:
             else [self.n_max] + self.m * [0]
         )
 
-        self.t_span: tuple[int, int] = t_range if t_range is not None else (0, 1)
-        self.dt: np.float64 = kwargs.get("dt", 0.01)
-        self.t_array: np.ndarray = np.arange(*self.t_span, self.dt)
+        self.dt: np.float64 = kwargs.pop("dt", np.float64(0.01))
+        self.t_array: np.ndarray[tuple[int], np.dtype[np.float64]] = np.arange(
+            *self.t_span, self.dt
+        )
 
-    def _step_function(self, xs) -> np.ndarray:
-        assert type(self.p) is parameter_class, "Incorrect format of parameters"
-        step = np.zeros_like(xs)
+        self.var_count: int = len(self.init_cond)
+        self.step_count: int = len(self.t_array)
 
-        ct = sum(xs)
+    def _step(
+        self, xs: np.ndarray[tuple[int], np.dtype[np.float64]]
+    ) -> np.ndarray[tuple[int], np.dtype[np.float64]]:
+        return xs + self.dt * self._model(xs)
 
-        return step
+    def _eular_integrate(self, function) -> np.ndarray[tuple[int], np.dtype[np.float64]]:
+        self._model = function
 
-    def _integrate_base_model(self):
         assert type(self.ran) is range
-
-        assert type(self.init_cond) is np.ndarray
-        assert len(self.init_cond) == 3
-
-        # steps = np.zeros((self.m, len(self.t_array)))
-        steps = np.zeros((3, len(self.t_array)))
+        steps = np.empty((self.var_count, self.step_count), dtype=np.float64)
         steps[:, 0] = self.init_cond
 
-        for j, _ in enumerate(self.t_array):
-            steps[:, j] += steps[:, j - 1]
-            steps[:, j] += self.dt * self._normal_model(steps[:, j - 1])
+        for i in range(1, self.step_count):
+            steps[:, i] = self._step(steps[:, i - 1])
 
-        return self.t_array, steps
+        return steps
 
-    def _integrate_general_model(self):
-        assert type(self.ran) is range
+    def _general_level_set_func(
+        self, x, y
+    ) -> np.ndarray[tuple[int, int], np.dtype[np.float64]]:
+        first_term = (x + y) * (self.p._k1 * x + self.p._k2 * y)
+        second_term = self.p.k1 * x + self.p.k2 * y
+        third_term = self.p.m0 * (self.p.q1 / self.p.q2) * (x / y)
 
-        # steps = np.zeros((self.m, len(self.t_array)))
-        steps = np.zeros((self.m, len(self.t_array)))
-        steps[:, 0] = self.init_cond
+        return first_term - second_term - third_term
 
-        for j, _ in enumerate(self.t_array):
-            steps[:, j] += steps[:, j - 1]
-            steps[:, j] += self.dt * self._general_model(steps[:, j - 1])
+    # third_term = 0
 
-        return self.t_array, steps
+    def _find_level_set(
+        self,
+        grid_concentration: int,
+    ) -> np.ndarray[tuple[int, int], np.dtype[np.float64]]:
+        x_domain = np.linspace(
+            self.p.c1_min,
+            self.p.c1_max,
+            grid_concentration,
+            endpoint=False,
+        )
+        y_domain = np.linspace(
+            self.p.c2_min,
+            self.p.c2_max,
+            grid_concentration,
+            endpoint=False,
+        )
 
-    def _normal_roots(self) -> np.ndarray[tuple[int], np.dtype[np.float64]]:
+        x, y = np.meshgrid(x_domain, y_domain)
+        z = self._general_level_set_func(x, y)
+        contour_data = contour_generator(x, y, z)
+
+        nullcline = contour_data.lines(0)[0]
+
+        assert type(nullcline) is np.ndarray
+
+        return nullcline.T
+
+    def _find_c2_nullcline(
+        self,
+        c2: np.ndarray[tuple[int, int], np.dtype[np.float64]],
+    ) -> np.ndarray[tuple[int, int], np.dtype[np.float64]]:
+        c1 = -((self.p.o2 - self.p._k2 * c2) * c2) / (self.p.w1 - self.p._k2 * c2)
+
+        array = np.array([c1, c2])
+
+        solution = array[:, c1 < self.p.c1_max]
+
+        return solution
+
+    def _get_intersection(self, **kwargs):
+        dens = self.grid_resolution
+
+        cs = self._find_level_set(dens)
+        n1 = self._find_c2_nullcline(cs[1, :])
+
+        cs_int, n1_int = np.intersect1d(cs[1, :], n1[1, :], return_indices=True)[1:]
+        min_index = np.argmin(np.abs(cs[0, cs_int] - n1[0, n1_int]))
+
+        roots = cs[:, min_index]
+
+        return roots
+
+    def _simple_level_set_roots(self) -> np.ndarray[tuple[int], np.dtype[np.float64]]:
         # assert type(self.p) is parameter_class
         assert type(self.p.k) is np.ndarray
         assert type(self.p.n) is np.ndarray
@@ -207,7 +258,7 @@ class ODEModel:
     #
     #     return np.array([c1_root, c2_root])
 
-    def _normal_model(
+    def _simple_three_part_compartment_model(
         self, xs: np.ndarray[tuple[int], np.dtype[np.float64]]
     ) -> np.ndarray[tuple[int], np.dtype[np.float64]]:
         # assert (
@@ -222,27 +273,27 @@ class ODEModel:
 
         assert len(xs) == 3
 
-        step = np.empty_like(xs)
+        dxs = np.empty_like(xs)
 
         c1, c2, m = xs
         ct = sum(xs[0:2])
 
-        step[0] = (
+        dxs[0] = (
             (self.p.k[0] * (1 - ct / self.p.n[0])) * c1
             - self.p.w[0] * c1
             + self.p.w[1] * c2
             - self.p.q[0] * m * c1
         )
-        step[1] = (
+        dxs[1] = (
             (self.p.k[1] * (1 - ct / self.p.n[1])) * c2
             - self.p.w[1] * c2
             + self.p.w[0] * c1
         )
-        step[2] = -self.p.q[1] * m * c2 + self.p.m0
+        dxs[2] = -self.p.q[1] * m * c2 + self.p.m0
 
-        return step
+        return dxs
 
-    def _general_model(self, xs: np.ndarray):
+    def _generalized_compartment_model(self, xs: np.ndarray):
         assert type(self.p.k) is np.ndarray
         assert type(self.p.n) is np.ndarray
         assert type(self.p.q) is np.ndarray
@@ -262,9 +313,6 @@ class ODEModel:
     def system(self):
         pass
 
-    def _general_no_med(self):
-        pass
-
     def show_parameters(self):
         return self.p
 
@@ -272,27 +320,35 @@ class ODEModel:
         assert type(generalized) is bool
 
         if generalized:
-            return self._integrate_general_model()
+            return self.t_array, self._eular_integrate(
+                function=self._generalized_compartment_model
+            )
         else:
-            return self._integrate_base_model()
+            return self.t_array, self._eular_integrate(
+                function=self._simple_three_part_compartment_model
+            )
 
     def roots(
-        self, generalized: bool = False
+        self, generalized: bool = False, **kwargs
     ) -> np.ndarray[tuple[int], np.dtype[np.float64]]:
         assert type(generalized) is bool
+        self.grid_resolution = kwargs.pop("grid_density", 225)
 
         if generalized:
             return self._medless_equal_normal_roots()
         else:
-            if self.p.m0 == 0:
-                assert type(self.p.k) is np.ndarray
-                assert type(self.p.n) is np.ndarray
-                if self.p.k[0] == self.p.k[1] or self.p.n[0] == self.p.n[1]:
-                    return self._medless_equal_normal_roots()
-                else:
-                    return self._medless_equal_normal_roots()
-            else:
-                return self._normal_roots()
+            return self._get_intersection()
+            # if self.p.m0 == 0:
+            # else:
+            # return self._get_intersection()
+            # return self._simple_level_set_roots()
+
+            # assert type(self.p.k) is np.ndarray
+            # assert type(self.p.n) is np.ndarray
+            # if self.p.k[0] == self.p.k[1] or self.p.n[0] == self.p.n[1]:
+            #     return self._medless_equal_normal_roots()
+            # else:
+            #     return self._no_treat_level_set()
 
     def nullclines(self) -> np.ndarray[tuple[int, int], np.dtype[np.float64]]:
         return np.empty(shape=(2, 2))
