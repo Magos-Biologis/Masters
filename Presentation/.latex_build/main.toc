@@ -1,5 +1,11 @@
 \beamer@sectionintoc {1}{Introduction}{2}{0}{1}
-\beamer@sectionintoc {2}{Motivation}{3}{0}{2}
-\beamer@sectionintoc {3}{Plan, kinda}{6}{0}{3}
-\beamer@sectionintoc {4}{The Ordinary Differential System}{10}{0}{4}
-\beamer@sectionintoc {5}{End}{15}{0}{5}
+\beamer@sectionintoc {2}{Motivation}{8}{0}{2}
+\beamer@subsectionintoc {2}{1}{Heteroresistence}{8}{0}{2}
+\beamer@subsectionintoc {2}{2}{Copy Numbers}{12}{0}{2}
+\beamer@sectionintoc {3}{What do we know}{14}{0}{3}
+\beamer@sectionintoc {4}{Stochasticity}{18}{0}{4}
+\beamer@subsectionintoc {4}{1}{The Ordinary Differential System}{22}{0}{4}
+\beamer@subsectionintoc {4}{2}{My Proposed Model}{29}{0}{4}
+\beamer@sectionintoc {5}{Discussion}{32}{0}{5}
+\beamer@sectionintoc {6}{End}{33}{0}{6}
+\beamer@sectionintoc {7}{Bibliography}{34}{0}{7}

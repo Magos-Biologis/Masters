@@ -26,9 +26,7 @@ class GillespieFixed(ParameterClass):
         return output
 
 
-class ODEFixed(ParameterClass):
-    from myodestuff import ODEModel, ODEParameters
-
+class ODEFixed(ODEParameters):
     def ode_5_2(self) -> dict[str, np.dtype[np.float64]]:
         temp_dict = {
             "m0": self.m0,
@@ -49,6 +47,7 @@ class ODEFixed(ParameterClass):
         sols = model.roots()
         output["x"] = sols[0]
         output["y"] = sols[1]
+        output["z"] = sols[2]
 
         return output
 
@@ -70,7 +69,11 @@ class ODEFixed(ParameterClass):
 
         output = dict()
         sols = model.roots()
+
+        print(sols)
+
         output["x"] = sols[0]
         output["y"] = sols[1]
+        output["z"] = sols[2]
 
         return output

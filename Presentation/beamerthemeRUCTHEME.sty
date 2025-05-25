@@ -8,7 +8,7 @@
 %% classesOfRUC.dtx  (with options: `end')
 %% ----------------------------------------------------------------
 %% classesOfRUC ---
-%% 
+%%
 %% E-mail: anakin@ruc.dk
 %% Released under the LaTeX Project Public License v1.3c or later
 %% See http://www.latex-proj.org/lppl.txt
@@ -19,24 +19,24 @@
 
 % -------- COLOR SCHEME --------
 % primary color, Dark Gray
-\definecolor{PrimaryColor}{RGB}{47,45,82} 
+\definecolor{PrimaryColor}{RGB}{47,45,82}
 % secondary lists, light Gray
-\definecolor{SecondaryColor}{RGB}{234,241,249} 
+\definecolor{SecondaryColor}{RGB}{234,241,249}
 % background & titles, Dark Gray
 \definecolor{BackgroundColor}{RGB}{192,192,202}
 
 % text, White
-\definecolor{TextColor}{RGB}{47,45,82} 
+\definecolor{TextColor}{RGB}{47,45,82}
 % progress bar background, Gray
-\definecolor{ProgBarBGColor}{RGB}{175,175,175} 
+\definecolor{ProgBarBGColor}{RGB}{175,175,175}
 
 
 % Block color
-\definecolor{BlockColor}{RGB}{133,189,118} 
+\definecolor{BlockColor}{RGB}{133,189,118}
 % Alert color
-\definecolor{AlertedColor}{RGB}{242,88,26} 
+\definecolor{AlertedColor}{RGB}{242,88,26}
 % Example color
-\definecolor{ExampleColor}{RGB}{142,36,170} 
+\definecolor{ExampleColor}{RGB}{142,36,170}
 
 
 
@@ -53,14 +53,15 @@
 \mode<all>
 
 
-% set colours
+% set colors
+% \setbeamercolor{footnote text}{fg=TextColor}
 \setbeamercolor{normal text}{fg=TextColor}
 \usebeamercolor*{normal text}
-\setbeamercolor{alerted text}{fg=PrimaryColor}
-\setbeamercolor{section in toc}{fg=PrimaryColor}
-\setbeamercolor{structure}{fg=SecondaryColor}
+\setbeamercolor{section in toc}{fg=TextColor}
+\setbeamercolor{alerted text}{fg=TextColor}
+\setbeamercolor{structure}{fg=TextColor}
 
-\hypersetup{colorlinks,linkcolor=,urlcolor=SecondaryColor}
+\hypersetup{colorlinks,linkcolor=PrimaryColor,urlcolor=SecondaryColor}
 
 % set fonts
 \setbeamerfont{itemize/enumerate body}{size=\large}
@@ -106,17 +107,15 @@
 %\setbeamertemplate{caption label separator}{}
 
 % add some space below the footnotes so they don't end up on the progress bar
-\setbeamertemplate{footnote}{ 
-    \parindent 0em
-    \noindent 
-    \raggedright 
-    \hbox to 0.8em{\hfil\insertfootnotemark}
-    \insertfootnotetext
-    \par
-    \vspace{2em}
+\setbeamerfont{footnote}{size=\scriptsize}
+\setbeamertemplate{footnote}{%
+    \parindent 0em\relax%
+    \noindent\raggedright%
+    \hbox to 0.8em{\hfil\insertfootnotemark}%
+    \insertfootnotetext\par\vspace{2em}%
 }
 
-% add the same vspace both before and after quotes 
+% add the same vspace both before and after quotes
 \setbeamertemplate{quote begin}{\vspace{0.5em}}
 \setbeamertemplate{quote end}{\vspace{0.5em}}
 
@@ -178,7 +177,7 @@
             \fill[color=PrimaryColor] (0,\slideheight-1cm) rectangle (\slidewidth,\slideheight);
 
             % slide title
-            \node[anchor=north west, text width=\slidewidth-0.75cm, inner xsep=0.5cm, inner ysep=0.25cm] 
+            \node[anchor=north west, text width=\slidewidth-0.75cm, inner xsep=0.5cm, inner ysep=0.25cm]
                 at (0, \slideheight) {\color{SecondaryColor}\LARGE\textbf{\insertframetitle}};
 
             % logo (TODO: autoscale; now it expects 350x350
@@ -238,20 +237,20 @@
 %% House Keeping
 %% ----------------------------------------------------------------
 %% File: classesOfRUC.dtx
-%% 
+%%
 %% Copyright (C) 2024 by Anakin anakin@ruc.dk
 %% -----------------------------------------------------------
-%% 
+%%
 %% This work may be distributed and/or modified under the
 %% conditions of the LaTeX Project Public License (LPPL), either
 %% version 1.3c of this license or (at your option) any later
 %% version. The latest version of this license is in the file:
-%% 
+%%
 %%     http://www.latex-proj.org/lppl.txt
-%% 
+%%
 %% This work is "maintained" (as per LPPL maintenance status) by
 %% Anakin.
-%% 
+%%
 %% This work consists of the file  classesOfRUC.dtx
 %% and the derived files           classesOfRUC.ins,
 %%                                 classesOfRUC.pdf,
@@ -260,6 +259,6 @@
 %%                                 RUCDSA.cls,
 %%                                 RUCProject.cls, and
 %%                                 RUCPresentation.cls
-%% 
+%%
 %%
 %% End of file `beamerthememyTheme.sty'.

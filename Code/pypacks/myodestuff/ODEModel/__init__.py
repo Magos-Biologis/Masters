@@ -5,6 +5,7 @@ from typing import ParamSpecArgs
 import numpy as np
 from contourpy import contour_generator
 from matplotlib import pyplot as plt
+from numpy import intersect1d
 from numpy import polynomial as npp
 
 from myodestuff.parameter_class import ODEParameters
@@ -81,30 +82,14 @@ class ODEModel:
     ) -> np.ndarray[tuple[int, int], np.dtype[np.float64]]:
         first_term = self.p.k1 * x + self.p.k2 * y
         second_term = (x + y) * (self.p._k1 * x + self.p._k2 * y)
-        third_term = self.p.m0 * (self.p.q1 / self.p.q2) * x * y**-1
+        third_term = self.p.m0 * (self.p.q1 / self.p.q2) * (x / y)
 
         return first_term - second_term - third_term
 
     # third_term = 0
 
-    def _find_level_set(
-        self,
-        grid_concentration: int,
-    ) -> np.ndarray[tuple[int, int], np.dtype[np.float64]]:
-        x_domain = np.linspace(
-            self.p.c1_min + self.tolerance,
-            self.p.c1_max,
-            grid_concentration,
-            endpoint=False,
-        )
-        y_domain = np.linspace(
-            self.p.c2_min + self.tolerance,
-            self.p.c2_max,
-            grid_concentration,
-            endpoint=False,
-        )
-
-        x, y = np.meshgrid(x_domain, y_domain)
+    def _find_level_set(self) -> np.ndarray[tuple[int, int], np.dtype[np.float64]]:
+        x, y = self.mesh_manifold
         z = self._general_level_set_func(x, y)
 
         # plt.contour(x, y, z, [0])
@@ -115,15 +100,20 @@ class ODEModel:
         assert type(nullcline) is np.ndarray
         return nullcline.T
 
-    def _find_c1_nullcline(
-        self,
-        c1: np.ndarray[tuple[int, int], np.dtype[np.float64]],
-    ) -> np.ndarray[tuple[int, int], np.dtype[np.float64]]:
-        c2 = -((self.p.o1 - self.p._k1 * c1) * c1) / (self.p.w2 - self.p._k1 * c1)
+    def _find_c1_nullcline(self) -> np.ndarray[tuple[int, int], np.dtype[np.float64]]:
+        x, y = self.mesh_manifold
+        first_term = (self.p.q1 * x * self.p.m0) / (
+            (self.p.w2 - self.p._k1 * x) * (self.p.q2 * y)
+        )
+        second_term = -((self.p.o1 - self.p._k1 * x) * x) / (self.p.w2 - self.p._k1 * x)
 
-        solution = np.array([c1, c2])
+        z = first_term + second_term
 
-        return solution
+        contour_data = contour_generator(x, y, z)
+        nullcline = contour_data.lines(0)[0]
+
+        assert type(nullcline) is np.ndarray
+        return nullcline.T
 
     def _find_c2_nullcline(
         self,
@@ -131,36 +121,35 @@ class ODEModel:
     ) -> np.ndarray[tuple[int, int], np.dtype[np.float64]]:
         c1 = -((self.p.o2 - self.p._k2 * c2) * c2) / (self.p.w1 - self.p._k2 * c2)
 
-        solution = np.array([c1, c2])
+        # contour_data = contour_generator(x, y, z)
+        # nullcline = contour_data.lines(0)[0]
 
-        return solution
+        solution = np.array([c1, c2])
+        less_than = solution[:, c1 < self.p.c1_max]
+        greater_than = solution[:, c1 > self.p.c1_min]
+        less_idx = np.where(np.intersect1d(c2, less_than[1, :]))[0]
+        greater_idx = np.where(np.intersect1d(c2, greater_than[1, :]))[0]
+
+        intersects = np.intersect1d(less_idx, greater_idx)
+
+        # assert type(nullcline) is np.ndarray
+        return solution[:, intersects]
 
     def _get_intersection(self, **kwargs) -> np.ndarray[tuple[int], np.dtype[np.float64]]:
-        dens = self.grid_resolution
-        self.tolerance = 2 ** (-4)
+        self.tolerance = 2 ** (-6)
 
-        cs = self._find_level_set(dens)
-        # n1 = self._find_c1_nullcline(cs[0, :])
+        cs = self._find_level_set()
         n2 = self._find_c2_nullcline(cs[1, :])
 
-        cs_int, n2_int = np.intersect1d(cs[1, :], n2[1, :], return_indices=True)[1:]
-        min_index = np.argmin(np.abs(cs[0, cs_int] - n2[0, n2_int]))
+        cs_idx, n2_idx = np.intersect1d(cs[1, :], n2[1, :], return_indices=True)[1:]
 
-        intersect = cs[:, min_index]
+        narrowed_cs = cs[:, cs_idx]
+        narrowed_n2 = n2[:, n2_idx]
 
-        # # intersect_idx = np.argwhere(np.diff(np.sign(cs - n2))).flatten()
-        # plt.plot(*cs, color="r", label="level set")
-        # # plt.plot(*n1, color="b", label="c1 nullcline")
-        # plt.plot(*n2, color="g", label="c2 nullcline")
-        # # plt.plot(cs[:, intersect_idx], color="k", label="overhere?")
-        # plt.hlines([intersect[1]], 0, 100, color="r", alpha=0.2)
-        # plt.vlines([intersect[0]], 0, 100, color="b", alpha=0.2)
-        # plt.xlim(0, 100)
-        # plt.ylim(0, 100)
-        # plt.show()
-        # exit()
+        diff = narrowed_cs[0, :] - narrowed_n2[0, :]
+        intersect_idx = np.where(np.diff(np.sign(diff)))[0]
 
-        return intersect
+        return cs[:, intersect_idx]
 
     def _medless_equal_normal_roots(self) -> np.ndarray[tuple[int], np.dtype[np.float64]]:
         # assert type(self.p) is parameter_class
@@ -278,17 +267,54 @@ class ODEModel:
         self, generalized: bool = False, **kwargs
     ) -> np.ndarray[tuple[int], np.dtype[np.float64]]:
         assert type(generalized) is bool
-        self.grid_resolution = kwargs.pop("grid_density", 225)
+
         old_method = kwargs.pop("use_old", False)
+        self.grid_resolution = kwargs.pop("grid_density", 225)
+
+        x_domain = np.linspace(
+            self.p.c1_min,
+            self.p.c1_max,
+            self.grid_resolution,
+            endpoint=False,
+        )[1:]
+        y_domain = np.linspace(
+            self.p.c2_min,
+            self.p.c2_max,
+            self.grid_resolution,
+            endpoint=False,
+        )[1:]
+
+        self.mesh_manifold = np.meshgrid(x_domain, y_domain)
 
         if old_method:
+            cs = self._find_level_set()
+            n2 = self._find_c2_nullcline(cs[1, :])
+
+            cs_idx, n2_idx = np.intersect1d(cs[1, :], n2[1, :], return_indices=True)[1:]
+
+            narrowed_cs = cs[:, cs_idx]
+            narrowed_n2 = n2[:, n2_idx]
+
+            intersect = self._medless_equal_normal_roots()
+
+            plt.plot(*narrowed_cs, color="g", label="level set")
+            # plt.plot(n1_x, n1_y, color="b", label="c1 nullcline")
+            plt.plot(*narrowed_n2, color="r", label="c2 nullcline")
+            plt.vlines([intersect[0]], 0, 100, color="b", alpha=0.2)
+            plt.hlines([intersect[1]], 0, 100, color="r", alpha=0.2)
+            plt.xlim(0, 100)
+            plt.ylim(0, 100)
+            plt.show()
+            exit()
             return self._medless_equal_normal_roots()
 
         if generalized:
             return self._medless_equal_normal_roots()
         else:
+            if self.p.m0 == 0 and (self.p.k1 == self.p.k2 or self.p.n1 == self.p.k2):
+                return np.append(self._medless_equal_normal_roots(), 0)
             c_roots = self._get_intersection()
-            m_star = self.p.m0 * (self.p.q1 / self.p.q2) * (c_roots[0] / c_roots[1])
+            m_star = self.p.m0 * (self.p.q1 * c_roots[0]) / (c_roots[1] * self.p.q2)
             return np.append(c_roots, m_star)
 
     def nullclines(self) -> np.ndarray[tuple[int, int], np.dtype[np.float64]]:

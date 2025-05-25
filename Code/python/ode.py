@@ -1,238 +1,159 @@
 # !./.venv/bin/python
+import argparse
 import os
+import re
 
 import numpy as np
-from matplotlib import pyplot as plt
-from matplotlib.ticker import FuncFormatter
 
 # import sympy as sy
 # import myodestuff
 from myodestuff import ODEModel, ODEParameters
 
-print("")
+data_env = str(os.getenv("THESIS_DATA_PATH"))
+
+parameter_default = {
+    "k1": 1,
+    "k2": 1,
+    "n1": 100,
+    "n2": 90,
+    "w1": 0.015,
+    "w2": 0.015,
+    "q1": 0.85,
+    "q2": 0.85,
+    "m0": 0,
+}
+
+parser = argparse.ArgumentParser(
+    prog="Gillespie Stepper",
+    description="A python3 script that runs the gillespie SSA algorithm for various models I've made",
+)
 
 
-# figure_env = str(os.getenv("THESIS_FIGURE_PATH"))
-# figure_path = os.path.join(figure_env, "ode")
+def parse_parameters(string):
+    matches: list[tuple] = re.findall(r"(\w[^=]*)=\s?([^, ]*)", string)
+    parameters = [
+        (
+            str(key).replace("-", "_").replace(" ", "").replace("'", "p"),
+            float(value),
+        )
+        for key, value in matches
+    ]
+    return dict(parameters)
 
-figure_path = str(os.getenv("ODE_FIGURE_ENV"))
 
-file_name = "ode_solution"
+parser.add_argument(
+    "-p",
+    "--parameters",
+    dest="parameters",
+    help="Takes a string of equalities, and creates a dict from it",
+    type=parse_parameters,
+    default=parameter_default,
+)
+
+parser.add_argument(
+    "-ic",
+    "--initial_conds",
+    nargs="*",
+    dest="initial_conds",
+    help="Initial Conditions",
+    type=float,
+)
+
+args = parser.parse_args()
+
+
+file_name: str = "ode"
+
+model: str = "jesper"
+# figure_path = "./figs"
+
+
+three_d = False
 
 ### Variables
 # Growth Constant, same because same cell
-n = np.zeros(2, dtype=np.float64)
-k = np.zeros(2, dtype=np.float64)
-w = np.zeros(2, dtype=np.float64)
-q = np.zeros(2, dtype=np.float64)
+k = np.zeros(2)
+n = np.zeros(2)
+w = np.zeros(2)
+q = np.zeros(2)
 
-k[0] = 0.2
-k[1] = 0.4
+if parameter_default != args.parameters:
+    parameter_default.update(args.parameters)
+
+
+m_0 = parameter_default["m0"]
+
+k[0] = parameter_default["k1"]
+k[1] = parameter_default["k2"]
 
 # Population cap (purely aesthetic if n₁ = n₂)
-n[0] = 100
-n[1] = 70
-
-w[0] = 0.15
-w[1] = 0.015
-
-# w[1] = 0.14
-# n[0] = 55
-# n[1] = 85
-
-# q[0] = 0.999
-# q[1] = 0.8
-
-q[0] = 1
-q[1] = 1
-m_0 = 2.0
+n[0] = parameter_default["n1"]
+n[1] = parameter_default["n2"]
 
 
-alpha = 0
-c1_0 = n[0] - alpha
-c2_0 = alpha
+w[0] = parameter_default["w1"]
+w[1] = parameter_default["w2"]
 
 
-parameter_dict = {
-    "m0": m_0,
-    "k1": k[0],
-    "k2": k[1],
-    "n1": n[0],
-    "n2": n[1],
-    "w1": w[0],
-    "w2": w[1],
-    "q1": q[0],
-    "q2": q[1],
-}
+q[0] = parameter_default["q1"]
+q[1] = qm = parameter_default["q2"]
 
 
-filename_addendum = (
-    "_m0"
-    + f"{m_0}"
-    + "_k1"
-    + f"{k[0]}"
-    + "_k2"
-    + f"{k[1]}"
-    + "_n1"
-    + f"{n[0]}"
-    + "_n2"
-    + f"{n[1]}"
-    + "_w1"
-    + f"{w[0]}"
-    + "_w2"
-    + f"{w[1]}"
-)
-
-file_name += filename_addendum
+# "num={}".format(0),
+filename_addendum = [
+    "m0={}".format(m_0),
+    "k1={}".format(k[0]),
+    "k2={}".format(k[1]),
+    "n1={}".format(n[0]),
+    "n2={}".format(n[1]),
+    "w1={}".format(w[0]),
+    "w2={}".format(w[1]),
+    "q1={}".format(q[0]),
+    "q2={}".format(q[1]),
+]
 
 
 dt = 0.01
-# t_end = 25
-# t_end = 50
-t_end = 150
-t_array = np.arange(0, t_end, dt)
-# sol1 = np.zeros((len(t_array), 3))
-
-init_conds1 = np.array([c1_0, c2_0, m_0])
-# print(len(init_conds1))
-# exit()
-#
-parameters = ODEParameters(**parameter_dict)
-model = ODEModel(parameters, (0, t_end), init_conds1)
+t_end = parameter_default.pop("t_end", 100)
+# t_array = np.arange(0, t_end, dt)
 
 
-# print()
-
-# line1, line2 = model.roots()
-#
-# plt.scatter(line1[0, :], line1[1, :], label="level set")
-# plt.scatter(line2[0, :], line2[1, :], label="nullcline")
-#
-# plt.legend()
-# # plt.plot(line2[0, :], line2[1, :])
-# # plt.plot(*line2)
-#
-#
-# plt.show()
+if args.initial_conds is None:
+    initial = np.array([n[0], 0, 0], dtype=float)
+else:
+    initial = np.array([*args.initial_conds, 0, 0], dtype=float)[:3]
 
 
-# exit()
+parameters = ODEParameters(**parameter_default)
+ode_model = ODEModel(parameters=parameters, t_range=(0, t_end), initial_condition=initial)
+
 
 ### Integration
+t_array, sol = ode_model.integrate()
 
+# roots = ode_model.roots(use_old=True)
 
-# parameters1 = parameter_class(*parameters)
-
-t_array, sol1 = model.integrate()
-solutions = model.roots()
-
-# print(solutions)
 # exit()
+import time
 
-cq = sum(n) / len(n)
+t = time.time()
 
+file_name += "M" + model
+file_name += "P"
+for entry in filename_addendum:
+    file_name += entry + "_"
+file_name += "S"
+file_name += "IC"
+file_name += "T" + "{}".format(t).replace(".", "")
 
-color_list = ["b", "r", "g"]
-name_list = [
-    "Non-resistant Type",
-    "Resistant Type",
-    "Antibiotic",
-]
+full_file_path = os.path.join(data_env, file_name)
 
-dt_name_list = [
-    r"$c_1$ fixed point at $c_1^*$",  # {c1_fixed}",
-    r"$c_2$ fixed point at $c_2^*$",  # {c2_fixed}",
-    r"$m$ fixed point at $m^*$",  # {c2_fixed}",
-    # f"$m$ fixed point at {m_fixed}",
-]
-
-
-## Plotting
-
-fig, ax = plt.subplots()
-
-plt.rcParams.update(
-    {
-        "axes.labelsize": 20,
-        "axes.titleweight": "bold",
-        # "axes.titlecolor": "white",
-        "xtick.labelsize": 15,
-        "ytick.labelsize": 15,
-        # "xtick.labelcolor": "white",
-        # "ytick.labelcolor": "white",
-        # "savefig.facecolor": "#c0c0ca",
-    }
+np.savez(
+    full_file_path,
+    time=t_array,
+    solutions=sol,
 )
 
+print("data saved at {}".format(file_name + ".npz"))
 
-plt.style.use("bmh")
-# ax.set_facecolor("#c0c0ca")
-
-
-for i, curve in enumerate(sol1):
-    # break
-    # if i == 2:
-    #     break
-    color = color_list[i]
-    curve_name = name_list[i]
-    # dt_curve_name = dt_name_list[i]
-    # zero_line = dt_zeroes[i]
-    zero_line = solutions[i]
-
-    ax.hlines(
-        zero_line,
-        0,
-        t_end,
-        # label=dt_curve_name,
-        color=color,
-        linestyle="dashed",
-        linewidth=1,
-        alpha=0.2,
-    )
-
-    ax.plot(t_array, curve, label=curve_name, color=color)
-
-
-# ax.plot(solutions[0], solutions[1], label="hi")
-
-# total = sol1.T[0] + sol1.T[1]
-# percent_total = np.divide(sol1.T[0], n[0]) + np.divide(sol1.T[1], n[1])
-
-fixed_point_tick_labels = [
-    "\t" + r"$c_1^*$",
-    r"$c_2^*$",
-]
-
-ax.set_ylim(0, n.max())
-ax.set_xlim(0, t_end)
-
-new_y_ticks = np.append(ax.get_yticks(), solutions)
-# new_y_ticks = np.append([0, 25, 50, 75, 100], solutions)
-ax.set_yticks(new_y_ticks)
-
-
-def fixed_point_format(val, pos):
-    if val == solutions[0]:
-        return fixed_point_tick_labels[0]
-    elif val == solutions[1]:
-        return fixed_point_tick_labels[1]
-    else:
-        return int(np.round(val, 3))
-
-
-ax.yaxis.set_major_formatter(FuncFormatter(fixed_point_format))
-
-ax.yaxis.tick_right()
-ax.yaxis.set_label_position("right")
-
-ax.set_xlabel("Time")
-ax.set_ylabel("Count")
-
-ax.legend(loc="upper right")
-plt.tight_layout()
-
-file_path = os.path.join(figure_path, file_name)
-# plt.savefig(file_path + ".pdf")
-
-# print(sol1[-1])
-plt.show()
+exit()

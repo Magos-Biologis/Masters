@@ -8,7 +8,7 @@
 %% classesOfRUC.dtx  (with options: `end')
 %% ----------------------------------------------------------------
 %% classesOfRUC ---
-%% 
+%%
 %% E-mail: anakin@ruc.dk
 %% Released under the LaTeX Project Public License v1.3c or later
 %% See http://www.latex-proj.org/lppl.txt
@@ -48,6 +48,7 @@
     \PassOptionsToPackage{\CurrentOption}{geometry}
 }
 \DeclareOption{aspectratio=169}{\PassOptionsToClass{\CurrentOption}{beamer}}
+\DeclareOption{notheorems}{\PassOptionsToClass{\CurrentOption}{beamer}}
 \newif\if@neverindent\@neverindentfalse
 \DeclareOption{noindent}{\@neverindenttrue}
 \DeclareOption{sOuRcEs}{\tagSource@true}
@@ -169,10 +170,10 @@
         xindy, %
         style   = index, %
     }{glossaries}
-    \AtEndOfClass{
-        \glsdisablehyper
-        \setacronymstyle{long-sc-short}
-    }
+    % \AtEndOfClass{
+    %     \glsdisablehyper
+    %     \setacronymstyle{long-sc-short}
+    % }
 \fi
 %% ----------------------------------------------------------------
 %% Powerful Tools
@@ -221,20 +222,20 @@
 \author{Anakin}
 \endinput
 %% File: classesOfRUC.dtx
-%% 
+%%
 %% Copyright (C) 2024 by Anakin anakin@ruc.dk
 %% -----------------------------------------------------------
-%% 
+%%
 %% This work may be distributed and/or modified under the
 %% conditions of the LaTeX Project Public License (LPPL), either
 %% version 1.3c of this license or (at your option) any later
 %% version. The latest version of this license is in the file:
-%% 
+%%
 %%     http://www.latex-proj.org/lppl.txt
-%% 
+%%
 %% This work is "maintained" (as per LPPL maintenance status) by
 %% Anakin.
-%% 
+%%
 %% This work consists of the file  classesOfRUC.dtx
 %% and the derived files           classesOfRUC.ins,
 %%                                 classesOfRUC.pdf,
@@ -246,6 +247,6 @@
 %%                                 RUCBIOINF.cls,
 %%                                 RUCProject.cls, and
 %%                                 RUCPresentation.cls
-%% 
+%%
 %%
 %% End of file `RUCPresentation.cls'.

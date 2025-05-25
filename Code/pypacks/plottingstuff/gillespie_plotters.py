@@ -2,10 +2,15 @@ import numpy as np
 from matplotlib import axes as axe
 
 from .fixedpoints import GillespieFixed, ODEFixed
-from .plotting_class import plotting_class
+from .plotting_class import PlottingData
 
 
-class gillespiePlotters(plotting_class):
+class gillespiePlotters(PlottingData):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        self.throw_in_lists()
+
     def _plot_step(
         self,
         ax: axe.Axes,
@@ -165,21 +170,19 @@ class gillespiePlotters(plotting_class):
 
         if model in ["5_2", "5_3"]:
             if model == "5_2":
-                fixed: np.float64 = parameters.Novel_5_2()[var]
+                fixed: dict[str, float] = parameters.Novel_5_2()
             elif model == "5_3":
-                fixed: np.float64 = parameters.Novel_5_3()[var]
-            else:
-                fixed: np.float64 = np.float64(0)
+                fixed: dict[str, float] = parameters.Novel_5_3()
         else:
-            if model == "ode_5_2":
-                fixed: np.float64 = parameters.ode_5_2()[var]
-            if model == "ode_5_3":
-                fixed: np.float64 = parameters.ode_5_3()[var]
-            else:
-                fixed: np.float64 = np.float64(0)
+            if model == "ode_3_2" or model == "ode_3_3":
+                fixed: dict[str, float] = parameters.ode_3_2()
+            elif model == "ode_5_2" or model == "ode_5_3":
+                fixed: dict[str, float] = parameters.ode_5_2()
 
+        # print("hey")
+        # print(fixed[var])
         self.lineargs.update(kwargs)
-        ax.hlines([fixed], 0, xmax, **self.lineargs)
+        ax.hlines([fixed[var]], 0, xmax, **self.lineargs)
 
     def _plot_vline(
         self,
@@ -187,26 +190,22 @@ class gillespiePlotters(plotting_class):
         model: str,
         var: str,
         ymax: float,
-        parameters: GillespieFixed,
+        parameters: GillespieFixed | ODEFixed,
         **kwargs,
     ):
         if model in ["5_2", "5_3"]:
             if model == "5_2":
-                fixed: np.float64 = parameters.Novel_5_2()[var]
+                fixed: dict[str, float] = parameters.Novel_5_2()
             elif model == "5_3":
-                fixed: np.float64 = parameters.Novel_5_3()[var]
-            else:
-                fixed: np.float64 = np.float64(0)
+                fixed: dict[str, float] = parameters.Novel_5_3()
         else:
-            if model == "ode_5_2":
-                fixed: np.float64 = parameters.ode_5_2()[var]
-            if model == "ode_5_3":
-                fixed: np.float64 = parameters.ode_5_3()[var]
-            else:
-                fixed: np.float64 = np.float64(0)
+            if model == "ode_3_2" or model == "ode_3_3":
+                fixed: dict[str, float] = parameters.ode_3_2()
+            elif model == "ode_5_2" or model == "ode_5_3":
+                fixed: dict[str, float] = parameters.ode_5_2()
 
         self.lineargs.update(kwargs)
-        ax.vlines([fixed], 0, ymax, **self.lineargs)
+        ax.vlines([fixed[var]], 0, ymax, **self.lineargs)
 
     def plot_hist_fixed(
         self,
@@ -214,7 +213,7 @@ class gillespiePlotters(plotting_class):
         model: str,
         var: str,
         ymax: float,
-        parameters: dict | GillespieFixed,
+        parameters: dict | GillespieFixed | ODEFixed,
         **kwargs,
     ):
         if model in ["5_2", "5_3"]:
@@ -235,7 +234,7 @@ class gillespiePlotters(plotting_class):
         model: str,
         var: str,
         xmax: float,
-        parameters: dict | GillespieFixed,
+        parameters: dict | GillespieFixed | ODEFixed,
         **kwargs,
     ):
         if model in ["5_2", "5_3"]:

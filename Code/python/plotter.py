@@ -13,6 +13,7 @@ from pylab import *
 fig_env = str(os.getenv("THESIS_FIGURE_PATH"))
 fpe_env = str(os.getenv("FPE_FIGURE_ENV"))
 phs_env = str(os.getenv("PHS_FIGURE_ENV"))
+ode_env = str(os.getenv("ODE_FIGURE_ENV"))
 
 data_env = str(os.getenv("THESIS_DATA_PATH"))
 
@@ -229,7 +230,8 @@ is_ode = False
 check_ode = re.compile(r"ode").search(model)
 if check_ode is not None:
     is_ode = True
-if data_source == "phase":
+
+if data_source == "phase" or data_source == "ode":
     is_ode = True
 
 
@@ -349,7 +351,7 @@ if args.opts:
         print("{}".format(args.model))
         print(sourced_frame[["initcond", "count", "steps", "ratio", "t"]])
         exit()
-    elif data_source == "phase":
+    elif is_ode:
         print("{}".format(args.model))
         print(sourced_frame[["metadata"]])
         exit()
@@ -410,7 +412,11 @@ else:
 
 # Format rapidfire
 file_name += "I{}:".format(m_index)
-file_name += "C{}:".format(c_data)
+if args.plot_fixedpoints:
+    file_name += "C{}".format(c_data)
+    file_name += "{}:".format("fp")
+else:
+    file_name += "C{}:".format(c_data)
 file_name += "T{}".format(epoch)
 
 #######################
@@ -435,7 +441,7 @@ plt.rcParams.update(
         # "axes.titlecolor": "white",
         # "xtick.labelcolor": "white",
         # "ytick.labelcolor": "white",
-        # "savefig.facecolor": "#c0c0ca",
+        "savefig.facecolor": "#c0c0ca",
     }
 )
 
@@ -448,10 +454,10 @@ font_kwargs: dict = {
     "fontsize": 12,
 }
 line_kwargs: dict = {
-    "linewidth": 3,
-    "alpha": 0.2,
+    "linewidth": 1,
+    "alpha": 0.5,
     "linestyle": "-.",
-    "zorder": 2,
+    "zorder": 5,
 }
 hist_kwargs: dict = {
     "bins": boxes,
@@ -478,18 +484,27 @@ stream_kwargs: dict = {
 if is_ode:
     plot_kwargs.update(x_name=r"$c_1$")
     plot_kwargs.update(y_name=r"$c_2$")
+    plot_kwargs.update(z_name=r"$b$")
+    plot_kwargs.update(w_name=r"$m$")
 else:
     plot_kwargs.update(x_name=r"$x$")
     plot_kwargs.update(y_name=r"$y$")
+    plot_kwargs.update(z_name=r"$n$")
+    plot_kwargs.update(w_name=r"$b$")
 
 
 if is_ode:
-    if model == "ode_8_3":
-        plot_kwargs.update(z_name=r"$b$")
+    if data_source == "ode":
+        plot_kwargs.update(z_name=r"$m$")
+        plot_kwargs.update(w_name=r"$m$")
     else:
-        plot_kwargs.update(z_name=r"$n$")
+        if model == "ode_8_3":
+            plot_kwargs.update(z_name=r"$b$")
+        else:
+            plot_kwargs.update(z_name=r"$n$")
 else:
     plot_kwargs.update(z_name=r"$n$")
+    plot_kwargs.update(w_name=r"$b$")
 
 
 ##########################
@@ -508,6 +523,7 @@ legend_font_size = font_kwargs.pop("legend_fontsize", 11)
 x_name = plot_kwargs.pop("x_name")
 y_name = plot_kwargs.pop("y_name")
 z_name = plot_kwargs.pop("z_name")
+w_name = plot_kwargs.pop("w_name")
 
 x_color = plot_kwargs.pop("x_color", "r")
 y_color = plot_kwargs.pop("y_color", "b")
@@ -515,7 +531,7 @@ z_color = plot_kwargs.pop("z_color", "g")
 # w_color = plot_kwargs.pop("w_color", "k")
 
 
-names = [x_name, y_name, z_name]
+names = [x_name, y_name, z_name, w_name]
 colors = [x_color, y_color, z_color]
 
 #############################################################################
@@ -526,28 +542,22 @@ colors = [x_color, y_color, z_color]
 #                                                                           #
 #############################################################################
 
-gillespies = ps.gillespiePlotters(
-    curv_kwargs=curv_kwargs,
-    font_kwargs=font_kwargs,
-    hist_kwargs=hist_kwargs,
-    line_kwargs=line_kwargs,
-    walk_kwargs=walk_kwargs,
-    x_name=x_name,
-    y_name=y_name,
-    n_name=z_name,
-)
+plot_class_dict = {
+    "curvargs": curv_kwargs,
+    "fontargs": font_kwargs,
+    "histargs": hist_kwargs,
+    "lineargs": line_kwargs,
+    "walkargs": walk_kwargs,
+    "x_name": x_name,
+    "y_name": y_name,
+    "n_name": z_name,
+    "b_name": w_name,
+}
 
-phaseies = ps.odePlotters(
-    stream_kwargs=stream_kwargs,
-    curv_kwargs=curv_kwargs,
-    font_kwargs=font_kwargs,
-    hist_kwargs=hist_kwargs,
-    line_kwargs=line_kwargs,
-    walk_kwargs=walk_kwargs,
-    x_name=x_name,
-    y_name=y_name,
-)
+gillespies = ps.gillespiePlotters(**plot_class_dict)
+odeies = ps.odePlotters(stream_kwargs=stream_kwargs, **plot_class_dict)
 
+#############################################################################
 
 fig1 = plt.figure(num=1, figsize=(5, 2.5))
 fig3 = plt.figure(num=3, figsize=(5, 5))
@@ -566,8 +576,8 @@ hist_axes = axes[data_set_quantity:]
 
 
 if data_source == "ssa":
-    assert "gillespies" in locals(), "How did this happen"
-    assert type(gillespies) is ps.gillespiePlotters, "How did this happen"
+    # assert "gillespies" in locals(), "How did this happen"
+    # assert type(gillespies) is ps.gillespiePlotters, "How did this happen"
 
     # if args.compare_plots:
     for i, ax in enumerate(walk_axes):
@@ -683,23 +693,47 @@ if data_source == "ssa":
         fig.tight_layout()
 
     if args.plot_fixedpoints:
-        inputs = sourced_frame.loc[
-            m_index, "metadata"
-        ]  # input_dict = dict([(string.replace("-", "_"), val) for string, val in inputs])
-        if args.compare_plots:
-            gillespies.plot_walk_fixed(
-                walk_axes[0], model, "x", xmax=1e10, parameters=inputs
-            )
-            gillespies.plot_walk_fixed(
-                walk_axes[1], model, "y", xmax=1e10, parameters=inputs
-            )
+        inputs = data_frame["metadata"]
+        # input_dict = dict([(string.replace("-", "_"), val) for string, val in inputs])
 
-            gillespies.plot_hist_fixed(
-                hist_axes[0], model, "x", ymax=1, parameters=inputs
-            )
-            gillespies.plot_hist_fixed(
-                hist_axes[1], model, "y", ymax=1, parameters=inputs
-            )
+        if args.compare_plots:
+            for i, ax in enumerate(walk_axes):
+                odeies.plot_fixed("ode", ax, inputs, xmax=100, ymax=100)
+                gillespies.plot_walk_fixed(
+                    ax,
+                    model,
+                    "x",
+                    xmax=1e10,
+                    parameters=inputs,
+                    color=x_color,
+                )
+                gillespies.plot_walk_fixed(
+                    ax,
+                    model,
+                    "y",
+                    xmax=1e10,
+                    parameters=inputs,
+                    color=y_color,
+                )
+
+            for i, ax in enumerate(hist_axes):
+                odeies.plot_fixed("ode", ax, inputs, axis="x", xmax=100, ymax=100)
+                gillespies.plot_hist_fixed(
+                    ax,
+                    model,
+                    "x",
+                    ymax=1,
+                    parameters=inputs,
+                    color=x_color,
+                )
+                gillespies.plot_hist_fixed(
+                    ax,
+                    model,
+                    "y",
+                    ymax=1,
+                    parameters=inputs,
+                    color=y_color,
+                )
         else:
             gillespies.plot_walk_fixed(
                 walk_axes[0], model, "x", xmax=1e10, parameters=inputs
@@ -715,13 +749,13 @@ if data_source == "ssa":
     if args.plot_on_phase:
         plt.close("all")
 
-        fig1 = plt.figure(figsize=(6, 6))
+        fig1 = plt.figure(1, figsize=(6, 6))
         ax1 = fig1.add_subplot()
 
         phase_frame = file_frame.loc[("phase", "jesper")]
-        file_choice["metadata"]["n1"] *= 2
-        file_choice["metadata"]["n2"] *= 2
-        phase_filters: list[tuple[str, float]] = [*file_choice["metadata"].items()]
+        data_frame["metadata"]["n1"] *= 2
+        data_frame["metadata"]["n2"] *= 2
+        phase_filters: list[tuple[str, float]] = [*data_frame["metadata"].items()]
 
         filtered_phase = filter_frames(phase_filters, phase_frame)
         phase_name = filtered_phase.reset_index().loc[0, "file_name"]
@@ -731,14 +765,16 @@ if data_source == "ssa":
         c1, c2 = phase_data["c1"], phase_data["c2"]
         dU, dV = phase_data["dU"], phase_data["dV"]
 
-        phaseies.plot_phase_space(ax1, c1, c2, dU, dV)
-        phaseies.plot_trajectories(ax1, states[0, :], states[1, :])
+        odeies.plot_phase_space(ax1, c1, c2, dU, dV)
+        odeies.plot_trajectories(ax1, states[0, :], states[1, :])
 
         ax1.set_xlim(0, 100)
         ax1.set_ylim(0, 100)
 
 
 elif data_source == "phase":
+    plt.close("all")
+
     file_path = os.path.join(data_env, path_list[0])
     numpy_data = np.load(file_path)
 
@@ -748,25 +784,57 @@ elif data_source == "phase":
     c1_null = numpy_data["c1_nullcline"]
     c2_null = numpy_data["c2_nullcline"]
 
-    fig1 = plt.figure(figsize=(6, 6))
+    fig1 = plt.figure(1, figsize=(6, 6))
     ax1 = fig1.add_subplot()
 
     # fig2 = plt.figure(figsize=(6, 6))
     # ax2 = fig2.add_subplot()
 
-    phaseies.plot_phase_space(ax1, c1, c2, dU, dV)
-    phaseies.plot_nullclines(ax1, *c1_null, *c2_null)
+    odeies.plot_phase_space(ax1, c1, c2, dU, dV)
+    odeies.plot_nullclines(ax1, *c1_null, *c2_null)
 
     if args.plot_fixedpoints:
         parameters: dict[str, float] = data_frame["metadata"]
-        phaseies.plot_phase_fixed_points(ax1, parameters, xmax=100, ymax=100)
-        # print(parameters)
-        # exit()
+        odeies.plot_fixed(data_source, ax1, parameters, xmax=100, ymax=100)
 
     ax1.set_xlim(left=0, right=100)
     ax1.set_ylim(bottom=0, top=100)
 
     ax1.legend(loc="upper right", fontsize=legend_font_size)
+
+    ax1.set_xlabel("Number of $c_1$")
+    ax1.set_ylabel("Number of $c_2$")
+
+elif data_source == "ode":
+    plt.close("all")
+
+    file_path = os.path.join(data_env, path_list[0])
+    numpy_data = np.load(file_path)
+
+    time = numpy_data["time"]
+    solutions = numpy_data["solutions"]
+
+    fig1 = plt.figure(1, figsize=(6, 4))
+    ax1 = fig1.add_subplot()
+
+    # fig2 = plt.figure(figsize=(6, 6))
+    # ax2 = fig2.add_subplot()
+
+    odeies.plot_curves(ax1, time, solutions)
+
+    if args.plot_fixedpoints:
+        parameters: dict[str, float] = data_frame["metadata"]
+        odeies.plot_fixed(
+            data_source, ax1, parameters, total_vars=2, xmax=time[-1], ymax=100
+        )
+
+    ax1.set_xlim(left=0, right=time[-1])
+    ax1.set_ylim(bottom=0)
+
+    ax1.legend(loc="upper right", fontsize=legend_font_size)
+
+    ax1.set_xlabel("Time")
+    ax1.set_ylabel("Value of Variable")
 
 
 figs = [plt.figure(i) for i in plt.get_fignums()]
@@ -805,6 +873,8 @@ if args.save:
             file_path = os.path.join(fpe_dir, file_name)
     elif data_source == "phase":
         file_path = os.path.join(phs_env, file_name)
+    elif data_source == "ode":
+        file_path = os.path.join(ode_env, file_name)
     else:
         file_path = os.path.join(data_env, file_name)
 

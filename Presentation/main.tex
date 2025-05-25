@@ -1,23 +1,142 @@
-\documentclass[aspectratio=169]{RUCPresentation}
+\documentclass[aspectratio=169,  notheorems, sOuRcEs]{RUCPresentation}
 
 %\usepackage{pgfforeach}
 % \usepackage{foreach}
 
-\usepackage{MyMath}
-% \usepackage{animate}
+\newcounter{chapter}
 
-\usepackage{siunitx}
 
 \usepackage{tikz}
-\usetikzlibrary{shapes, arrows, positioning, calc}
+\usetikzlibrary{calc}
+\usetikzlibrary{angles}
+\usetikzlibrary{positioning}
+
+\usetikzlibrary{arrows.meta}
+\usetikzlibrary{shapes.geometric}
 \usetikzlibrary{overlay-beamer-styles}
+
+\ProvideDocumentCommand\pgfmathsetnewmacro{ m m }{ \newcommand*{#1}{} \pgfmathsetmacro{#1}{#2} }
+\providecommand*{\pgfmathsetnewlengthmacro}[2]{ \newcommand*{#1}{} \pgfmathsetlengthmacro{#1}{#2} }
+
+\tikzset{>=Stealth} % for good looking LaTeX arrow head
+% \tikzset{overlay, remember picture}
+
+
+\usepackage{myMathQA}
+\usepackage{graphicx}
+\usepackage{siunitx}
+
+\usepackage{hyperref}
+
+% \usepackage[style=authoryear]{biblatex}
+\usepackage{biblatex}
+\addbibresource{mscbib.bib}
+
+\DeclareSourcemap{
+    \maps[datatype=bibtex]{
+        \map[overwrite]{
+            \step[fieldset=note, null]
+        }
+        \map[overwrite]{
+            \step[fieldset=ppn_gvk, null]
+        }
+        \map[overwrite]{
+            \step[fieldset=file, null]
+        }
+        \map[overwrite]{
+            \step[fieldset=doi, null]
+        }
+        \map[overwrite]{
+            \step[fieldset=issn, null]
+        }
+        \map[overwrite]{
+            \step[fieldset=isbn, null]
+        }
+        \map[overwrite]{
+            \step[fieldset=pagetotal, null]
+        }
+    }
+}
+
+% \DeclareCiteCommand{\beamerfootcite}
+%   {}
+%   {\footnote[frame]{\printbibliography[keys=\thefield{entrykey}]}}
+%   {\multicitedelim}
+%   {\usebibmacro{postnote}}
+
+\ProvideDocumentCommand{\beamerfootcite}{ m }{\footnote[frame]{\ \fullcite{#1}}}
+\renewcommand*{\nameyeardelim}{\addcomma\space} % cleaner authoryear style
+
+% \usepackage{animate}
+
 
 
 \def\k{\raisebox{1ex}{\rotatebox{180}{k}}}
 % \newsavebox\tempboxbeamer
 
-% \usetheme{Warsaw}
 \usetheme{RUCTHEME}
+% \usetheme{Warsaw}
+
+\makeatletter
+\renewcommand\@makefnmark{\hbox{\@textsuperscript{\usebeamercolor[fg]{footnote mark}\usebeamerfont*{footnote mark}[\@thefnmark]}}}
+% \renewcommand\@makefntext[1]{{\usebeamercolor[fg]{footnote mark}\usebeamerfont*{footnote mark}[\@thefnmark]}\usebeamerfont*{footnote} #1}
+\makeatother
+
+\hypersetup{colorlinks = false, citecolor=TextColor}
+\AtBeginBibliography{\small\color{TextColor}}
+
+
+\def\dumbmatrixtwobytwo[#1,#2]{%
+    \count6=#1\relax \count7=#2\relax%
+    \count2=#1\relax \count3=#2\relax \count4=#1\relax \count5=#2\relax%
+    \multiply\count2 by \count6\relax \multiply\count4 by \count7\relax%
+    \multiply\count3 by \count6\relax \multiply\count5 by \count7\relax%
+    \ensuremath{%
+        \left[%
+            \begin{matrix}%
+                \number\count2 & \number\count4 \\%
+                \number\count3 & \number\count5%
+            \end{matrix}%
+        \right]%
+    }
+}
+
+
+\def\dumbmatrixthreebythree[#1,#2,#3]{%
+    \count10=#1\relax \count11=#2\relax \count12=#3\relax
+    \count1=#1\relax \count4=#1\relax \count7=#1\relax%
+    \count2=#2\relax \count5=#2\relax \count8=#2\relax%
+    \count3=#3\relax \count6=#3\relax \count9=#3\relax%
+    \multiply\count1\count10\relax \multiply\count4\count11\relax \multiply\count7\count12\relax%%
+    \multiply\count2\count10\relax \multiply\count5\count11\relax \multiply\count8\count12\relax%%
+    \multiply\count3\count10\relax \multiply\count6\count11\relax \multiply\count9\count12\relax%%
+    \ensuremath{%
+        \left[%
+            \begin{matrix}%
+                \number\count1 & \number\count4 & \number\count7 \\%
+                \number\count2 & \number\count5 & \number\count8 \\%
+                \number\count3 & \number\count6 & \number\count9%
+            \end{matrix}%
+        \right]%
+    }
+}
+
+\usepackage{multirow}
+\newcounter{reaction}
+\ProvideDocumentCommand\reactionterm{ o m m m m }{% --> Function for reaction lines
+    \stepcounter{reaction} %
+    \IfNoValueTF{#1}
+    { \arabic{reaction} & #3 & #4 & \(t^+_{\arabic{reaction}}\of{\vec{x}}\) & #2 & \(\br{#5}\) \\ \hline }
+    { \multirow{2}*{\arabic{reaction}} & #3 & #4 & \(t^+_{\arabic{reaction}}\of{\vec{x}}\) & #2 &  \multirow{2}*{\(\br{#5}\)} \\
+                                       & #4 & #3 & \(t^-_{\arabic{reaction}}\of{\vec{x}}\) & #1 &                             \\ \hline }
+}
+
+\ProvideDocumentEnvironment{reactiontable}{}%
+{ \begin{center} \begin{tabular}{c|r@{\ \(\to\)\ }lr@{\ \(=\)\ }lc} %
+    \(I\) & \multicolumn{2}{c}{`Reaction'} %
+          & \multicolumn{2}{c}{`Rate Law'} %
+          & \(\vec{r}_I^{\mathrm{T}}\) \\\hline }%
+{ \end{tabular} \end{center} \setcounter{reaction}{0} }
 
 
 % Defining a new coordinate system for the page:
@@ -34,22 +153,24 @@
 \newcommand\makebeamertitle{\frame{\maketitle}}%
 
 % For sections?
-\graphicspath{{./images/}{../Thesis/images/phase/}{../Thesis/images/ode/}{../Thesis/images/markov/}}
+\graphicspath{{./images/}{../Thesis/images/phase/}{../Thesis/images/ode/}{../Thesis/images/fpe/}}
+
+
+\def\cfp#1{c_#1^*}
 
 
 \title{%
-    Applying Fokker-Planck to analyze bacterial populations exhibiting hetero-resistence properties%
+    An exploration on the differences of stochastic and
+    deterministic models
 }
-\title{%
-    Understanding statistical distributions hetero-resistant bacterial populations through%
-    fokker-planck or generalized statistical manifold%
-}
-\subtitle{  Mathematical\ \ Bioscience MSc }
+% \subtitle{  Mathematical\ \ Bioscience a MSc Thesis }
+\subtitle{  My MSc Thesis Summerized }
 % \newline supervisor: Morten Anderson}
 
-\author{Anakin}
+\author{by Anakin}
 
 %\mode<presentation>
+
 
 \begin{document}
 
@@ -60,12 +181,119 @@
 \section{Introduction}
 
 \begin{frame}{The Research Question}
+
+    \begin{itemize}
+        \item So why am \emph{I} interested in this
+    \end{itemize}
+    \pause
+    \begin{enumerate}[<+->]
+        \item Nothing noble
+        \item I wanted to find an excuse to learn about stochasticity
+        \item I believe there is an inherent relationship between
+            statistical manifolds and genetic phenotypes
+    \end{enumerate}
+
+    \pause
+    \begin{block}{As a consequence, my research question}
+        How can stochastic gene copy number dynamics underlying bacterial
+        heteroresistance be accurately captured using a Fokker-Planck formulation,
+        and what insights does this stochastic framework provide beyond deterministic ODE models.
+    \end{block}
+
 \end{frame}
+
+% Mechanisms of heteroresistance:
+%     Caused by frequent mutations other than spontaneous gene amplifications:
+%         Point mutations
+%         Insertion sequence insertions
+%         Small deletions
+%     Resistance mutations with low or no fitness cost:
+%         Stable even in the absence of antibiotics
+%         Leads to stable heteroresistance
+%     High fitness cost associated with resistance mutation:
+%         Resistant phenotype can revert in the absence of antibiotics
+%         Second-site compensatory mutations can increase fitness
+%         Concomitant loss of resistance
+%         Generates a mixed population:
+%             Rare resistant cells with reduced fitness (contain a resistance mutation)
+%             Main population of susceptible cells with higher fitness (contain a resistance mutation and a compensatory mutation)
+%         Revertants often have different genotypes and/or phenotypes from the original isolate
+%     Unstable resistance:
+%         Caused by intrinsic instability of the resistance mutation itself:
+%             Spontaneous unstable gene amplifications
+%             Causes unstable heteroresistance due to the cost and high instability of gene amplifications
+%         Revertants have the same genotype and phenotype as the original isolate
+
 
 \section{Motivation}
 
+\subsection{Heteroresistence}
 
 \begin{frame}{Heteroresistence}
+
+    % Text\beamerfootcite{Levin2024} supposed to be citation
+
+    % The presence of resistance genes (mutated or acquired genes) in bacterial
+    % cells typically leads to measurable antibiotic resistance, creating a
+    % generally predictable relationship between a bacterium's genetic makeup
+    % (genotype) and its observed antibiotic susceptibility (phenotype).
+    % However, there are important exceptions.
+    % Sometimes even genetically identical bacterial cells within the same
+    % population can display phenotypic heterogeneity (variability) in their
+    % responses to antibiotics, complicating the clear-cut classification into
+    % susceptible or resistant categories. Heteroresistance is a notable example
+    % of this variability, wherein a bacterial isolate predominantly susceptible
+    % to an antibiotic includes smaller subpopulations of cells with reduced
+    % antibiotic susceptibility.
+
+
+    \begin{itemize}[<+->]
+        \item Presence of resistance genes in bacterial cells leads
+            to measurable antibiotic resistance
+            \begin{itemize}[<.->]
+                \item Generally predictable relationship between bacterial
+                    genotype and antibiotic resistance
+                \item Exceptions exist
+            \end{itemize}
+        \item Genetically identical bacterial cells can display phenotypic
+            heterogeneity in responses to antibiotics.
+            % \begin{itemize}
+            %     \item Complicates classification into susceptible or
+            %         resistant categories
+            % \end{itemize}
+        \item Heteroresistance: a bacterial isolate predominantly
+            susceptible to an antibiotic includes smaller subpopulations
+            of cells with reduced antibiotic susceptibility\beamerfootcite{Andersson2019}
+    \end{itemize}
+
+\end{frame}
+
+\begin{frame}
+
+    What does heteroresistance look like?
+    \begin{columns}[T]
+        \column{0.5\framewidth}
+
+        \begin{itemize}
+            \item Resistance mutations with low or no fitness cost
+                \begin{itemize}
+                    \item Insertions
+                    \item Deletions
+                \end{itemize}
+        \end{itemize}
+
+        \column{0.5\framewidth}
+
+        \begin{itemize}
+            \item High fitness cost associated with resistance mutation
+                \begin{itemize}
+                    \item Insertions
+                    \item Deletions
+                \end{itemize}
+        \end{itemize}
+
+    \end{columns}
+
 \end{frame}
 
 \subsection{Copy Numbers}
@@ -75,86 +303,513 @@
 
 
 \begin{frame}{Fitness Doesn't Matter?}
+
+
+
 \end{frame}
 
 
 
-\section{Plan, kinda}
+\section{What do we know}
 
-\begin{frame}{General plan}
-\end{frame}
 
 \begin{frame}{ODE system}
+
+    \tikz[overlay] \node<1-> at (frame cs:-0.65,-1.35) {
+        \begin{tikzpicture}[ scale = 1,
+            draw = black!80,
+            thick,
+            shorten >=2pt,
+            overlay
+            ]
+
+            \node[draw=black, circle] (c1) at (-1, 0) {\(c_1\)};
+            \node[draw=black, circle] (c2) at ( 1, 0) {\(c_2\)};
+
+            \node[draw=black] (m) at ( -1, -1.20) {\(m\)};
+            \node[] (source) at ( -2, -1.20) {\(m_0\)};
+
+            \draw[->] (c2) [bend left]to node[midway, below] {\(w_2\)} (c1);
+            \draw[->] (c1) [bend left]to node[midway, above] {\(w_1\)} (c2);
+
+            \draw[->] (c1)  [loop left]to node[midway, left]  {\(k_1\)} (c1);
+            \draw[->] (c2) [loop right]to node[midway, right] {\(k_2\)} (c2);
+
+            \draw[-|] (m) to node[pos=0.35] (mm) {} (c1);
+            \draw[-|, rounded corners] (c2) |- node[midway,anchor=south west] {\(q_m\)} (m);
+            % \draw[-|] (c2) to[out=270, in=0, looseness=2] node[midway,anchor=north west] {\(q_m\)} (m);
+
+            \node[anchor=east] at (mm) {\(q_1\)};
+
+            \draw[->] (source) -- (m);
+
+    \end{tikzpicture}};
+
+
+    \begin{columns}
+        \column{0.5\framewidth}
+        \vspace{8em}\par
+
+        \begin{align*}
+            \ode{c_1} &= k_1 c_1\left({n_1 - c_t \over n_1}\right) - w_1 c_1 + w_2 c_2 - q_1 m c_1 \nonumber \\
+            \ode{c_2} &= k_2 c_2\left({n_2 - c_t \over n_2}\right) - w_2 c_2 + w_1 c_1\nonumber\\
+            \ode{m}   &= m_0 - q_m m c_2 \nonumber
+        \end{align*}
+
+        \column{0.5\framewidth}
+
+    \end{columns}
+
+
+
+    \begin{tikzpicture}[overlay, remember picture]
+
+        \node<2-> at (frame cs:0.5, 0.34) {
+                \includegraphics[width=0.4\textwidth]
+                {ode:jesper:I6:C1:T17481880809603815.pdf}
+            };
+        \node<2-> at (frame cs:0.5, -0.40) {
+                \includegraphics[width=0.4\textwidth]
+                {ode:jesper:I32:C1:T17481997939903586.pdf}
+            };
+
+    \end{tikzpicture}
+
 \end{frame}
 
+\begin{frame}{Analytical solution}
+
+
+    \begin{columns}[T]
+        \column{0.5\framewidth}
+        \begin{itemize}
+            \alt<1>{
+                \item Skipping the details
+                }{
+                \item Soure: trust me
+                }
+            \item We recognize that
+        \end{itemize}
+
+
+        \column{0.5\framewidth}
+
+
+    \end{columns}
+
+    \begin{tikzpicture}[overlay, remember picture]
+
+        \node<2-> at (frame cs:0.5, 0.34) {
+                \includegraphics[width=0.4\textwidth]
+                {ode:jesper:I6:C1fp:T17481880809603815.pdf}
+            };
+        \node<2-> at (frame cs:0.5, -0.40) {
+                \includegraphics[width=0.4\textwidth]
+                {ode:jesper:I32:C1fp:T17481997939903586.pdf}
+            };
+
+    \end{tikzpicture}
+
+\end{frame}
+
+
+
+
+\section{Stochasticity}
+
+\begin{frame}{Stochasticity}
+
+    \begin{itemize}
+        \item Stochasticity is a touchy topic mathematically
+            \begin{itemize}[<.->]
+                \item
+            \end{itemize}
+    \end{itemize}
+
+    So what some \emph{lunatic} did, is glue a Wiener process to the end of our
+    differential.
+    With some multivariate function \(B\), acting on \(W_t\) as a scaling factor
+    for the variance.
+    By substitution of variables, we can redefine the sides of the derivative,
+    \begin{align}
+        %\ode x = A\of{x,t} + B\of{x,t}
+        \ode x = A\of{x\of t, t} \implies \dd{x} &= A\of{x,t} \dd{t}
+        \shortintertext{Throw our randomness in there}
+        \dd{x} &= A\of{x,t} \dd{t} + \sqrt{  B\of{x,t} } \ \dd{W_t}
+    \end{align}
+    from allowing our ODE to be influenced by stochastic noise, we now
+    have a SDE.
+
+    More formally known as the the \emph{Langevin equation},
+
+\end{frame}
+
+\begin{frame}{The Master Equation}
+
+
+    The dynamics of a probability distribution with the Markov property
+    have a \emph{master equation}\beamerfootcite{Gardiner1987}
+    \begin{equation} \label{eq.mastereq}
+        \pde* P\of{x,t} =\int_{-\infty}^{\infty}
+        \left[W_t\of{x|x'}P\of{x',t} - W_t\of{x'|x} P\of{x,t}\right]
+        \dd{x'}
+    \end{equation}
+    \begin{itemize}
+        \item  \(W_t\of{x|x'}\) is the rate of state transitions from \(x'\)
+        \item  \(P\of{x, t}\) is the probability of \(x\) at the given time
+    \end{itemize}
+
+\end{frame}
+
+\begin{frame}{The Chemical Master Equation}
+
+
+    \setcounter{footnote}{1}
+    But in the non-continous form, we can make a \emph{chemical}
+    master equation\beamerfootcite{Gardiner1987}
+    \begin{equation} \label{eq.chemmastereq}
+        \pde* P\of{x,t}
+        =
+        \sum_{j}^{}\br{
+            \left[a_j\of{x|x'} P\of{x',t} - a_j\of{x'|x} P\of{x,t}\right]
+        }
+    \end{equation}
+
+    \begin{itemize}
+        \item \(a_j\) represents a `propensity'
+        \item \(\vec{v}_j\) a state change vector
+        \item \(\vec{n}_j\) a state change vector
+        \item Basically just a discrete version of the master equation
+            \begin{itemize}
+                \item That was a lie
+            \end{itemize}
+    \end{itemize}
+
+\end{frame}
 
 \begin{frame}{Fokker-Planck}
 
 \end{frame}
 
-\begin{frame}{Markov Chains}
 
-\end{frame}
 
-\section{The Ordinary Differential System}
+\subsection{The Ordinary Differential System}
 
-\begin{frame}{Two Species Compartment}
+\begin{frame}{Chemicafying it}
 
-\end{frame}
-
-\def\cfp#1{c_#1^*}
-\begin{frame}{Analytical Solution}
 
     \begin{columns}[T]
-        \column{0.5\framewidth}
-    \begin{alertblock}{Notation}
-        We denote \(\omega_{i} := k_i-w_i\) and
-        \(\k_{i} := \rfrac{k_i}{n_i}\) for all \(i\in \left\{1,2\right\}\).
-    \end{alertblock}
+        \column{0.3\textwidth}
+        \begin{itemize}
+            \item Recontextualizing the compartment model into kinetics
+        \end{itemize}
+        \begin{align*}
+            c_1 &\xrightleftharpoons[w_2]{w_1} c_2 \\
+            c_1 + N &\xrightleftharpoons[k_{-1}]{k_1} 2c_1\\
+            c_2 + N &\xrightleftharpoons[k_{-2}]{k_2} 2c_2
+        \end{align*}
 
-        Solving \(\ode* m = 0\) under the assumption that \(m_0=0\),
-        \begin{equation*}
-            \ode* m = -q_m m c_2 = 0 \implies
-            \begin{cases}
-                m\of t = 0 \\
-                c_2\of t = 0
-            \end{cases}
-        \end{equation*}
-        as \(c_2 \neq 0\), \(m=0\) for the when \(m_0=0\).
+        \column{0.7\textwidth}
+        \begin{itemize}
+            \item Letting  \(\vec{r}_1 = \br{-1,1}^{\mathrm{T}} \) be our transition vector,
+            \item The first kinetic reaction \(c_1 \xrightleftharpoons[w_2]{w_1} c_2 \)
+            becomes
+        \end{itemize}
+        \begin{align*}
+                T\of{ \vec{c} \to \vec{c} + \vec{r}_1} &= w_1 {c_1!\over {c_1 - 1}!}{c_2!\over {c_2 - 0}!} \\
+            &\leadsto t_1^+\of{\vec{c}} = w_1 c_1 \\
+                T\of{ \vec{c} \to \vec{c} - \vec{r}_1} &= w_2 {c_1!\over {c_1 - 0}!}{c_2!\over {c_2 - 1}!} \\
+            &\leadsto t_1^-\of{\vec{c}} = w_2 c_2
+        \end{align*}
 
-        \column{0.5\framewidth}
-        \begin{system}
-            \ode* c_1 &= c_1 \pa{\omega_{1} - \k_{1} c_1} + c_2\pa{w_2 - \k_{1} c_1}\nonumber\\
-            \ode* c_2 &= c_1\pa{w_1 - \k_{2} c_2} + c_2 \pa{\omega_{2} - \k_{2} c_2}\nonumber
-        \end{system}
-
-
-helping us in order to find our nullclines.
-\begin{align*}
-    c_2 &= -{ c_1 \pa{ \omega_{1} - \k_{1} c_1} \over w_2 - \k_{1} c_1 }
-    \intertext{Similarly, solving for \(c_1\) from \(\ode* c_2\) results in}
-    -{c_2\pa{\omega_{2} - \k_{2} c_2} \over w_1 - \k_{2}c_2} &= c_1
-\end{align*}
     \end{columns}
 
 \end{frame}
 
+\begin{frame}
+
+    \begin{columns}[T]
+        \column{0.5\textwidth}
+
+        \begin{itemize}
+            \item The same process for the rest of the terms leads to a table
+        \end{itemize}
+
+        \begin{reactiontable}
+            \reactionterm[\(w_2 c_2\)]{\(w_1 c_1\)}{\(c_1\)}{\(c_2\)}{-1, 1}
+            \reactionterm[\(k_{-1} c_1^2\)]{\(k_1 n c_1\)}{\(c_1+N\)}{\(2 c_1\)}{ 1, 0}
+            \reactionterm[\(k_{-2} c_2^2\)]{\(k_2 n c_2\)}{\(c_2+N\)}{\(2 c_2\)}{ 0, 1}
+        \end{reactiontable}
+
+        \column{0.5\textwidth}
+
+    \end{columns}
 
 
-\begin{frame}{Analytical Solution}
+    \begin{tikzpicture}[overlay, remember picture]
+
+
+        \node at (frame cs:0.55, 0.45) {
+                \includegraphics[width=0.38\framewidth, page=1]
+                {ode/ssa:ode-3-2:I19:C2fp:T1747486672.pdf}
+            };
+
+        \node at (frame cs:0.55,-0.35) {
+                \includegraphics[width=0.38\framewidth, page=3]
+                {ode/ssa:ode-3-2:I19:C2fp:T1747486672.pdf}
+            };
+
+    \end{tikzpicture}
+
+\end{frame}
+
+\begin{frame}{We add Smothering}
+
+    \begin{columns}[T]
+        \column{0.5\textwidth}
+
+        \begin{itemize}
+            \item With smothering
+        \end{itemize}
+
+        \alt<1>{
+            \begin{reactiontable}
+                \reactionterm[\(w_2 c_2\)]{\(w_1 c_1\)}{\(c_1\)}{\(c_2\)}{-1, 1}
+                \reactionterm[\(k_{-1} c_1^2\)]{\(k_1 n c_1\)}{\(c_1+N\)}{\(2 c_1\)}{ 1, 0}
+                \reactionterm[\(k_{-2} c_2^2\)]{\(k_2 n c_2\)}{\(c_2+N\)}{\(2 c_2\)}{ 0, 1}
+            \end{reactiontable}
+        }{
+            \begin{reactiontable}
+                \reactionterm[\(w_2 c_2\)]{\(w_1 c_1\)}{\(c_1\)}{\(c_2\)}{-1, 1}
+                \reactionterm[\(k_{-1} c_1^2\)]{\(k_1 n c_1\)}{\(c_1+N\)}{\(2 c_1\)}{ 1, 0}
+                \reactionterm[\(k_{-2} c_2^2\)]{\(k_2 n c_2\)}{\(c_2+N\)}{\(2 c_2\)}{ 0, 1}
+                \reactionterm{\(k_{1}c_1c_2\)}{\(c_1+c_2\)}{\(c_1+N\)}{-1, 0}
+                \reactionterm{\(k_{2}c_1c_2\)}{\(c_1+c_2\)}{\(c_2+N\)}{0, -1}
+            \end{reactiontable}
+        }
+
+        \column{0.5\textwidth}
+
+        \only<1,2>{
+            \begin{itemize}
+                \item We can think about smothering them
+            \end{itemize}
+            \begin{align*}
+                c_1 + c_2 &\xrightarrow{k_1} c_1 \\
+                c_1 + c_2 &\xrightarrow{k_2} c_2
+            \end{align*}
+        }
+
+    \end{columns}
+
+
+    \begin{tikzpicture}[overlay, remember picture]
+
+        \node<3-> at (frame cs:0.55, 0.45) {
+                \includegraphics[width=0.38\framewidth, page=1]
+                {ode/ssa:ode-5-2:I19:C2fp:T17475890580172482.pdf}
+            };
+
+        \node<3-> at (frame cs:0.55,-0.35) {
+                \includegraphics[width=0.38\framewidth, page=3]
+                {ode/ssa:ode-5-2:I19:C2fp:T17475890580172482.pdf}
+            };
+
+    \end{tikzpicture}
+
+\end{frame}
+
+\begin{frame}{Weird, what about...}
+
+    \begin{columns}[T]
+        \column{0.5\textwidth}
+
+        \begin{itemize}
+            \item With nutrition?
+        \end{itemize}
+
+        \alt<1>{
+            \begin{reactiontable}
+                \reactionterm[\(w_2 c_2\)]{\(w_1 c_1\)}{\(c_1\)}{\(c_2\)}{-1, 1}
+                \reactionterm[\(k_{-1} c_1^2\)]{\(k_1 n c_1\)}{\(c_1+N\)}{\(2 c_1\)}{ 1, 0}
+                \reactionterm[\(k_{-2} c_2^2\)]{\(k_2 n c_2\)}{\(c_2+N\)}{\(2 c_2\)}{ 0, 1}
+                \reactionterm{\(k_{1}c_1c_2\)}{\(c_1+c_2\)}{\(c_1+N\)}{-1, 0}
+                \reactionterm{\(k_{2}c_1c_2\)}{\(c_1+c_2\)}{\(c_2+N\)}{0, -1}
+            \end{reactiontable}
+        }{
+            \begin{reactiontable}
+                \reactionterm[\(w_2 c_2\)]{\(w_1 c_1\)}{\(c_1\)}{\(c_2\)}{-1, 1, 0}
+                \reactionterm[\(k_{1} c_1^2\)]{\(k_1 n c_1\)}{\(c_1+N\)}{\(2 c_1\)}{ 1, 0, -1}
+                \reactionterm[\(k_{2} c_2^2\)]{\(k_2 n c_2\)}{\(c_2+N\)}{\(2 c_2\)}{ 0, 1, -1}
+                \reactionterm{\(k_{1}c_1c_2\)}{\(c_1+c_2\)}{\(c_1+N\)}{-1, 0, 1}
+                \reactionterm{\(k_{2}c_1c_2\)}{\(c_1+c_2\)}{\(c_2+N\)}{0, -1, 1}
+            \end{reactiontable}
+        }
+
+        \column{0.5\textwidth}
+
+
+    \end{columns}
+
+
+    \begin{tikzpicture}[overlay, remember picture]
+
+        \node<2-> at (frame cs:0.55, 0.45) {
+                \includegraphics[width=0.38\framewidth, page=1]
+                {ode/ssa:ode-5-3:I19:C2:T1747490399601534.pdf}
+            };
+
+        \node<2-> at (frame cs:0.55,-0.35) {
+                \includegraphics[width=0.38\framewidth, page=3]
+                {ode/ssa:ode-5-3:I19:C2:T1747490399601534.pdf}
+            };
+
+    \end{tikzpicture}
+
+
 \end{frame}
 
 
-\begin{frame}{Analytical Solution}
-\end{frame}
+\subsection{My Proposed Model}
 
-\begin{frame}{Analytical Solution Examples}
-\end{frame}
+\begin{frame}{Two Species Compartment Model}
 
-\begin{frame}{Analytical Solution Examples}
 \end{frame}
 
 
+\begin{frame}{My Model}
+
+    \raggedbottom
+
+
+    \begin{itemize}
+        \item Built from principles
+    \end{itemize}
+
+    \tikz[overlay, remember picture] \node<2> at (frame cs:0,0)
+    {%
+        \begin{tikzpicture}
+            \pgfmathsetnewmacro\genelength{35}
+            \pgfmathsetnewmacro\geneheight{2}
+
+            \pgfmathsetnewmacro\translength{10}
+            \pgfmathsetnewmacro\transheight{2}
+
+            \pgfmathsetnewmacro\reactionthickness{1}
+            \pgfmathsetnewmacro\dnawidth{4}
+
+            \pgfmathsetnewmacro\shortendist{6}
+            \pgfmathsetnewmacro\bendstrength{1.05} % √(1²+(0.2-0.75)²)
+
+            \pgfmathsetnewmacro\geneshift{5}
+
+            \providecommand*\genecolor{red!80!black}
+            \providecommand*\transcolor{green!80!black}
+
+            \useasboundingbox (-4,-1.25) rectangle (5.5,1.35);
+            \coordinate (O) at (0,0);
+
+            \node[circle] (west) at (-3.5, 0) {};
+            \node[circle] (east) at ( 4.5, 0) {};
+
+            \node[anchor=south east] at (west) {\(5'\)};
+            \node[anchor=south west] at (east) {\(3'\)};
+
+            \draw[line width = \dnawidth] (west.center) to (east.center);
+
+            \draw[line width = \dnawidth] (east.north) to (east.south);
+            \draw[line width = \dnawidth] (west.north) to (west.south);
+
+
+            \coordinate (g1) at (-2,0); \coordinate (g2) at ( 0,0);
+            \coordinate (g3) at ( 3,0);
+
+            \coordinate (t1) at (-3,0); \coordinate (t2) at (-1,0);
+            \coordinate (t3) at ( 1,0);
+            \coordinate (t4) at ( 2,0); \coordinate (t5) at ( 4,0);
+
+            \draw[line width = \dnawidth+1, BackgroundColor, dashed] (t3) -- (t4);
+            \draw[line width = \dnawidth+1, BackgroundColor] ([xshift=0.37cm]t3) to ([xshift=-0.43cm]t4);
+
+            \foreach \POINT in {1,2,3}{
+                \node[rectangle, fill=\genecolor, draw=\genecolor, minimum width=\genelength, minimum height=\geneheight] at (g\POINT) {};
+            }
+
+            \foreach \POINT in {1,2,3,4,5}{
+                \node[rectangle, fill=\transcolor, draw=\transcolor, minimum width=\translength, minimum height=\transheight] at (t\POINT) {};
+            }
+
+            \node[above, yshift=5] (x1) at (g1) {\(X\)};
+            \node[above, yshift=5] (x2) at (g2) {\(X\)};
+            \node[above, yshift=5] (x3) at (g3) {\(X\)};
+
+            \node  (B) at ( 4.75, 0.85) {\(B\)};
+            \node (B2) at ( 0.50, 0.85) {\(B\)};
+
+            \node  (N) at ( 2.00,-0.75) {\(N\)};
+            \node (N2) at (-2.00, 1.00) {\(N\)};
+            \node (N3) at ( 2.75, 1.00) {\(N\)};
+
+            \node  (y) at ( 4.00,-0.75) {\(Y\)};
+            \node (y2) at ( 1.50, 0.30) {\(Y\)};
+            \node (y3) at ( 0.75,-0.75) {\(Y\)};
+
+            \begin{scope}[line width=\reactionthickness, shorten <=\shortendist, shorten >=\shortendist]
+                \draw[->] ([yshift=\geneshift]g1)
+                    to[bend left] node[midway, sloped] (k1path) {}
+                    ([yshift=\geneshift]g2);
+                \draw[->] ([yshift=-\geneshift]g2)
+                    to[bend left] node[midway] (k-1path) {}
+                    ([yshift=-\geneshift]g1);
+            \end{scope}
+
+            \node[above] at (k1path) {\(k_1\)};
+            \node[below] at (k-1path) {\(k_{-1}\)};
+
+            \draw[line width=\reactionthickness, shorten >=6pt]
+                (N2) to[bend right] ([yshift=2.3]k1path.center);
+
+            % \draw[->,line width=\reactionthickness, shorten <=5.5pt]
+            %     ([yshift=-2.6]k-1path.center) to[bend right] (N3);
+
+
+
+            \begin{scope}[line width = \reactionthickness]
+                \draw[shorten >=5pt, shorten <=4pt ]
+                (B.center) -- (x3.center)
+                node[pos=0.5, sloped] (midbx) {\(\bigtimes\)};
+                \draw[shorten >=5pt, shorten <=4pt ]
+                (B2.center) -- (y2.center)
+                node[pos=0.5, sloped] (midby) {\(\bigtimes\)};
+
+                \draw[->] (midbx.center) to[in=0, out=105, looseness=1.5] (N3);
+                \draw[->] (midbx.center) to[in=160, out=105, looseness=3] (B);
+
+                \draw[->] (midby.center) to[in=180, out=71, looseness=1.5] (N3);
+
+                % \draw[->] (midxb.center) -- ++(105:0.5);
+                % \draw[->] (midxb.center) to[bend right] (N2.east);
+
+                \draw[->] (N) .. controls ++( 45:\bendstrength) and ++(135:\bendstrength) .. (y)
+                node[midway, below] {\(k_2\)};
+                \draw[->] (y3) -- (N) node[midway, above] {\(k_5\)};
+            \end{scope}
+
+            \node[anchor=north west] at (midbx) {\(k_3\)};
+            \node[anchor=west] at ([yshift=2,xshift=1]midby) {\(k_4\)};
+
+
+        \end{tikzpicture}
+    };
+
+
+\end{frame}
+
+
+\section{Discussion}
+
+\begin{frame}{ODE to SDE Differences}
+\end{frame}
 
 
 
@@ -163,5 +818,12 @@ helping us in order to find our nullclines.
     \large Questions?
 \end{frame}
 
+
+\section{Bibliography}
+\begin{frame}{Bibliography}
+
+    \printbibliography
+
+\end{frame}
 
 \end{document}

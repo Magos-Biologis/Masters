@@ -8,4 +8,4 @@ from matplotlib import pyplot as plt
 from .fixedpoints import GillespieFixed
 from .gillespie_plotters import gillespiePlotters
 from .ode_plotters import odePlotters
-from .plotting_class import plotting_class
+from .plotting_class import PlottingData
