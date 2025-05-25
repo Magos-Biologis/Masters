@@ -351,7 +351,7 @@ if args.opts:
         exit()
     elif data_source == "phase":
         print("{}".format(args.model))
-        print(sourced_frame[["metadata", "t"]])
+        print(sourced_frame[["metadata"]])
         exit()
 
 
@@ -739,7 +739,7 @@ if data_source == "ssa":
 
 
 elif data_source == "phase":
-    file_path = os.path.join(data_env, file_choice.loc["file_name"])
+    file_path = os.path.join(data_env, path_list[0])
     numpy_data = np.load(file_path)
 
     c1, c2 = numpy_data["c1"], numpy_data["c2"]
@@ -758,7 +758,7 @@ elif data_source == "phase":
     phaseies.plot_nullclines(ax1, *c1_null, *c2_null)
 
     if args.plot_fixedpoints:
-        parameters: dict[str, float] = file_choice.loc["metadata"]
+        parameters: dict[str, float] = data_frame["metadata"]
         phaseies.plot_phase_fixed_points(ax1, parameters, xmax=100, ymax=100)
         # print(parameters)
         # exit()
@@ -811,13 +811,11 @@ if args.save:
     ## Just making sure the shit is sorted
     save_image(file_path)
 
-# save_image(latest_file)
-
-if args.show:
+if args.show or not args.save:
     show()
 
-print("TESTING MODE")
-exit()
+# print("TESTING MODE")
+# exit()
 
 
 print("Done Plotting/Saving")

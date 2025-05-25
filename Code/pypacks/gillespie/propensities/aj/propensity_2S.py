@@ -1,7 +1,11 @@
 import numpy as np
+from gillespie.parameter_class import ParameterClass
 from numba import njit
 
-from gillespie.parameter_class import ParameterClass
+vj = [
+    np.array([-1, 1], dtype=np.int_),
+    np.array([1, -1], dtype=np.int_),
+]
 
 
 @njit

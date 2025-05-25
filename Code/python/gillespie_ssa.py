@@ -25,26 +25,25 @@ parser = argparse.ArgumentParser(
     description="A python3 script that runs the gillespie SSA algorithm for various models I've made",
 )
 
+code_env = os.getenv("THESIS_CODE")
+directories = ["pypacks", "gillespie", "propensities", "aj"]
+model_path: str = os.path.join(code_env, *directories)
+
+files = os.listdir(model_path)
+file_set = set()
+for file in files:
+    if file == "__pycache__":
+        continue
+
+    file = file.replace("propensity_", "").replace(".py", "")
+    file_set.add(file)
+
+
 parser.add_argument(
     "model",
     # nargs=1,
     help="State which model to run",
-    choices=[
-        "2S",
-        "2L",
-        "5_2",
-        "5_3",
-        "ode_2",
-        "ode_2_2",
-        "ode_3",
-        "ode_3_2",
-        "ode_3_2_alt",
-        "ode_3_3",
-        "ode_5_2",
-        "ode_5_3",
-        "ode_7_2",
-        "ode_8_3",
-    ],
+    choices=file_set,
     type=str,
 )
 

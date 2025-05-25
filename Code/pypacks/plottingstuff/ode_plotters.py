@@ -119,7 +119,7 @@ class odePlotters(plotting_class):
         col2 = kwargs.pop("color2", self.y_color)
 
         model = ODEModel(parameters=parameters)
-        sol1, sol2 = model.roots()
+        sol1, sol2, sol3 = model.roots()
 
         new_x_ticks = np.array([sol1])
         new_y_ticks = np.array([sol2])

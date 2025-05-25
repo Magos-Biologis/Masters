@@ -116,7 +116,6 @@ class ssa_stepper:
         """
 
         self.sub_propensity_module = self.propensity_module + ".propensity_" + model
-        self.state_changes = self.vj["vj_" + model]
 
         self.x0 = x0
         self.params = params
@@ -130,11 +129,12 @@ class ssa_stepper:
     ]:
         modu = import_module(self.sub_propensity_module)
         propensity = getattr(modu, "main")
+        state_changes = getattr(modu, "vj")
 
         return step_function(
             steps,
             self.x0,
-            self.state_changes,
+            state_changes,
             self.params,
             propensity,
         )

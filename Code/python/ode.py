@@ -26,11 +26,12 @@ k = np.zeros(2, dtype=np.float64)
 w = np.zeros(2, dtype=np.float64)
 q = np.zeros(2, dtype=np.float64)
 
-k[:] = 0.2
+k[0] = 0.2
+k[1] = 0.4
 
 # Population cap (purely aesthetic if n₁ = n₂)
 n[0] = 100
-n[1] = 90
+n[1] = 70
 
 w[0] = 0.15
 w[1] = 0.015
@@ -42,8 +43,9 @@ w[1] = 0.015
 # q[0] = 0.999
 # q[1] = 0.8
 
-q[:] = 1
-m_0 = 0.0
+q[0] = 1
+q[1] = 1
+m_0 = 2.0
 
 
 alpha = 0
@@ -140,6 +142,7 @@ name_list = [
 dt_name_list = [
     r"$c_1$ fixed point at $c_1^*$",  # {c1_fixed}",
     r"$c_2$ fixed point at $c_2^*$",  # {c2_fixed}",
+    r"$m$ fixed point at $m^*$",  # {c2_fixed}",
     # f"$m$ fixed point at {m_fixed}",
 ]
 
@@ -168,8 +171,8 @@ plt.style.use("bmh")
 
 for i, curve in enumerate(sol1):
     # break
-    if i == 2:
-        break
+    # if i == 2:
+    #     break
     color = color_list[i]
     curve_name = name_list[i]
     # dt_curve_name = dt_name_list[i]
@@ -184,7 +187,7 @@ for i, curve in enumerate(sol1):
         color=color,
         linestyle="dashed",
         linewidth=1,
-        alpha=0,
+        alpha=0.2,
     )
 
     ax.plot(t_array, curve, label=curve_name, color=color)

@@ -2,6 +2,20 @@ import numpy as np
 from gillespie.parameter_class import ParameterClass
 from numba import njit
 
+vj = [
+    np.array([-1, 1, 0], dtype=np.int_),
+    np.array([1, -1, 0], dtype=np.int_),
+    np.array([1, 0, 0], dtype=np.int_),
+    np.array([-1, 0, 0], dtype=np.int_),
+    np.array([0, 1, 0], dtype=np.int_),
+    np.array([0, -1, 0], dtype=np.int_),
+    np.array([-1, 0, 0], dtype=np.int_),
+    np.array([0, -1, 0], dtype=np.int_),
+    np.array([0, 0, 1], dtype=np.int_),
+    np.array([0, 0, -1], dtype=np.int_),
+    np.array([-1, 0, 0], dtype=np.int_),
+]
+
 
 @njit
 def main(

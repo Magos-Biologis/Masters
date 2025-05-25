@@ -45,14 +45,14 @@ class ODEParameters:
             self.o1: float = self.k1 - self.w1
             self.o2: float = self.k2 - self.w2
 
-            c2_range = [self.w1 / self._k2, self.o2 / self._k2]
-            c1_range = [self.w2 / self._k1, self.o1 / self._k1]
+            c1_range = np.array([self.w2 / self._k1, self.o1 / self._k1], dtype=float)
+            c2_range = np.array([self.w1 / self._k2, self.o2 / self._k2], dtype=float)
 
-            self.c1_min: float = min(c1_range)
-            self.c1_max: float = max(c1_range)
+            self.c1_min: float = c1_range.min()
+            self.c1_max: float = c1_range.max()
 
-            self.c2_min: float = min(c2_range)
-            self.c2_max: float = max(c2_range)
+            self.c2_min: float = c2_range.min()
+            self.c2_max: float = c2_range.max()
 
         self.W, self.K = self.__set_matrices()
 
