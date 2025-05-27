@@ -9,3 +9,4 @@
 **/__pycache__/
 *.npz
 /Presentation/.latex_build/**
+**/.latex_build/
