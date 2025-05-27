@@ -88,8 +88,13 @@ class ODEModel:
 
     # third_term = 0
 
-    def _find_level_set(self) -> np.ndarray[tuple[int, int], np.dtype[np.float64]]:
-        x, y = self.mesh_manifold
+    def _find_level_set(
+        self, mesh=None
+    ) -> np.ndarray[tuple[int, int], np.dtype[np.float64]]:
+        if mesh is None:
+            x, y = self.mesh_manifold
+        else:
+            x, y = mesh
         z = self._general_level_set_func(x, y)
 
         # plt.contour(x, y, z, [0])
@@ -100,8 +105,13 @@ class ODEModel:
         assert type(nullcline) is np.ndarray
         return nullcline.T
 
-    def _find_c1_nullcline(self) -> np.ndarray[tuple[int, int], np.dtype[np.float64]]:
-        x, y = self.mesh_manifold
+    def _find_c1_nullcline(
+        self, mesh=None
+    ) -> np.ndarray[tuple[int, int], np.dtype[np.float64]]:
+        if mesh is None:
+            x, y = self.mesh_manifold
+        else:
+            x, y = mesh
         first_term = (self.p.q1 * x * self.p.m0) / (
             (self.p.w2 - self.p._k1 * x) * (self.p.q2 * y)
         )

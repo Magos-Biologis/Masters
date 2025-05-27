@@ -113,10 +113,10 @@ class odePlotters(PlottingData):
         self.xmax = kwargs.pop("xmax", 100)
         self.ymax = kwargs.pop("ymax", 100)
 
-        sol1, sol2, sol3 = fixed_points
-        self.sol1 = sol1
-        self.sol2 = sol2
-        self.sol3 = sol3
+        self.sol1 = fixed_points[0]
+        self.sol2 = fixed_points[1]
+        if total_vars == 3:
+            self.sol3 = fixed_points[2]
 
         if plot_type == "ode":
             self._plot_ode_fixed_points(ax, fixed_points[:total_vars], **kwargs)
@@ -146,15 +146,14 @@ class odePlotters(PlottingData):
         fixed_points,
         **kwargs,
     ) -> None:
-        sol1, sol2, sol3 = fixed_points
         col1 = kwargs.pop("color1", self.x_color)
         col2 = kwargs.pop("color2", self.y_color)
 
-        self._fixed_point_xaxis_setter(ax, sol1)
-        self._fixed_point_yaxis_setter(ax, sol2)
+        self._fixed_point_xaxis_setter(ax, self.sol1)
+        self._fixed_point_yaxis_setter(ax, self.sol2)
 
-        self._plot_vline(ax, sol1, color=col1, **kwargs)
-        self._plot_hline(ax, sol2, color=col2, **kwargs)
+        self._plot_vline(ax, self.sol1, color=col1, **kwargs)
+        self._plot_hline(ax, self.sol2, color=col2, **kwargs)
 
     def _fixed_point_xaxis_setter(self, ax, fp) -> None:
         if np.array(fp, ndmin=1).shape[0] > 1:

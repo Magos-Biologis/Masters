@@ -385,13 +385,6 @@ else:
     data_frame = file_choice
 
 
-## For custom plotting counts
-if args.bin_count is not None:
-    m: int = args.bin_count
-else:
-    m: int = file_choice.loc[0, "count"]
-
-
 #######################
 #   File name stuff   #
 #######################
@@ -421,6 +414,12 @@ file_name += "T{}".format(epoch)
 
 #######################
 
+## For custom plotting counts
+if args.bin_count is not None:
+    m: int = args.bin_count
+else:
+    m: int = data_frame["count"]
+
 alpha = 0
 beta = m  # file_choice["count"]
 
@@ -441,7 +440,7 @@ plt.rcParams.update(
         # "axes.titlecolor": "white",
         # "xtick.labelcolor": "white",
         # "ytick.labelcolor": "white",
-        "savefig.facecolor": "#c0c0ca",
+        # "savefig.facecolor": "#c0c0ca",
     }
 )
 
@@ -579,55 +578,58 @@ if data_source == "ssa":
     # assert "gillespies" in locals(), "How did this happen"
     # assert type(gillespies) is ps.gillespiePlotters, "How did this happen"
 
-    # if args.compare_plots:
-    for i, ax in enumerate(walk_axes):
-        init_cond_string: str = "{}".format(initial_list[i])
-        # init_cond_string: str = "{}".format(file_choice.loc[i, "initcond"])
-        file_path = os.path.join(data_env, path_list[i])
+    if args.compare_plots:
+        for i, ax in enumerate(walk_axes):
+            init_cond_string: str = "{}".format(initial_list[i])
+            # init_cond_string: str = "{}".format(file_choice.loc[i, "initcond"])
+            file_path = os.path.join(data_env, path_list[i])
+
+            numpy_data = np.load(file_path)
+            time = numpy_data["time"]
+            states = numpy_data["states"]
+
+            plot_kwargs.update(label=names[i], color=colors[i])
+
+            gillespies.plot_steps(
+                ax=ax,
+                time=time,
+                results=states,
+                xstart=init_cond_string,
+                plot_starts=args.include_starts,
+                plot_kwargs=plot_kwargs,
+            )
+
+            gillespies.plot_hists(
+                hist_axes[i],
+                states,
+            )
+
+    else:
+        # init_cond_string: str = "{}".format(data_frame["initcond"])
+        file_path = os.path.join(data_env, path_list[0])
 
         numpy_data = np.load(file_path)
-        time = numpy_data["time"]
-        states = numpy_data["states"]
+        time, states = numpy_data["time"], numpy_data["states"]
 
-        plot_kwargs.update(label=names[i], color=colors[i])
+        for i, ax in enumerate(walk_axes):
+            plot_kwargs.update(label=names[i], color=colors[i])
 
-        gillespies.plot_steps(
-            ax=ax,
-            time=time,
-            results=states,
-            xstart=init_cond_string,
-            plot_starts=args.include_starts,
-            plot_kwargs=plot_kwargs,
-        )
+            gillespies.plot_walk(
+                ax,
+                time=time,
+                steps=states[i, :],
+                plot_kwargs=plot_kwargs,
+                plot_starts=args.include_starts,
+            )
 
-        gillespies.plot_hists(
-            hist_axes[i],
-            states,
-        )
+            gillespies.plot_hist(
+                hist_axes[i], states[i, :], label=names[i], color=colors[i]
+            )
 
-    # else:
-    #     init_cond_string: str = "{}".format(file_choice.loc["initcond"])
-    #     file_path = os.path.join(data_env, path_list[0])
-    #
-    #     numpy_data = np.load(file_path)
-    #     time, states = numpy_data["time"], numpy_data["states"]
-    #
-    #     for i, ax in enumerate(walk_axes):
-    #         plot_kwargs.update(label=names[i], color=colors[i])
-    #
-    #         gillespies.plot_walk(
-    #             ax,
-    #             time=time,
-    #             steps=states[i, :],
-    #             plot_kwargs=plot_kwargs,
-    #             xstart=init_cond_string,
-    #             plot_starts=args.include_starts,
-    #         )
-    #
-    #         y_max = min(states[i, :].max(), 100)
-    #         ax.set_yticks([y for y in np.linspace(0, y_max + 1, 5, dtype=np.int_)])
-    #         ax.set_xlim(left=0)
-    #         ax.set_ylim(bottom=0, top=y_max)
+            y_max = min(states[i, :].max(), 100)
+            ax.set_yticks([y for y in np.linspace(0, y_max + 1, 5, dtype=np.int_)])
+            ax.set_xlim(left=0)
+            ax.set_ylim(bottom=0, top=y_max)
     #
     #     if model in ["2L"]:
     #         # for i, ax in enumerate(hist_axes):
@@ -660,11 +662,17 @@ if data_source == "ssa":
             )
     else:
         for ax in hist_axes:
-            ax.set_title(
-                "Distribution of Gene Copy Number\n"
-                + "${}$".format(para_version.replace("$", "")),
-                fontdict=font_kwargs,
-            )
+            if model == "5_2":
+                ax.set_title(
+                    "Distribution of Gene Copy Number\n"
+                    + "${}$".format(para_version.replace("$", "")),
+                    fontdict=font_kwargs,
+                )
+            else:
+                ax.set_title(
+                    "Distribution of Gene Copy Number",
+                    fontdict=font_kwargs,
+                )
 
     for i, ax in enumerate(hist_axes):
         ax.set_xlim(xlims)
@@ -791,7 +799,11 @@ elif data_source == "phase":
     # ax2 = fig2.add_subplot()
 
     odeies.plot_phase_space(ax1, c1, c2, dU, dV)
-    odeies.plot_nullclines(ax1, *c1_null, *c2_null)
+    odeies.plot_nullclines(ax1, *c2_null, *c1_null)
+
+    # level_set = numpy_data["level"]
+    # odeies._plot_phase_curve(ax1, *c1_null, label="$c_2$ Nullcline", color="b")
+    # odeies._plot_phase_curve(ax1, *level_set, label="Levelset", color="g")
 
     if args.plot_fixedpoints:
         parameters: dict[str, float] = data_frame["metadata"]

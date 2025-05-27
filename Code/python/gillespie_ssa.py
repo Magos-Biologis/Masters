@@ -93,8 +93,8 @@ parser.add_argument(
     dest="size",
     help="Total units in system",
     type=int,
-    default=int(100),
 )
+# default=int(100),
 
 parser.add_argument(
     "-ic",
@@ -103,6 +103,7 @@ parser.add_argument(
     dest="initial_conds",
     help="Initial Conditions",
     type=int,
+    default=np.array([99, 0, 0]),
 )
 
 
@@ -173,14 +174,8 @@ else:
     print("What?")
     exit()
 
-m: int = args.size
-inx, iny = m - 1, 1
 
 # initial = args.initial_conds
-if args.initial_conds is None:
-    initial = np.array([inx, iny, 0, 0, 0], dtype=int_)[:var_count]
-else:
-    initial = np.array([*args.initial_conds, 0, 0], dtype=int_)[:var_count]
 
 
 # print(args.initial_conds)
@@ -217,10 +212,53 @@ else:
     is_ode = True
 
 addons = []
-addons.append(f"num={initial.sum()}")
+
+
+# if args.initial_conds is None:
+#     initial = np.array([inx, iny, 0, 0, 0], dtype=int_)[:var_count]
+# else:
+#     initial = np.array([*args.initial_conds, 0, 0], dtype=int_)[:var_count]
+
+initial = args.initial_conds[:var_count]
+
+if args.size is None:
+    m = initial.sum()
+else:
+    m = args.size
 
 alpha = 0
 beta = m
+
+
+# print(parameter_default)
+# exit()
+
+# test_dict = {
+#             "n":parameters.n,
+#             "b":parameters.b,
+#             "k1":parameters.k1,
+#             "k-1":parameters.k_1,
+#             "k2":parameters.k2,
+#             "k-2":parameters.k_2,
+#             "k3":parameters.k3,
+#             "k-3":parameters.k_3,
+#             "k4":parameters.k4,
+#             "k-4":parameters.k_4,
+#             "k5":parameters.k5,
+#             "k-5":parameters.k_5,
+#             "k6":parameters.k6,
+#             "k-6":parameters.k_6,
+#             "k7":parameters.k7,
+#             "k-7":parameters.k_7,
+#             "k8":parameters.k8,
+#             "k-8":parameters.k_8,
+#             "n1":parameters.n1,
+#             "n2":parameters.n2,
+#             "w1":parameters.w1,
+#             "w2":parameters.w2,
+#             "m0":parameters.m0,
+#         }
+
 
 if not is_ode:
     addons.extend(

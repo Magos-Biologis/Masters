@@ -176,7 +176,7 @@ class gillespiePlotters(PlottingData):
         else:
             if model == "ode_3_2" or model == "ode_3_3":
                 fixed: dict[str, float] = parameters.ode_3_2()
-            elif model == "ode_5_2" or model == "ode_5_3":
+            elif model == "ode_5_2" or model == "ode_5_3" or model == "ode_8_3":
                 fixed: dict[str, float] = parameters.ode_5_2()
 
         # print("hey")
@@ -201,7 +201,7 @@ class gillespiePlotters(PlottingData):
         else:
             if model == "ode_3_2" or model == "ode_3_3":
                 fixed: dict[str, float] = parameters.ode_3_2()
-            elif model == "ode_5_2" or model == "ode_5_3":
+            elif model == "ode_5_2" or model == "ode_5_3" or model == "ode_8_3":
                 fixed: dict[str, float] = parameters.ode_5_2()
 
         self.lineargs.update(kwargs)
