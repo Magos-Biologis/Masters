@@ -25,6 +25,7 @@
 \usepackage{myMathQA}
 \usepackage{graphicx}
 \usepackage{siunitx}
+\usepackage{subcaption}
 
 \usepackage{hyperref}
 
@@ -153,7 +154,7 @@
 \newcommand\makebeamertitle{\frame{\maketitle}}%
 
 % For sections?
-\graphicspath{{./images/}{../Thesis/images/phase/}{../Thesis/images/ode/}{../Thesis/images/fpe/}}
+\graphicspath{{./images/}{../Thesis/images/}{../Thesis/images/phase/}{../Thesis/images/ode/}{../Thesis/images/fpe/}}
 
 
 \def\cfp#1{c_#1^*}
@@ -180,6 +181,52 @@
 
 \section{Introduction}
 
+\begin{frame}{Who am I?}
+
+    \begin{columns}[T]
+
+        \column{0.5\textwidth}
+
+        \begin{itemize}[<+->]
+            \item Hi, I'm Anakin
+                \begin{itemize}[<.->]
+                    \item You've probably met me
+                \end{itemize}
+            \item Started at RUC during covid times
+                \begin{itemize}[<.->]
+                    \item Applied to RUC in 2020
+                    \item For the MSc program `Molecular Genetics'
+                \end{itemize}
+            \item Masters reform happened
+                \begin{itemize}[<.->]
+                    \item Hard pivoted into math
+                    \item Never particularly interested in it before
+                    \item Genetics/Developmental biology is still my first love
+                \end{itemize}
+        \end{itemize}
+
+        \column<4->{0.5\textwidth}
+
+        What led to me actually thinking `math is cool'
+        \begin{itemize}
+            \item Michael Levin
+                \begin{itemize}
+                    \item Bioelectricty as determining force
+                    \item `Xenobots' showing life is eldritch
+                \end{itemize}
+            \item C. H. Waddington
+                \begin{itemize}
+                    \item laid foundations for epigenetics and systems biology
+                    \item Coined the 'epigenetic landscape' similar to potential
+                        energy landscape for gene expression
+                \end{itemize}
+        \end{itemize}
+
+
+    \end{columns}
+
+\end{frame}
+
 \begin{frame}{The Research Question}
 
     \begin{itemize}
@@ -187,8 +234,8 @@
     \end{itemize}
     \pause
     \begin{enumerate}[<+->]
-        \item Nothing noble
-        \item I wanted to find an excuse to learn about stochasticity
+        \item It's a tangible problem
+        \item I wanted to find an excuse to go `balls deep' into stochasticity
         \item I believe there is an inherent relationship between
             statistical manifolds and genetic phenotypes
     \end{enumerate}
@@ -206,7 +253,10 @@
 %     Caused by frequent mutations other than spontaneous gene amplifications:
 %         Point mutations
 %         Insertion sequence insertions
-%         Small deletions
+%         Smal   Caused by frequent mutations other than spontaneous gene amplifications:
+%         Point mutations
+%         Insertion sequence insertions
+%         Smalll deletions
 %     Resistance mutations with low or no fitness cost:
 %         Stable even in the absence of antibiotics
 %         Leads to stable heteroresistance
@@ -277,8 +327,8 @@
         \begin{itemize}
             \item Resistance mutations with low or no fitness cost
                 \begin{itemize}
-                    \item Insertions
-                    \item Deletions
+                    \item Stable even in the absence of antibiotics
+                    \item Leads to stable heteroresistance
                 \end{itemize}
         \end{itemize}
 
@@ -287,8 +337,11 @@
         \begin{itemize}
             \item High fitness cost associated with resistance mutation
                 \begin{itemize}
-                    \item Insertions
-                    \item Deletions
+                    \item Rare resistant cells with reduced fitness
+                        (contain a resistance mutation)
+                    \item Main population of susceptible cells with higher
+                        fitness (contain a resistance mutation and a
+                        compensatory mutation)
                 \end{itemize}
         \end{itemize}
 
@@ -299,18 +352,32 @@
 \subsection{Copy Numbers}
 
 \begin{frame}{Gene Copy Numbers}
+
+    \centering
+
+    \vspace{1em}
+    One of the most interesting methods is through the
+    gene copy number GCN\beamerfootcite{Nicoloff2024}\par
+    \includegraphics[width=0.7\textwidth]{cgn.png}\par
+    So we literally see the copy count of the gene increasing
+
+
 \end{frame}
-
-
-\begin{frame}{Fitness Doesn't Matter?}
-
-
-
-\end{frame}
-
 
 
 \section{What do we know}
+
+
+\begin{frame}{The approach}
+
+    \begin{itemize}
+        \item See if it can be modeled with ODEs
+        \item See if it can be modeled with SDEs
+        \item Compare
+    \end{itemize}
+
+
+\end{frame}
 
 
 \begin{frame}{ODE system}
@@ -347,7 +414,7 @@
 
 
     \begin{columns}
-        \column{0.5\framewidth}
+        \column<2->{0.5\framewidth}
         \vspace{8em}\par
 
         \begin{align*}
@@ -364,11 +431,11 @@
 
     \begin{tikzpicture}[overlay, remember picture]
 
-        \node<2-> at (frame cs:0.5, 0.34) {
+        \node<3-> at (frame cs:0.5, 0.34) {
                 \includegraphics[width=0.4\textwidth]
                 {ode:jesper:I6:C1:T17481880809603815.pdf}
             };
-        \node<2-> at (frame cs:0.5, -0.40) {
+        \node<3-> at (frame cs:0.5, -0.40) {
                 \includegraphics[width=0.4\textwidth]
                 {ode:jesper:I32:C1:T17481997939903586.pdf}
             };
@@ -383,33 +450,143 @@
     \begin{columns}[T]
         \column{0.5\framewidth}
         \begin{itemize}
-            \alt<1>{
-                \item Skipping the details
-                }{
-                \item Soure: trust me
-                }
-            \item We recognize that
+            \item Skipping the details
+            \item We recognize that the system likely has an asymptotic stability
+            \item Nullclines are given by
+                \begin{align*}
+                    \ode* c_1 = 0 &\iff c_2 = {q_1 m c_1- \pa{\omega_1 - \k_1c_1}c_1 \over w_2 - \k_1 c_1}
+                    \\
+                    \ode* c_2 = 0 &\iff c_1 = -{\pa{\omega_{2} - \k_{2} c_2} c_2 \over w_1 - \k_{2}c_2}
+                    \\
+                    \ode* m = 0 &\iff m = {m_0 \over q_m c_2}
+                \end{align*}
         \end{itemize}
 
 
         \column{0.5\framewidth}
 
+    \end{columns}
+
+    \begin{tikzpicture}[overlay, remember picture]
+
+        \node<1> at (frame cs:0.5, 0.0) {
+                \includegraphics[width=0.5\textwidth]
+                {phase:jesper:I5:Cm0=0_k1=1.0_k2=2.0_n1=100.0_n2=100.0_w1=0.015_w2=0.15_q1=0.85_q2=0.85_:T0.pdf}
+            };
+
+        % \node<1> at (frame cs:0.5, -0.40) {
+        %         \includegraphics[width=0.4\textwidth]
+        %         {ode:jesper:I32:C1:T17481997939903586.pdf}
+        %     };
+
+
+    \end{tikzpicture}
+
+\end{frame}
+
+\begin{frame}{Analytic Cont.}
+
+
+    \begin{columns}[T]
+        \column{0.6\framewidth}
+        \begin{itemize}
+            \item I wasn't \alt<1>{smart}{\cancel{smart} patient} enough to
+                solve it purely algebraically
+                \begin{itemize}
+                    \item Things kept canceling to themselves
+                \end{itemize}
+            \item<2-> Instead we define a level set in the phase space
+                \begin{equation*}
+                    \clm C_s:= \left\{(c_1, c_2, m) \,\big|\,
+                    \ode* \br{c_1+c_2+m} = 0\right\}
+                \end{equation*}
+            \item<3-> Means, when \(m=m_0\pa{q_m c_2}^{-1}\) that all solutions
+                belong to the embedding
+                \begin{equation*}
+                    {q_1 \over q_2} {c_1 \over c_2} m_0 =
+                    \pa{k_1 c_1 + k_2 c_2}
+                    - \pa{ \k_2  c_2 + \k_1  c_1 }  \pa{c_1 + c_2}
+                \end{equation*}
+
+        \end{itemize}
+
+
+        \column{0.5\framewidth}
 
     \end{columns}
 
     \begin{tikzpicture}[overlay, remember picture]
 
-        \node<2-> at (frame cs:0.5, 0.34) {
-                \includegraphics[width=0.4\textwidth]
-                {ode:jesper:I6:C1fp:T17481880809603815.pdf}
+        \node<2> at (frame cs:0.5, 0.0) {
+                \includegraphics[width=0.5\textwidth]
+                {phase:jesper:I2:Cm0=0_k1=1.0_k2=1.0_n1=100.0_n2=90.0_w1=0.15_w2=0.15_q1=0.85_q2=0.85_:T0.pdf}
             };
-        \node<2-> at (frame cs:0.5, -0.40) {
+
+        \node<3-> at (frame cs:0.5, 0.34) {
                 \includegraphics[width=0.4\textwidth]
                 {ode:jesper:I32:C1fp:T17481997939903586.pdf}
             };
-
+        % \node<3-> at (frame cs:0.5, -0.40) {
+        %         \includegraphics[width=0.4\textwidth]
+        %         {ode:jesper:I6:C1fp:T17481880809603815.pdf}
+        %     };
     \end{tikzpicture}
+\end{frame}
 
+\begin{frame}{Analytic Cont.}
+
+
+    \begin{columns}[T]
+        \column{0.5\framewidth}
+        \begin{itemize}
+            \item From the fact that we can then make a Lyapunov
+                out of the logistic growths, we know the system is
+                asymptotically stable\beamerfootcite{Meiss2017}
+            \item Intuitively its just from adding logistic growths
+        \end{itemize}
+
+
+        \column{0.5\framewidth}
+        \begin{itemize}
+            \item In the case of a non-hyperbolic fixed point at
+                \(\vec{p}=\pa{0,0,0}\)
+                % \begin{itemize}
+                %     \item Really when \(m=0\)
+                % \end{itemize}
+            \item We use the fact that the subspaces of an invariant set
+                are themselves invariant\footnotemark[2]
+                and show instability with respect to the embedding
+                \begin{equation*}
+                    \left[
+                        \begin{matrix}
+                            \omega_1& w_2 & 0 \\
+                            w_1 & \omega_2 & 0 \\
+                            0 & 0 & 0
+                        \end{matrix}
+                    \right]
+                    \to
+                    \bmatform[\omega_1, w_2; w_1, \omega_2]
+                \end{equation*}
+        \end{itemize}
+
+    \end{columns}
+
+    % \begin{tikzpicture}[overlay, remember picture]
+    %
+    %     \node<2> at (frame cs:0.5, 0.0) {
+    %             \includegraphics[width=0.5\textwidth]
+    %             {phase:jesper:I2:Cm0=0_k1=1.0_k2=1.0_n1=100.0_n2=90.0_w1=0.15_w2=0.15_q1=0.85_q2=0.85_:T0.pdf}
+    %         };
+    %
+    %     \node<3-> at (frame cs:0.5, 0.34) {
+    %             \includegraphics[width=0.4\textwidth]
+    %             {ode:jesper:I32:C1fp:T17481997939903586.pdf}
+    %         };
+    %     % \node<3-> at (frame cs:0.5, -0.40) {
+    %     %         \includegraphics[width=0.4\textwidth]
+    %     %         {ode:jesper:I6:C1fp:T17481880809603815.pdf}
+    %     %     };
+    % \end{tikzpicture}
 \end{frame}
 
 
@@ -422,25 +599,32 @@
     \begin{itemize}
         \item Stochasticity is a touchy topic mathematically
             \begin{itemize}[<.->]
-                \item
+                \item Fundementally nothing mathematically can have a
+                    non-determined output
+                \item Cue the concept of a process
             \end{itemize}
-    \end{itemize}
-
-    So what some \emph{lunatic} did, is glue a Wiener process to the end of our
-    differential.
-    With some multivariate function \(B\), acting on \(W_t\) as a scaling factor
-    for the variance.
-    By substitution of variables, we can redefine the sides of the derivative,
+        \item If we tie the outcome of a state, to the current state and time,
+            \begin{equation*}
+                W\of{x\of t, t \,|\, x\of{t-1}}
+            \end{equation*}
+            we can pretend that randomness isn't real, but still use it mathematically
     \begin{align}
         %\ode x = A\of{x,t} + B\of{x,t}
         \ode x = A\of{x\of t, t} \implies \dd{x} &= A\of{x,t} \dd{t}
         \shortintertext{Throw our randomness in there}
         \dd{x} &= A\of{x,t} \dd{t} + \sqrt{  B\of{x,t} } \ \dd{W_t}
     \end{align}
-    from allowing our ODE to be influenced by stochastic noise, we now
-    have a SDE.
+    % from allowing our ODE to be influenced by stochastic noise, we now
+    % have a SDE.
 
-    More formally known as the the \emph{Langevin equation},
+     \item More formally known as the the \emph{Langevin equation},
+    \end{itemize}
+
+    % So what some \emph{lunatic} did, is glue a Wiener process to the end of our
+    % differential.
+    % With some multivariate function \(B\), acting on \(W_t\) as a scaling factor
+    % for the variance.
+    % By substitution of variables, we can redefine the sides of the derivative,
 
 \end{frame}
 
@@ -456,6 +640,9 @@
     \end{equation}
     \begin{itemize}
         \item  \(W_t\of{x|x'}\) is the rate of state transitions from \(x'\)
+            \begin{itemize}
+                \item Also known as a Weiner process
+            \end{itemize}
         \item  \(P\of{x, t}\) is the probability of \(x\) at the given time
     \end{itemize}
 
@@ -471,7 +658,8 @@
         \pde* P\of{x,t}
         =
         \sum_{j}^{}\br{
-            \left[a_j\of{x|x'} P\of{x',t} - a_j\of{x'|x} P\of{x,t}\right]
+            a_j\of{\vec{n} - \vec{v}_j} P\of{\vec{n} - \vec{v}_j,t}
+            - a_j\of{\vec{n}} P\of{\vec{n},t}
         }
     \end{equation}
 
@@ -488,6 +676,41 @@
 \end{frame}
 
 \begin{frame}{Fokker-Planck}
+
+    \only<1>{
+    \begin{itemize}
+        \item Taking the chemical master equation, taylor expanding it to second order
+            \begin{equation*}
+                \pde[t]{P\of{\vec{x},t}} =
+                \sum_{r=1}^{R} \left[
+                    \sum_{i=1}^{N} n_{ri} \pde*[x_i] w_r\of{\vec{x}} P\of{\vec{x},t}
+                    +
+                    \sum_{i=1}^{N} \sum_{j=1}^{N} {n_{ri} n_{rj} \over 2}
+                    \pde*[x_i, x_j] w_r\of{\vec{x}} P\of{\vec{x},t}
+                \right]
+            \end{equation*}
+        \item By smoothing this guy out, we get the fokker-plank
+        \item Turning systems like this,
+            \begin{equation*}
+                A_1 \mathop\rightleftharpoons^{k_1}_{k_2} A_2
+            \end{equation*}
+
+
+    \end{itemize}
+}
+
+    \only<2>{
+    \begin{itemize}
+        \item To a stationary distribution, like
+    \end{itemize}
+    }
+
+    \begin{tikzpicture}[overlay, remember picture]
+        \node<2> at (frame cs:0,-0.25) {
+                \includegraphics[width=0.85\framewidth]
+                {Screenshot from 2025-05-26 10-00-15.png}
+            };
+    \end{tikzpicture}
 
 \end{frame}
 
@@ -669,24 +892,141 @@
 
 \end{frame}
 
+\begin{frame}{Oh, well what about treatment, ignoring nutrients}
 
-\subsection{My Proposed Model}
+        \only<1>{
+    \begin{columns}[T]
+        \column{0.3\textwidth}
 
-\begin{frame}{Two Species Compartment Model}
+        \begin{itemize}
+            \item Antibiotic terms
+                \begin{align*}
+                    \emptyset &\xrightarrow{m_0} M \\
+                    M+c_2 &\xrightarrow{q_m} c_2 \\
+                    B + c_1  &\xrightarrow{q_1} M
+                \end{align*}
+            \item Can't avoid using antibiotics as a variable if we want
+                to match the ODE system
+        \end{itemize}
+
+
+        \column{0.7\textwidth}
+
+        \begin{reactiontable}
+            \reactionterm[\(w_2 c_2\)]{\(w_1 c_1\)}{\(c_1\)}{\(c_2\)}{-1, 1, 0}
+            \reactionterm[\(k_{1} c_1^2\)]{\(k_1 n c_1\)}{\(c_1+N\)}{\(2 c_1\)}{ 1, 0, 0}
+            \reactionterm[\(k_{2} c_2^2\)]{\(k_2 n c_2\)}{\(c_2+N\)}{\(2 c_2\)}{ 0, 1, 0}
+            \reactionterm{\(k_{1}c_1c_2\)}{\(c_1+c_2\)}{\(c_1+N\)}{-1, 0, 0}
+            \reactionterm{\(k_{2}c_1c_2\)}{\(c_1+c_2\)}{\(c_2+N\)}{0, -1, 0}
+            \reactionterm{\(m_0\)}{\(\emptyset\)}{\(M\)}{0, 0, 1}
+            \reactionterm{\(q_m m c_2\)}{\(c_2 + M\)}{\(c_2+\emptyset \)}{0, 0, -1}
+            \reactionterm{\(q_1 m c_1\)}{\(c_1 + M\)}{\(M+N\)}{-1, 0, 0}
+        \end{reactiontable}
+
+
+    \end{columns}
+    }
+
+        \only<2>{
+            \begin{columns}[T]
+                \column{0.5\textwidth}
+
+                \begin{itemize}
+                    \item Drift term is the same as ODE,
+                \begin{align*}
+                    \vec{A}\of{\vec{c}}
+                    &=
+                    \bmatform[%
+                    \pa{n - (c_1 + c_2) } k_1 c_1 - \pa{ w_1 c_1 - w_2 c_2  }
+                    -q_1 m c_1;%
+                    \pa{n - (c_2 + c_1) } k_2 c_2 + \pa{ w_1 c_1 - w_2 c_2  };%
+                    \pa{m_0 - q_m m c_2}
+                    ]
+                \end{align*}
+
+                \vspace{7em}
+                \end{itemize}
+
+            %     {\small
+            %     \begin{align*}
+            %         \mat{B}\of{\vec{c}} &=
+            %          \bmatform[%
+            %          \pa{n +  c_1 + c_2} k_1 c_1 +  w_1 c_1 + w_2 c_2 + q_1 m c_1,
+            %          - \pa{ w_1 c_1 + w_2 c_2  }, 0;
+            %          - \pa{ w_1 c_1 + w_2 c_2  },
+            %          \pa{n +  c_1  + c_2} k_2 c_2 + w_1 c_1 + w_2 c_2, 0;
+            %          0, 0 , m_0 + q_m m c_2
+            %          ]
+            %     \end{align*}
+            % }
+
+                \column{0.5\textwidth}
+
+
+            \end{columns}
+    }
+
+    \begin{tikzpicture}[overlay, remember picture]
+
+        \node<2-> at (frame cs:-0.50, -0.35) {
+                \includegraphics[width=0.55\framewidth, page=1]
+                {ode/ssa:ode-8-3:I34:C2:T17476639695953887.pdf}
+            };
+
+        \node<2-> at (frame cs:0.50,-0.35) {
+                \includegraphics[width=0.55\framewidth, page=2]
+                {ode/ssa:ode-8-3:I34:C2:T17476639695953887.pdf}
+            };
+
+    \end{tikzpicture}
+
 
 \end{frame}
 
 
+\subsection{My Proposed Model}
+
 \begin{frame}{My Model}
 
-    \raggedbottom
+    % \raggedbottom
 
 
-    \begin{itemize}
-        \item Built from principles
-    \end{itemize}
 
-    \tikz[overlay, remember picture] \node<2> at (frame cs:0,0)
+    \begin{columns}[T]
+        \column<1->{0.8\textwidth}
+        \vspace{1ex}
+        \begin{itemize}
+            \item Transcription happens at a rate one product/gene/process
+            \item So lets model what happens in a system where
+                gene copies actually vary
+        \end{itemize}
+
+
+        \column{0.2\textwidth}
+
+    \end{columns}\par
+
+    \begin{columns}[T]
+        \column<2>{0.3\textwidth}
+        \vspace{1ex}
+        \begin{itemize}
+            \item The `reactions' then
+                \begin{align*}
+                    X + N &\xrightleftharpoons[k_{-1}]{k_1} 2 X \\
+                    X + N &\xrightarrow{k_2} X + Y \\
+                    X + B &\xrightarrow{k_3} B \\
+                    Y + B &\xrightarrow{k_4} N \\
+                    Y    &\xrightarrow{k_5} N
+                \end{align*}
+        \end{itemize}
+
+
+        \column{0.7\textwidth}
+
+
+    \end{columns}
+
+    \tikz[overlay, remember picture] \node at (frame cs:0.35,0)
     {%
         \begin{tikzpicture}
             \pgfmathsetnewmacro\genelength{35}
@@ -805,11 +1145,207 @@
 
 \end{frame}
 
+\begin{frame}{Drift and Diffusion}
+
+    \def\fourAone{ { \pa{k'_1  - k_{-1} x} x - k'_3 x } }
+    \def\fourAtwo{ { k'_2 x - \pa{k'_4  + k_5 } y} }
+    \def\fourBxx{ { k'_1 x + k_{-1} x^2 + k'_3 x } }
+    \def\fourBxy{ { 0 } }
+    \def\fourByy{ { k'_2 x  + k'_4 y + k_5 y} }
+    \def\fourAvec{{ \bmatform[ \fourAone ; \fourAtwo ] } }
+    \def\fourBmat{{ \bmatform[ \fourBxx , \fourBxy ; \fourBxy , \fourByy] }}
+
+
+    \begin{columns}[T]
+        \column{0.5\textwidth}
+
+    \begin{itemize}
+    \item \(k_1':= k_1 n\)
+    \item \(k_{2}':= k_2 n\)
+    \end{itemize}
+
+        \column{0.5\textwidth}
+
+    \begin{itemize}
+    \item \(k_3':= k_3 b\)
+    \item \(k_{4}':= k_4 b\)
+    \end{itemize}
+
+    \end{columns}
+
+    \begin{align*}
+        \vec{A}\of{\vec{x}}
+        &=
+        \begin{bmatrix} 1 \\ 0 \end{bmatrix} \pa{k'_1 x - k_{-1} x^2}
+        + \begin{bmatrix} 0 \\ 1 \end{bmatrix} k'_2 x
+        + \begin{bmatrix} -1 \\ 0 \end{bmatrix} k'_3 x
+        + \begin{bmatrix} 0 \\ -1 \end{bmatrix} k'_4 y
+        + \begin{bmatrix} 0 \\ -1 \end{bmatrix} k_5 y
+        \\
+        &= \fourAvec \\
+        \mathbf{B}\of{\vec{x}}
+        &=
+        \dumbmatrixtwobytwo[ 1,  0] \pa{ k'_1 x + k_{-1} x^2 }
+        + \dumbmatrixtwobytwo[ 0,  1] k'_2 x
+        + \dumbmatrixtwobytwo[-1,  0] k'_3 x
+        + \dumbmatrixtwobytwo[ 0, -1] k'_4 y
+        + \dumbmatrixtwobytwo[ 0, -1] k_5 y
+        \\
+        &= \fourBmat
+    \end{align*}
+
+\end{frame}
+
+\begin{frame}{Stability}
+
+\begin{equation*}
+    \vec{x}^*:=
+    \left[ \begin{matrix} x^* \\ y^* \end{matrix} \right]
+    =
+    -
+    \left[
+        \begin{matrix}
+            \displaystyle {k'_3 - k'_1 \over k_{-1} }  &
+            \displaystyle { k'_2\pa{k'_3 - k'_1} \over k'_{-1} k'_4}
+        \end{matrix}
+    \right]^{\mathrm{T}}
+\end{equation*}
+\begin{align*}
+    \ode* \left[\begin{matrix} \delta x \\ \delta y \end{matrix} \right]
+    &=
+    \pde*[\bgroup x^*\egroup] \vec{A}\of{\vec{x}^*} \delta x +
+    \pde*[\bgroup y^*\egroup] \vec{A}\of{\vec{x}^*} \delta y \\
+    &= \bmatform[ k'_3 - k'_1 ; k'_2 ] \delta x
+    +  \bmatform[ 0; -\pa{k'_4 + k_5}] \delta y
+    =
+    \left[
+        \begin{matrix}
+            % - 2k'_{-1} x^* + k'_1  - k'_3  & 0\\
+            k'_3  - k'_1  & 0\\
+            k'_2 & -\pa{k'_4 + k_5}
+        \end{matrix}
+    \right]
+    \left[\begin{matrix} \delta x \\ \delta y \end{matrix} \right]
+\end{align*}
+
+\begin{align*}
+    k_3 b < k_1 n &\implies \Re\of{\lambda_{1}} < 0\land \Re\of{\lambda_2} < 0
+                  &&\text{ which is stable} \\
+    k_3 b = k_1 n &\implies \Re\of{\lambda_{1}} = 0\land \Re\of{\lambda_2} < 0
+                  &&\text{ which is `spectrally' stable}\\
+    k_3 b > k_1 n &\implies \Re\of{\lambda_{1}} > 0 \land \Re\of{\lambda_{2}} < 0
+                  &&\text{ which is a saddle}
+\end{align*}
+
+\end{frame}
+
+
+\begin{frame}{What does it looks like in action?}
+
+        \begin{figure}
+            \centering
+            \begin{subfigure}{\textwidth/3}
+                \includegraphics[width=1\textwidth, page=2]%
+                {five_var/ssa:5-2:b>n:I4:C1:T17474950116682749.pdf}\vfil
+                \includegraphics[width=1\textwidth, page=1]%
+                {five_var/ssa:5-2:b>n:I4:C1:T17474950116682749.pdf}
+            \end{subfigure}%
+            \hfil
+            \begin{subfigure}{\textwidth/3}
+                \includegraphics[width=1\textwidth, page=2]%
+                {five_var/ssa:5-2:b=n:I2:C1:T17474930541817677.pdf}\vfil
+                \includegraphics[width=1\textwidth, page=1]%
+                {five_var/ssa:5-2:b=n:I2:C1:T17474930541817677.pdf}
+            \end{subfigure}%
+            \hfil
+            \begin{subfigure}{\textwidth/3}
+                \includegraphics[width=1\textwidth, page=2]%
+                {five_var/ssa:5-2:b<n:I0:C1:T17474930032197933.pdf}\vfil
+                \includegraphics[width=1\textwidth, page=1]%
+                {five_var/ssa:5-2:b<n:I0:C1:T17474930032197933.pdf}
+            \end{subfigure}%
+            % \caption{%
+            %     Results from simulating the 2 variable system outlined in
+            %     \Cref{tab.fivepar_twovar}.
+            %     All parameters are simplified to be equal to \(1\).
+            %     The difference in evolution/steady state come from varying \(b\) in relation to
+            %     \(n\).
+            %     When \(b>n\), there is no distribution nor evolution.
+            %     When \(b=n\), there is an ephemeral stability near the origin.
+            %     When \(b<n\), there is a stable point.
+            % }\label{fig.5part2varmany}
+        \end{figure}
+
+\end{frame}
+
+\begin{frame}{MORE}
+    \begin{tikzpicture}[overlay, remember picture]
+
+        % \node<1-> at (frame cs:0, -0.45) {
+        %         \includegraphics[width=0.38\framewidth, page=1]
+        %         {five_var/ssa:5-3:I16:C2:T17475031669379826.pdf}
+        %     };
+        %
+        %
+        % \node<1-> at (frame cs:0, 0.45) {
+        %         \includegraphics[width=0.38\framewidth, page=1]
+        %         {five_var/ssa:5-3:I20:C2:T17475033100262814.pdf}
+        %     };
+
+        \node<1-> at (frame cs:0.50,0.0) {
+                \includegraphics[width=0.45\framewidth, page=3]
+                {five_var/ssa:5-3:I16:C2:T17475031669379826.pdf}
+            };
+
+        \node<1-> at (frame cs:-0.50,0.) {
+                \includegraphics[width=0.45\framewidth, page=3]
+                {five_var/ssa:5-3:I20:C2:T17475033100262814.pdf}
+            };
+
+    \end{tikzpicture}
+\end{frame}
 
 \section{Discussion}
 
 \begin{frame}{ODE to SDE Differences}
+
+
+    \begin{itemize}
+        \item From what we can see, a lot of the dynamics of the ode system
+            were not preserved
+        \item Hell, when the anti-biotic was added, it looks like we start
+            seeing lokta-volterra esque dynamics
+    \end{itemize}
+
+    \vspace{8em}
+
+    \begin{tikzpicture}[overlay, remember picture]
+
+        \node<2-> at (frame cs:-0.50, -0.35) {
+                \includegraphics[width=0.55\framewidth, page=1]
+                {ode/ssa:ode-8-3:I34:C2fp:T17476639695953887.pdf}
+            };
+
+        \node<2-> at (frame cs:0.50,-0.35) {
+                \includegraphics[width=0.55\framewidth, page=2]
+                {ode/ssa:ode-8-3:I34:C2fp:T17476639695953887.pdf}
+            };
+
+    \end{tikzpicture}
+
 \end{frame}
+
+\begin{frame}{Limitations of my model}
+
+    \begin{itemize}
+        \item In the current form, what I can present,
+            it is difficult to specifically find these rates
+        \item A lot of assumptions were made
+    \end{itemize}
+
+
+\end{frame}
+
 
 
 
