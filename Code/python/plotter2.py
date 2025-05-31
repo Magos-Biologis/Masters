@@ -1,18 +1,13 @@
 #!../.venv/bin/python3
 import argparse
-import json
 import os
 import re
 
-import matplotlib as mpl
 import numpy as np
 import pandas as pd
 import plottingstuff as ps
-from gillespie import analytical as dga
-from matplotlib import pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
-
-# from pylab import *
+from pylab import *
 
 # figure_env = str(os.getenv("THESIS_FIGURE_PATH"))
 fig_env = str(os.getenv("THESIS_FIGURE_PATH"))
@@ -139,7 +134,7 @@ parser.add_argument(
     dest="size",
     help="Size of System",
     type=int,
-    # default=int(100),
+    default=int(100),
 )
 parser.add_argument(
     "-b",
@@ -147,7 +142,7 @@ parser.add_argument(
     dest="bin_count",
     help="Number of bins",
     type=int,
-    # default=int(100),
+    default=int(100),
 )
 parser.add_argument(
     "-i",
@@ -305,8 +300,7 @@ raw_frame = raw_frame.loc[defined_metadata]
 
 ## That dict.pop has a default for missing entries is a literal godsend
 ssa_index = raw_frame.loc[raw_frame["datasource"] == "ssa"].index
-raw_frame["count"] = [int(d.pop("num", 0)) for d in raw_frame.loc[:, "metadata"]]
-# raw_frame["count"].astype(int, inplace=True)
+raw_frame["count"] = [d.pop("num", np.nan) for d in raw_frame.loc[:, "metadata"]]
 
 
 ## From the list, we then count the number of times each model shows up,
@@ -315,17 +309,14 @@ raw_frame["count"] = [int(d.pop("num", 0)) for d in raw_frame.loc[:, "metadata"]
 ## so as to have an easier time choosing which file to plot
 raw_frame["model_index"] = raw_frame.groupby("model").cumcount()
 file_frame = raw_frame.set_index(["datasource", "model", "model_index"]).sort_index()
+
 parameters = file_frame["metadata"].apply(pd.Series)
-
-file_frame = pd.concat([file_frame, parameters], axis="columns")
-sourced_frame = file_frame.loc[(data_source, model)].copy()
-sourced_frame.dropna(axis="rows", how="all", subset=["count"], inplace=True)
-sourced_frame.dropna(axis="columns", how="all", inplace=True)
-
-# sourced_frame.reset_index(inplace=True, drop=True)
-# print(sourced_frame["count"])
-# # print(sourced_frame)
-# exit()
+file_frame = pd.concat([file_frame, parameters], axis=1)
+sourced_frame = (
+    file_frame.loc[(data_source, model)]
+    .dropna(axis="columns", how="all")
+    .reset_index(drop=True)
+)
 
 
 ## Just brute forces a sorting method, which is designed to fail if the list
@@ -349,19 +340,14 @@ if args.filter is not None:
 
 
 if args.opts:
-    match data_source:
-        case "ssa":
-            print("{}".format(args.model))
-            print(sourced_frame[["initcond", "count", "steps", "ratio", "t"]])
-            exit()
-        case "ode":
-            print("{}".format(args.model))
-            print(sourced_frame[["metadata"]])
-            exit()
-        case "phase":
-            print("{}".format(args.model))
-            print(sourced_frame[["m0", "k1", "k2"]])
-            exit()
+    if data_source == "ssa":
+        print("{}".format(args.model))
+        print(sourced_frame[["initcond", "count", "steps", "ratio", "t"]])
+        exit()
+    elif is_ode:
+        print("{}".format(args.model))
+        print(sourced_frame[["metadata"]])
+        exit()
 
 
 ## When choosing which index
@@ -422,18 +408,15 @@ file_name += "T{}".format(epoch)
 #######################
 
 ## For custom plotting counts
-if data_source == "ssa":
-    if args.bin_count is not None:
-        m: int = args.bin_count
-    else:
-        m: int = data_frame["count"]
+if args.bin_count is not None:
+    m: int = args.bin_count
 else:
-    m = 100
+    m: int = data_frame["count"]
 
 alpha = 0 - 1
 beta = m + 1  # file_choice["count"]
 
-boxes = np.arange(alpha, beta + 1, 1, dtype=np.int_)
+boxes = arange(alpha, beta + 1, 1, dtype=np.int_)
 xlims = (alpha, beta)
 ylims = (alpha, beta)
 
@@ -569,9 +552,8 @@ odeies = ps.odePlotters(stream_kwargs=stream_kwargs, **plot_class_dict)
 
 #############################################################################
 
-
 fig1 = plt.figure(num=1, figsize=(5, 2.5))
-fig3 = plt.figure(num=3, figsize=(6, 5))
+fig3 = plt.figure(num=3, figsize=(5, 5))
 
 if args.compare_plots:
     fig2 = plt.figure(num=2, figsize=(5, 2.5))
@@ -591,10 +573,81 @@ hist_axes = axes[data_set_quantity:]
 numpy_datas = []
 match data_source:
     case "ssa":
-        for i, path in enumerate(path_list):
-            file_path = os.path.join(data_env, path)
+        if args.compare_plots:
+            for i, ax in enumerate(walk_axes):
+                init_cond_string: str = "{}".format(initial_list[i])
+                file_path = os.path.join(data_env, path_list[i])
+                numpy_data = np.load(file_path)
+                numpy_datas.append(numpy_data)
+
+                time = numpy_data["time"]
+                states = numpy_data["states"]
+
+                plot_kwargs.update(label=names[i], color=colors[i])
+
+                gillespies.plot_steps(
+                    ax=ax,
+                    time=time,
+                    results=states,
+                    xstart=init_cond_string,
+                    plot_starts=args.include_starts,
+                    plot_kwargs=plot_kwargs,
+                )
+
+                gillespies.plot_hists(
+                    hist_axes[i],
+                    states,
+                )
+
+        else:
+            # init_cond_string: str = "{}".format(data_frame["initcond"])
+            file_path = os.path.join(data_env, path_list[0])
+
             numpy_data = np.load(file_path)
-            numpy_datas.append(numpy_data)
+            time, states = numpy_data["time"], numpy_data["states"]
+
+            for i, ax in enumerate(walk_axes):
+                plot_kwargs.update(label=names[i], color=colors[i])
+
+                gillespies.plot_walk(
+                    ax,
+                    time=time,
+                    steps=states[i, :],
+                    plot_kwargs=plot_kwargs,
+                    plot_starts=args.include_starts,
+                )
+
+                gillespies.plot_hist(
+                    hist_axes[i], states[i, :], label=names[i], color=colors[i]
+                )
+
+                y_max = min(states[i, :].max(), 100)
+                ax.set_yticks([y for y in np.linspace(0, y_max + 1, 5, dtype=np.int_)])
+                ax.set_xlim(left=0)
+                ax.set_ylim(bottom=0, top=y_max)
+        #
+        #     if model in ["2L"]:
+        #         # for i, ax in enumerate(hist_axes):
+        #         x_temp = states[0, :]
+        #         y_temp = states[1, :]
+        #         hist_axes[0].hist2d(
+        #             x_temp,
+        #             y_temp,
+        #             bins=boxes,
+        #             density=True,
+        #             label="Distribution of chemical species",
+        #         )
+        #     else:
+        #         for i, ax in enumerate(hist_axes):
+        #             gillespies.plot_hist(
+        #                 ax,
+        #                 results=states[i, :],
+        #                 color=colors[i],
+        #                 label=names[i],
+        #             )
+        # break
+        # plt.show()
+        # exit()
         if is_ode:
             for ax in hist_axes:
                 ax.set_title(
@@ -626,6 +679,18 @@ match data_source:
                 "Counts",
                 fontdict=font_kwargs,
             )
+
+        # ax3.set_ylabel("Density", fontsize=12)
+        # ax4.set_ylabel("Density", fontsize=12)
+        # for ax in hist_axes:
+        #     lines = ax.get_lines()
+        #     for ln in lines:
+        #         ln.set_alpha(1)
+        #         ln.set_linewidth(10)
+
+        for ax in axes:
+            ax.legend(loc="upper right", fontsize=legend_font_size)
+
         for fig in figs:
             fig.tight_layout()
 
@@ -780,165 +845,12 @@ match data_source:
         exit()
 
 
-### The actual plotting portion
-match data_source:
-    case "ssa":
-        for i, data in enumerate(numpy_datas):
-            time = data["time"]
-            states = data["states"]
-            try:
-                raw_meta = str(data["metadata"])
-
-                from metadata_json import JsonAsNumpy
-
-                metadata = json.loads(raw_meta, cls=JsonAsNumpy)
-            except:
-                pass
-
-            # print(metadata)
-            # print(type(metadata))
-            # exit()
-            # metadata = json.loads(raw_meta)  # , cls=JsonAsNumpy)
-
-            init_cond_string: str = "{}".format(initial_list[i])
-
-            plot_kwargs.update(label=names[i], color=colors[i])
-            gillespies.plot_walks(
-                ax=walk_axes[i],
-                time=time,
-                results=states,
-                xstart=init_cond_string,
-                plot_starts=args.include_starts,
-                plot_kwargs=plot_kwargs,
-            )
-
-            # gillespies.plot_hist(
-            #     ax=hist_axes[i],
-            #     results=states[0, :],
-            #     color=colors[i],
-            #     label=names[i],
-            # )
-
-            walk_axes[i].set_xlabel("Time", fontdict=font_kwargs)
-            walk_axes[i].set_ylabel("Count", fontdict=font_kwargs)
-
-            # ax.set_yticks([y for y in range(y_min, y_max + 1, axis_step)])
-            walk_axes[i].set_xlim(left=0)
-            walk_axes[i].set_ylim(bottom=0, top=m)
-
-            # axe =
-            # import matplotlib.pyplot as plt
-
-            # my_cmap = plt.cm.jet
-            # my_cmap.set_under("w", 1)
-            # ...
-            # plt.hist2d( ..., cmap = my_cmap)
-
-            hist2d_boxes = np.arange(alpha, beta + 10, 1)
-            counts, xedges, yedges, im = hist_axes[i].hist2d(
-                states[0, :] / 2,
-                states[1, :] / 2,
-                bins=(hist2d_boxes - 0.5, hist2d_boxes - 0.5),
-                # norm=mpl.colors.LogNorm(),
-                density=False,
-                cmap=mpl.cm.plasma,
-                label="Heatmap of x and y",
-            )
-            # vmin=1,
-            # cmin=1,
-            # cmin=1e-10,
-            # vmin=1,
-            # cmin=1,
-            # align="left",
-            # cmap=my_cmap,
-            # hist_axes[i]
-            fig3.colorbar(im, ax=hist_axes[i], label="Fraction")
-
-            # axe = hist_axes[i].contourf(*plot_space, output, 20)
-            # fig3.colorbar(axe)
-
-            hist_axes[i].set_xlim(0, beta)
-            hist_axes[i].set_ylim(0, beta)
-
-            file_name += ":2dhist"
-
-            # plt.show()
-            # exit()
-            # shared_ax = hist_axes[i].twinx()
-
-            # temp_k1 = metadata["k1"]
-            # temp_k2 = metadata["k2"]
-            # temp_n = data_frame["count"]
-
-            hist_axes[i].set_ylabel(
-                "Count of $y$",
-                fontdict=font_kwargs,
-            )
-            hist_axes[i].set_xlabel(
-                "Count of $x$",
-                fontdict=font_kwargs,
-            )
-
-            break
-            from gillespie import analytical as dga
-
-            # two_part_anal = dga.SimpleTwoChemical(k1=temp_k1, k2=temp_k2, n=m)
-            two_part_anal = dga.MultivariateTwoChemical(k1=temp_k1, k2=temp_k2, n=m)
-
-            x_domain = np.linspace(0, 1, 500, dtype=np.float64)
-            # y_range = two_part_anal.stationary(x_domain)
-            x_domain = np.linspace(0, 1, 500, dtype=np.float64)
-            y_range = two_part_anal.stationary(x_domain, x_domain)
-            hist_axes[i].contour(y_range)
-            # shared_ax.yaxis.tick_right()
-            # shared_ax.plot(x_domain * m, y_range)
-
-            hist_axes[i].set_xlim(left=alpha, right=beta)
-            hist_axes[i].set_ylim(bottom=alpha, top=beta)
-            # shared_ax.set_ylim(bottom=0)
-
-            # shared_ax.hlines([1, 0.1, 0.01], 0, m)
-
-            # shared_ax.set_ylim(bottom=0, top=y_range.max())
-
-            plt.show()
-            exit()
-
-        # for i, ax in enumerate(walk_axes):
-        #     plot_kwargs.update(label=names[i], color=colors[i])
-        #
-        #     gillespies.plot_walk(
-        #         ax,
-        #         time=time,
-        #         steps=states[i, :],
-        #         plot_kwargs=plot_kwargs,
-        #         plot_starts=args.include_starts,
-        #     )
-        #
-        #     gillespies.plot_hist(
-        #         hist_axes[i], states[i, :], label=names[i], color=colors[i]
-        #     )
-        #
-        #     y_max = min(states[i, :].max(), 100)
-        #     ax.set_yticks([y for y in np.linspace(0, y_max + 1, 5, dtype=np.int_)])
-        #     ax.set_xlim(left=0)
-        #     ax.set_ylim(bottom=0, top=y_max)
-
-    case "phase":
-        pass
-
-if model == "2S":
-    hist_axes[0].set_title("2D histogram of chemical species distribution")
-
-# for ax in axes:
-#     ax.legend(loc="upper right", fontsize=legend_font_size)
-
-for ax in walk_axes:
-    ax.legend(loc="upper right", fontsize=legend_font_size)
-
 figs = [plt.figure(i) for i in plt.get_fignums()]
 for fig in figs:
     fig.tight_layout()
+
+if model == "2L":
+    hist_axes[0].set_title("2D histogram of chemical species distribution")
 
 
 ## Taken from https://www.geeksforgeeks.org/save-multiple-matplotlib-figures-in-single-pdf-file-using-python/
@@ -974,22 +886,18 @@ if args.save:
         case "ode":
             file_path = os.path.join(ode_env, file_name)
         case _:
-            print("what")
-            exit()
-            pass
+            file_path = os.path.join(data_env, file_name)
 
     ## Just making sure the shit is sorted
     save_image(file_path)
 
 if args.show or not args.save:
-    plt.show()
-    print("Done Plotting")
-    exit()
+    show()
 
 # print("TESTING MODE")
 # exit()
 
 
-print("Saved or something")
+print("Done Plotting/Saving")
 
 exit()

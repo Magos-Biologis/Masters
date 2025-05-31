@@ -7,9 +7,9 @@ from importlib import import_module
 import numpy as np
 from numba import njit
 
-from .analytical import simple_two_system
-from .parameter_class import ParameterClass  # , parameter_default
+# from .analytical import TwoChemical
 from .propensities import transitions
+from .stochastic_parameter_class import ParameterClass  # , parameter_default
 
 # from .step_function import main as stepper
 

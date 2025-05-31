@@ -1,8 +1,10 @@
 #!../.venv/bin/python3
 import argparse
+import json
 import os
 import re
 import time
+from copy import deepcopy as dc
 
 # from old.gillespie import gillespie
 # from gillespie import steppers as dgs
@@ -12,7 +14,7 @@ import gillespie as dgs
 # os.sched_setaffinity(0, {3})
 # import numba
 import numpy as np
-from gillespie.parameter_class import parameter_default
+from gillespie.stochastic_parameter_class import parameter_default
 from pylab import *
 
 figure_env = str(os.getenv("FPE_FIGURE_ENV"))
@@ -175,16 +177,16 @@ else:
     exit()
 
 
-# initial = args.initial_conds
-
-
-# print(args.initial_conds)
-# print(initial)
-# exit()
-
-
 if parameter_default != args.parameters:
     parameter_default.update(args.parameters)
+
+
+metadata_dict: dict = dc(parameter_default)
+
+t_0 = 0
+dt = 0
+t_end: float | None = parameter_default.pop("t_end", None)
+
 
 parameters = dgs.ParameterClass(**parameter_default)
 
@@ -219,45 +221,18 @@ addons = []
 # else:
 #     initial = np.array([*args.initial_conds, 0, 0], dtype=int_)[:var_count]
 
-initial = args.initial_conds[:var_count]
+initial = np.array(args.initial_conds)[:var_count]
+
 
 if args.size is None:
     m = initial.sum()
 else:
     m = args.size
 
+addons.append("num={}".format(m))
+
 alpha = 0
 beta = m
-
-
-# print(parameter_default)
-# exit()
-
-# test_dict = {
-#             "n":parameters.n,
-#             "b":parameters.b,
-#             "k1":parameters.k1,
-#             "k-1":parameters.k_1,
-#             "k2":parameters.k2,
-#             "k-2":parameters.k_2,
-#             "k3":parameters.k3,
-#             "k-3":parameters.k_3,
-#             "k4":parameters.k4,
-#             "k-4":parameters.k_4,
-#             "k5":parameters.k5,
-#             "k-5":parameters.k_5,
-#             "k6":parameters.k6,
-#             "k-6":parameters.k_6,
-#             "k7":parameters.k7,
-#             "k-7":parameters.k_7,
-#             "k8":parameters.k8,
-#             "k-8":parameters.k_8,
-#             "n1":parameters.n1,
-#             "n2":parameters.n2,
-#             "w1":parameters.w1,
-#             "w2":parameters.w2,
-#             "m0":parameters.m0,
-#         }
 
 
 if not is_ode:
@@ -284,7 +259,6 @@ if not is_ode:
         ]
     )
 
-    # k_sols = array([k_1 / (k_1 + k_2), k_2 / (k_1 + k_2)])
 
 else:
     addons.extend(
@@ -304,7 +278,7 @@ file_name += "P"
 for addon in addons:
     file_name += addon + "_"
 
-if not is_ode and (var_count == 2):
+if model == "5_2":
     if parameters.b == parameters.n:
         para_version = r"$b=n$"
     elif parameters.b < parameters.n:
@@ -316,18 +290,37 @@ if not is_ode and (var_count == 2):
         print("no numbers?")
 
     ## Simple if else so I can be lazy and not remember to add the naming conventions
-    file_name += f"R{para_version[1:-1]}R"
+    metadata_dict.update({"parameter_ratio": para_version.replace("$", "")})
+    file_name += "R{}R".format(para_version.replace("$", ""))
 
 
-t_0 = 0
-dt = 0
+#################################
+#                               #
+#   Metadata storage attempt    #
+#                               #
+#################################
+
+
+from metadata_json import Numpy2Native
+
+metadata_dict.update(
+    {
+        "data_source": "stochastic simulation algorithm",
+        "model_name": model,
+        "number_of_variables": var_count,
+        "initial_condition": initial,
+        "number_of_particles": initial.sum(),
+        "original_run": True,
+    }
+)
+
+
+#################################
 
 
 ## Step function
-
-
 steppy = dgs.ssa_stepper(model, initial, parameters)  # transitions, k)
-for _ in range(args.repeats):
+for i in range(args.repeats):
     save_name = file_name
 
     date_time = time.time()
@@ -338,13 +331,27 @@ for _ in range(args.repeats):
     print("Stepper done \n\tTime taken: ", t1 - t0)
 
     # print((time_results))
+    steps_taken = len(time_results)
     if len(time_results) == step_count:
-        save_name += "S{:.0e}".format(len(time_results))
+        string_steps = "{:.0e}".format(steps_taken)
     else:
-        save_name += "S{}".format(len(time_results))
-    save_name += "I{}C".format(initial)
-    save_name += "T{}".format(t1).replace(".", "")
+        string_steps = "{}".format(steps_taken)
+    initial_conds = "{}".format(initial)
+    epoch = t1
 
+    save_name += "S" + string_steps
+    save_name += "I{}C".format(initial_conds)
+    save_name += "T{}".format(epoch).replace(".", "")
+
+    metadata_dict.update(
+        {
+            "steps_taken": steps_taken,
+            "date": epoch,
+            "runtime": t1 - t0,
+            "run": 1 + i,
+        }
+    )
+    metadata_json = json.dumps(metadata_dict, cls=Numpy2Native)
     full_file_path = os.path.join(data_env, save_name)
 
     if args.save:
@@ -352,11 +359,14 @@ for _ in range(args.repeats):
             full_file_path,
             time=time_results,
             states=states_results,
+            metadata=metadata_json,
         )
 
         print('saved as "{}"'.format(save_name))
     else:
         print('file name is "{}"'.format(save_name))
+
+    metadata_dict.update({"original_run": False})
 
 if args.repeats > 1:
     print("Done repeating")

@@ -1,5 +1,5 @@
 import numpy as np
-from gillespie.parameter_class import ParameterClass
+from gillespie.stochastic_parameter_class import ParameterClass
 from numba import njit
 
 vj = [

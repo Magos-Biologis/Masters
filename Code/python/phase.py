@@ -1,6 +1,10 @@
-#!./.venv/bin/python
+#!../.venv/bin/python3
+import argparse
+import json
 import os
 import re
+import time
+from copy import deepcopy as dc
 
 import numpy as np
 
@@ -75,6 +79,7 @@ q = np.zeros(2)
 if parameter_default != args.parameters:
     parameter_default.update(args.parameters)
 
+metadata_dict = dc(parameter_default)
 
 m_0 = parameter_default["m0"]
 
@@ -143,12 +148,12 @@ dt = 0.01
 t_end = 250
 t_array = np.arange(0, t_end, dt)
 
-parameters1 = ODEParameters(**parameter_default)
+parameters = ODEParameters(**parameter_default)
 # parameters2 = parameter_class(m=2, m_0=m_0, k=k1, n=n1, q=q, w=w)
 # parameters3 = parameter_class(m=2, m_0=0, k=k, n=n2, q=q, w=w)
 
 
-init_conds1 = np.array([c1_0, c2_0, m_0])
+init_conds = np.array([c1_0, c2_0, m_0])
 init_conds2 = np.array([c2_0, c1_0, 0])
 init_conds3 = np.array([c1_0, c2_0, m_0])
 # init_conds3 = np.array([100, 100, 100])
@@ -159,7 +164,7 @@ init_conds3 = np.array([c1_0, c2_0, m_0])
 #     init_conds2 = np.array([c2_0, c1_0])
 #     init_conds3 = np.array([100, 100])
 
-ode_model = ODEModel(parameters1, t_range=(0, t_end), initial_condition=init_conds1)
+ode_model = ODEModel(parameters, t_range=(0, t_end), initial_condition=init_conds)
 
 
 ### Integration
@@ -239,6 +244,14 @@ def c2_sol(c2):
 c1_nullcline = np.array([c2_sol(c2s), c2s])
 c2_nullcline = np.array([c1s, c1_sol(c1s)])
 
+metadata_dict.update(
+    {
+        "data_source": "phase space",
+        "model": "simple compartment",
+        "date": t,
+        "t_end": t_end,
+    }
+)
 
 #
 # c1_nullcline = ode_model._find_c1_nullcline(mesh=c_mesh)
@@ -246,6 +259,11 @@ c2_nullcline = np.array([c1s, c1_sol(c1s)])
 
 c_mesh = np.meshgrid(c1s, c2s)
 cs_levelset = ode_model._find_level_set(mesh=c_mesh)
+
+
+from .metadata_json import Numpy2Native
+
+metadata_json = json.dumps(metadata_dict, cls=Numpy2Native)
 
 np.savez(
     full_file_path,
@@ -256,5 +274,6 @@ np.savez(
     c1_nullcline=c1_nullcline,
     c2_nullcline=c2_nullcline,
     level=cs_levelset,
+    metadata=metadata_json,
 )
 exit()

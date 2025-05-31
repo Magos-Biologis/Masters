@@ -114,7 +114,7 @@ class gillespiePlotters(PlottingData):
             **kwargs,
         )
 
-    def plot_steps(
+    def plot_walks(
         self,
         ax: axe.Axes,
         time: np.ndarray[tuple[int], np.dtype[np.float64]],
@@ -149,13 +149,6 @@ class gillespiePlotters(PlottingData):
                 result,
                 **kwargs,
             )
-
-        ax.set_xlabel("Time", fontdict=self.fontargs)
-        ax.set_ylabel("Count", fontdict=self.fontargs)
-
-        ax.set_xlim(left=0)
-        ax.set_yticks([y for y in range(y_min, y_max + 1, axis_step)])
-        ax.set_ylim(bottom=y_min, top=y_max)
 
     def _plot_hline(
         self,

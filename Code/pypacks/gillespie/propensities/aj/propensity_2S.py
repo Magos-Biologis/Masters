@@ -1,5 +1,5 @@
 import numpy as np
-from gillespie.parameter_class import ParameterClass
+from gillespie.stochastic_parameter_class import ParameterClass
 from numba import njit
 
 vj = [
@@ -19,6 +19,6 @@ def main(
     x, y = xs
 
     a_1 = p.k1 * x
-    a_2 = p.k_1 * y
+    a_2 = p.k2 * y
 
     return np.array([a_1, a_2])
