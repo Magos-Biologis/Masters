@@ -322,11 +322,6 @@ sourced_frame = file_frame.loc[(data_source, model)].copy()
 sourced_frame.dropna(axis="rows", how="all", subset=["count"], inplace=True)
 sourced_frame.dropna(axis="columns", how="all", inplace=True)
 
-# sourced_frame.reset_index(inplace=True, drop=True)
-# print(sourced_frame["count"])
-# # print(sourced_frame)
-# exit()
-
 
 ## Just brute forces a sorting method, which is designed to fail if the list
 ## gets too small. Returns the next best in that case
@@ -564,6 +559,18 @@ plot_class_dict = {
     "b_name": w_name,
 }
 
+# Define the colors for the custom colormap
+# colors = [(0, 0, 1), (1, 1, 0), (1, 0, 0)]  # Blue, Yellow, Red
+# cmap_name = "custom_cmap"
+
+# Create the custom colormap
+custom_cmap = mpl.colors.LinearSegmentedColormap.from_list("", ["darkolivegreen", "snow"])
+
+pre_plasma = plt.cm.plasma
+pre_colors = pre_plasma(np.linspace(0, 1, 128))
+stacked_colors = np.vstack((np.array(["k"]), pre_colors))
+custom_plasma = mpl.colors.LinearSegmentedColormap.from_list()
+
 gillespies = ps.gillespiePlotters(**plot_class_dict)
 odeies = ps.odePlotters(stream_kwargs=stream_kwargs, **plot_class_dict)
 
@@ -780,7 +787,7 @@ match data_source:
         exit()
 
 
-### The actual plotting portion
+### What is intended to be the actual plotting portion
 match data_source:
     case "ssa":
         for i, data in enumerate(numpy_datas):
@@ -836,14 +843,16 @@ match data_source:
 
             hist2d_boxes = np.arange(alpha, beta + 10, 1)
             counts, xedges, yedges, im = hist_axes[i].hist2d(
-                states[0, :] / 2,
-                states[1, :] / 2,
+                states[0, :],
+                states[1, :],
                 bins=(hist2d_boxes - 0.5, hist2d_boxes - 0.5),
-                # norm=mpl.colors.LogNorm(),
-                density=False,
-                cmap=mpl.cm.plasma,
+                density=True,
+                norm=mpl.colors.LogNorm(),
+                cmap=custom_plasma,
+                # cmap=mpl.cm.plasma,
                 label="Heatmap of x and y",
             )
+            hist_axes[i].set_facecolor(custom_plasma[0])
             # vmin=1,
             # cmin=1,
             # cmin=1e-10,
