@@ -8,7 +8,6 @@ import matplotlib as mpl
 import numpy as np
 import pandas as pd
 import plottingstuff as ps
-from gillespie import analytical as dga
 from matplotlib import pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
 
@@ -56,6 +55,8 @@ parser.add_argument(
         "2L",
         "5_2",
         "5_3",
+        "5_2_fixed",
+        "5_3_fixed",
         "ode_2",
         "ode_2_2",
         "ode_3",
@@ -443,7 +444,7 @@ curv_kwargs: dict = {
     "zorder": 3,
 }
 font_kwargs: dict = {
-    "fontsize": 12,
+    "fontsize": 16,
 }
 line_kwargs: dict = {
     "linewidth": 1,
@@ -563,13 +564,21 @@ plot_class_dict = {
 # colors = [(0, 0, 1), (1, 1, 0), (1, 0, 0)]  # Blue, Yellow, Red
 # cmap_name = "custom_cmap"
 
+# [ (0.267004, 0.004874, 0.329415, 1.0) ] # Lowest color of viridis
+# [ (0.9463847846200787, 0.9656862745098039, 0.9656862667892201, 1.0) ] # Lowest of 25 parts bone_r
+
+
 # Create the custom colormap
 custom_cmap = mpl.colors.LinearSegmentedColormap.from_list("", ["darkolivegreen", "snow"])
 
+
 pre_plasma = plt.cm.plasma
-pre_colors = pre_plasma(np.linspace(0, 1, 128))
-stacked_colors = np.vstack((np.array(["k"]), pre_colors))
-custom_plasma = mpl.colors.LinearSegmentedColormap.from_list()
+pre_bone = plt.cm.bone
+pre_color_1 = pre_plasma(np.linspace(0, 1, 128))
+pre_color_2 = pre_bone(np.linspace(0, 1, 128))
+
+stacked_colors = np.vstack((pre_color_1, pre_color_2))
+custom_cmap = mpl.colors.LinearSegmentedColormap.from_list("custom_cmap", stacked_colors)
 
 gillespies = ps.gillespiePlotters(**plot_class_dict)
 odeies = ps.odePlotters(stream_kwargs=stream_kwargs, **plot_class_dict)
@@ -788,6 +797,7 @@ match data_source:
 
 
 ### What is intended to be the actual plotting portion
+### But in the frantic last days of plotting, my beautiful system has fallen apart
 match data_source:
     case "ssa":
         for i, data in enumerate(numpy_datas):
@@ -799,9 +809,12 @@ match data_source:
                 from metadata_json import JsonAsNumpy
 
                 metadata = json.loads(raw_meta, cls=JsonAsNumpy)
+
             except:
                 pass
 
+            # print(data_frame[metadata)
+            # exit()
             # print(metadata)
             # print(type(metadata))
             # exit()
@@ -819,18 +832,18 @@ match data_source:
                 plot_kwargs=plot_kwargs,
             )
 
-            # gillespies.plot_hist(
-            #     ax=hist_axes[i],
-            #     results=states[0, :],
-            #     color=colors[i],
-            #     label=names[i],
-            # )
+            gillespies.plot_hists(
+                ax=hist_axes[i],
+                results=states,
+                # color=colors[i],
+                # label=names[i],
+            )
 
             walk_axes[i].set_xlabel("Time", fontdict=font_kwargs)
             walk_axes[i].set_ylabel("Count", fontdict=font_kwargs)
 
             # ax.set_yticks([y for y in range(y_min, y_max + 1, axis_step)])
-            walk_axes[i].set_xlim(left=0)
+            walk_axes[i].set_xlim(left=0)  # , right=30000)
             walk_axes[i].set_ylim(bottom=0, top=m)
 
             # axe =
@@ -841,77 +854,93 @@ match data_source:
             # ...
             # plt.hist2d( ..., cmap = my_cmap)
 
-            hist2d_boxes = np.arange(alpha, beta + 10, 1)
-            counts, xedges, yedges, im = hist_axes[i].hist2d(
-                states[0, :],
-                states[1, :],
-                bins=(hist2d_boxes - 0.5, hist2d_boxes - 0.5),
-                density=True,
-                norm=mpl.colors.LogNorm(),
-                cmap=custom_plasma,
-                # cmap=mpl.cm.plasma,
-                label="Heatmap of x and y",
-            )
-            hist_axes[i].set_facecolor(custom_plasma[0])
-            # vmin=1,
-            # cmin=1,
-            # cmin=1e-10,
-            # vmin=1,
-            # cmin=1,
-            # align="left",
-            # cmap=my_cmap,
-            # hist_axes[i]
-            fig3.colorbar(im, ax=hist_axes[i], label="Fraction")
+            # hist2d_boxes = np.arange(alpha, beta + 10, 1)
+            # counts, xedges, yedges, im = hist_axes[i].hist2d(
+            #     states[0, :],
+            #     states[1, :],
+            #     bins=(hist2d_boxes - 0.5, hist2d_boxes - 0.5),
+            #     density=True,
+            #     norm=mpl.colors.LogNorm(),
+            #     cmap=mpl.cm.bone_r,
+            #     # cmap=mpl.cm.plasma,
+            #     label="Heatmap of x and y",
+            # )
+            # fig3.colorbar(im, ax=hist_axes[i], label="Fraction of Samples")
+
+            # phase_frame = file_frame.loc[("phase", "jesper")]
+            # # data_frame["metadata"]["n1"] *= 2
+            # # data_frame["metadata"]["n2"] *= 2
+            # phase_filters: list[tuple[str, float]] = [*data_frame["metadata"].items()]
+            # filtered_phase = filter_frames(phase_filters, phase_frame)
+            # phase_name = filtered_phase.reset_index().loc[0, "file_name"]
+            # phase_path = os.path.join(data_env, phase_name)
+            # phase_data = np.load(phase_path)
+            # c1, c2 = phase_data["c1"], phase_data["c2"]
+            # dU, dV = phase_data["dU"], phase_data["dV"]
+            # c1_null = phase_data["c1_nullcline"]
+            # c2_null = phase_data["c2_nullcline"]
+            # level = phase_data["level"]
+            # odeies.plot_phase_space(
+            #     hist_axes[i],
+            #     c1,
+            #     c2,
+            #     dU,
+            #     dV,
+            #     linewidth=0.75,
+            #     color="k",
+            # )
+            # # odeies.plot_trajectories(hist_axes[i], *level / 2, label="Levelset curve")
+            # # odeies.plot_trajectories(hist_axes[i], *c1_null)
+            # # odeies.plot_trajectories(hist_axes[i], *c2_null)
 
             # axe = hist_axes[i].contourf(*plot_space, output, 20)
             # fig3.colorbar(axe)
+            # hist_axes[i].set_xlim(0, beta)
+            # hist_axes[i].set_ylim(0, beta)
 
-            hist_axes[i].set_xlim(0, beta)
-            hist_axes[i].set_ylim(0, beta)
-
-            file_name += ":2dhist"
+            # file_name += ":2dhist"
+            # file_name += ":compared"
+            # file_name += ":twice"
 
             # plt.show()
             # exit()
             # shared_ax = hist_axes[i].twinx()
-
             # temp_k1 = metadata["k1"]
             # temp_k2 = metadata["k2"]
             # temp_n = data_frame["count"]
+            # hist_axes[i].set_xlabel(
+            #     "Count of $c_1$",
+            #     fontdict=font_kwargs,
+            # )
+            # hist_axes[i].set_ylabel(
+            #     "Count of $c_2$",
+            #     fontdict=font_kwargs,
+            # )
 
-            hist_axes[i].set_ylabel(
-                "Count of $y$",
-                fontdict=font_kwargs,
-            )
-            hist_axes[i].set_xlabel(
-                "Count of $x$",
-                fontdict=font_kwargs,
-            )
-
-            break
-            from gillespie import analytical as dga
-
-            # two_part_anal = dga.SimpleTwoChemical(k1=temp_k1, k2=temp_k2, n=m)
-            two_part_anal = dga.MultivariateTwoChemical(k1=temp_k1, k2=temp_k2, n=m)
-
-            x_domain = np.linspace(0, 1, 500, dtype=np.float64)
-            # y_range = two_part_anal.stationary(x_domain)
-            x_domain = np.linspace(0, 1, 500, dtype=np.float64)
-            y_range = two_part_anal.stationary(x_domain, x_domain)
-            hist_axes[i].contour(y_range)
-            # shared_ax.yaxis.tick_right()
-            # shared_ax.plot(x_domain * m, y_range)
-
-            hist_axes[i].set_xlim(left=alpha, right=beta)
-            hist_axes[i].set_ylim(bottom=alpha, top=beta)
+            # break
+            # from gillespie import analytical as dga
+            #
+            # # two_part_anal = dga.SimpleTwoChemical(k1=temp_k1, k2=temp_k2, n=m)
+            # two_part_anal = dga.MultivariateTwoChemical(k1=temp_k1, k2=temp_k2, n=m)
+            #
+            # x_domain = np.linspace(0, 1, 500, dtype=np.float64)
+            # # y_range = two_part_anal.stationary(x_domain)
+            # x_domain = np.linspace(0, 1, 500, dtype=np.float64)
+            # y_range = two_part_anal.stationary(x_domain, x_domain)
+            # hist_axes[i].contour(y_range)
+            # # shared_ax.yaxis.tick_right()
+            # # shared_ax.plot(x_domain * m, y_range)
+            #
+            # hist_axes[i].set_xlim(left=alpha, right=beta)
+            # hist_axes[i].set_ylim(bottom=alpha, top=beta)
             # shared_ax.set_ylim(bottom=0)
 
             # shared_ax.hlines([1, 0.1, 0.01], 0, m)
 
             # shared_ax.set_ylim(bottom=0, top=y_range.max())
 
-            plt.show()
-            exit()
+            # plt.show()
+            # exit()
 
         # for i, ax in enumerate(walk_axes):
         #     plot_kwargs.update(label=names[i], color=colors[i])

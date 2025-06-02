@@ -150,9 +150,11 @@ step_count: int = args.steps
 
 set_of_3 = [
     "5_3",
+    "5_3_fixed",
     "ode_3",
     "ode_3_3",
     "ode_5_3",
+    "ode_5_3_fixed",
     "ode_8_3",
 ]
 
@@ -160,12 +162,14 @@ set_of_2 = [
     "2S",
     "2L",
     "5_2",
+    "5_2_fixed",
     "ode_2",
     "ode_2_2",
     "ode_3_2",
     "ode_3_2_alt",
     "ode_7_2",
     "ode_5_2",
+    "ode_5_2_fixed",
 ]
 
 if model in set_of_2:

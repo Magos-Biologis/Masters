@@ -224,8 +224,10 @@ class odePlotters(PlottingData):
         speed = np.sqrt(u**2 + v**2)
         lw = speed / speed.max() * scale
 
+        ldubs = kwargs.pop("linewidth", lw)
+
         self.streamargs.update(kwargs)
-        self.streamargs.update(linewidth=lw)
+        self.streamargs.update(linewidth=ldubs)
 
         ax.streamplot(x, y, u, v, **self.streamargs)
 

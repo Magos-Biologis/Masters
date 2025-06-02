@@ -261,7 +261,19 @@ c_mesh = np.meshgrid(c1s, c2s)
 cs_levelset = ode_model._find_level_set(mesh=c_mesh)
 
 
-from .metadata_json import Numpy2Native
+# from .metadata_json import Numpy2Native
+
+
+class Numpy2Native(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, np.integer):
+            return int(obj)
+        elif isinstance(obj, np.floating):
+            return float(obj)
+        elif isinstance(obj, np.ndarray):
+            return obj.tolist()
+        return super().default(obj)
+
 
 metadata_json = json.dumps(metadata_dict, cls=Numpy2Native)
 

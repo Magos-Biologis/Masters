@@ -7,3 +7,4 @@ from numba import njit
 from .analytical_parameter_class import *
 from .overcomplicated_two_chemical_system import *
 from .simple_two_chemical_system import *
+from .system_of_my_model import *
