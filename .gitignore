@@ -3,6 +3,7 @@
 **.png
 
 **/Litterature/
+**/Litterature/**
 **/*.venv/
 *.djvu
 
