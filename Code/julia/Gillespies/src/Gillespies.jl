@@ -19,7 +19,7 @@ export ParametersSSA,
 
 # Figures out what the directory of this file is
 const BASEDIR::String = @__DIR__
-const PROPDIR::String = BASEDIR * "/propensities/"
+const PROPDIR::String = joinpath(BASEDIR, "propensities")
 
 
 include("parameters.jl")
