@@ -1,19 +1,21 @@
 
 
 
-U::Uniform = Uniform(eps(Float64),1)
+
+struct StepperSSA{F}
+    prop::F
+    parameters::Dict{String, Float64}
+end
 
 
-
-
-function IterationOfSSA(aⱼ:: Vector{Float64})::Tuple{Int, Float64}
-    a₀::Float64 = sum( aⱼ.entries )
+function IterationOfSSA(aⱼ:: Vector{Real})::Tuple{Int, Float64}
+    a₀::Real = sum( aⱼ.entries )
     if a₀ <= 0
         println("womp womp")
         return -1, 0
     end
 
-    r::Vector{Float64} = rand(U, 2)
+    r::Vector{Float64} = rand(Uniform(eps(Float64),1), 2)
     j::Int = -1
     τ::Float64 = log(1 / r[1]) / a₀
     rₐ₀::Float64 = r[2] * a₀
@@ -29,6 +31,7 @@ function IterationOfSSA(aⱼ:: Vector{Float64})::Tuple{Int, Float64}
 end
 
 
+
 function StepIterater(
         propensities::Function,
         steps::Int,
@@ -42,3 +45,8 @@ function StepIterater(
 
 
 end
+
+function StepSSA()
+end
+
+
