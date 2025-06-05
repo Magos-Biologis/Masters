@@ -34,7 +34,7 @@ function StepIterater(
         steps::Int,
         x₀::Vector,
         vⱼ::AbstractArray,
-        parameters::SSAParameters,
+        parameters::ParametersSSA,
     )
 
     m::Int = sum(x₀)
