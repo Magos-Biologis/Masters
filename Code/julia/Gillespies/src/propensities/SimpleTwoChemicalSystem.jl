@@ -13,7 +13,7 @@ transitions::Vector{Vector{Int}} = [
                            ]
 
 
-function propensity(p)
+function propensity(p)::Function
     return xs -> begin
         x, y = xs
         a₁ = p.k⁺[1] * x

@@ -9,15 +9,19 @@ using JSON
 using NPZ
 
 
+# The initial stuff is the structs of importance
 export ParameterTypeSSA,
        NovelStructSSA,
        DifferentialStructSSA,
 
+       PropensityType,
+       StepperStruct,
+
        # load_propensity_stuff,
        SSA,
-       StepIterator,
+       StepIterator
 
-       SaveToNPZ
+       # SaveToNPZ
 
 
 # Figures out what the directory of this file is
@@ -30,9 +34,6 @@ include("common.jl")
 include("loadprop.jl")
 include("ssa.jl")
 include("stepper.jl")
-
-include("saving.jl")
-
 
 # The stochastic sim modules
 # including it programatically cause why not

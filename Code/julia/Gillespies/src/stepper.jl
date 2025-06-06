@@ -1,12 +1,12 @@
 """
-The function that actuall does the iteration loop
+The function that actually does the iteration loop
 """
 function StepIterator(
         model::String,
         steps::Int,
         x₀::Vector{Int},
         parameters::ParameterTypeSSA,
-    )::Tuple{Vector, AbstractArray}
+    )::StepperStruct
 
     varNum = length(x₀)
     parameters /= varNum # This works cause I defined how the struct divides
@@ -35,5 +35,6 @@ function StepIterator(
         state_array[i, :] = x + v[j]
     end
 
-    return time_array, state_array
+    output = StepperStruct(time_array, state_array)
+    return output
 end

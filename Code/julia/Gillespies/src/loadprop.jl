@@ -1,6 +1,7 @@
 """
-This function is used to load the individual modules for the
+This function is used to locate the individual modules for the
 simulation and extract the relevant 'fields'.
+As well as instantiating the propensity function
 """
 function instantiate_propensities(
         module_name::AbstractString,
