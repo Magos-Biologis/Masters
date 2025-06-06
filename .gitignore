@@ -10,3 +10,4 @@
 **/__pycache__/
 *.npz
 **/.latex_build/
+*.history
