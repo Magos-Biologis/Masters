@@ -6,28 +6,27 @@ using Random
 using Distributions
 
 
-
-export ParameterStructSSA,
-       NovelSSA,
-       ODESSA,
+export ParameterTypeSSA,
+       NovelStructSSA,
+       DifferentialStructSSA,
        load_propensity_stuff,
-       IterationOfSSA,
-       StepIterater,
-       vⱼ,
-       propensities
+       SSA,
+       StepIterater
+       # vⱼ,
+       # propensities
 
 
 # Figures out what the directory of this file is
-const BASEDIR::String = @__DIR__
-const PROPDIR::String = joinpath(BASEDIR, "propensities")
+const BASEDIR::AbstractString = @__DIR__
+const PROPDIR::AbstractString = joinpath(BASEDIR, "propensities")
 
 
 include("common.jl")
 include("loadprop.jl")
-
-# include("engine.jl")
 include("ssa.jl")
 
+
+# include("propensities/SimpleTwoChemicalSpecies.jl")
 
 
 end # module Gillespies

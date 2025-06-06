@@ -2,13 +2,11 @@
 
 
 
-struct StepperSSA{F}
-    prop::F
-    parameters::Dict{String, Float64}
-end
-
-
-function IterationOfSSA(aⱼ:: Vector{Real})::Tuple{Int, Float64}
+"""
+A Julia-fied version of my python implementation of the Gillespie Stochastic
+Simulation Algorithm.
+"""
+function SSA(aⱼ:: Vector{Real})::Tuple{Int, Float64}
     a₀::Real = sum( aⱼ.entries )
     if a₀ <= 0
         println("womp womp")
@@ -33,15 +31,16 @@ end
 
 
 function StepIterater(
-        propensities::Function,
+        model::String,
         steps::Int,
         x₀::Vector,
-        vⱼ::AbstractArray,
-        parameters::ParametersSSA,
+        parameters::ParameterTypeSSA,
+        # propensities::Function,
+        # vⱼ::AbstractArray,
     )
 
-    m::Int = sum(x₀)
-    scaled_paramters = div(parameters, m)
+    (propensity, vⱼ)= load_propensity_stuff(model)
+
 
 
 end
