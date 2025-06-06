@@ -2,17 +2,17 @@
 This function is used to load the individual modules for the
 simulation and extract the relevant 'fields'.
 """
-function load_propensity_stuff(module_name::AbstractString)::Tuple{Function, AbstractArray}
-    module_file_path::AbstractString = joinpath(PROPDIR, module_name * ".jl")
-
-    include(module_file_path)
+function instantiate_propensities(
+        module_name::AbstractString,
+        parameters::ParameterTypeSSA,
+    )::Tuple{Function, AbstractArray}
     symbol_name::Symbol = Symbol(module_name)
     mod = getfield(Gillespies, symbol_name)
 
     propensity = getfield(mod, :propensity)
     transitions = getfield(mod, :transitions)
 
-    return propensity, transitions
+    return propensity(parameters), transitions
 end
 
 
@@ -27,6 +27,22 @@ top level, so I had to simplify it to just include the file.
 I take it back, Julia does support something similar, it was just that
 I kept using a number for the start of the module name, which
 is unsupported.
+
+But it still doesn't seem to be the best strategy?
+
+Oh wait, I need to ensure that the full field path is output
+I'm just gonna load all the modules and see what happens
 """
-# println(propensity, transitions)
+# function load_propensity_stuff(module_name::AbstractString)::Tuple{Function, AbstractArray}
+#     module_file_path::AbstractString = joinpath(PROPDIR, module_name * ".jl")
+#
+#     include(module_file_path)
+#     symbol_name::Symbol = Symbol(module_name)
+#     mod = getfield(Gillespies, symbol_name)
+#
+#     propensity = getfield(mod, :propensity)
+#     transitions = getfield(mod, :transitions)
+#
+#     return propensity, transitions
+# end
 

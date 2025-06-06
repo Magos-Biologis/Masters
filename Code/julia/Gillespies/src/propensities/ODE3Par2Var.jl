@@ -1,8 +1,7 @@
 """
-For a simple two part chemical species A₁
+For a simple two part chemical species A₁ → A₂, A₁ ← A₂
 """
-module SimpleTwoChemicalSpecies
-
+module ODE3Par2Var
 
 export propensity,
        transitions
@@ -14,7 +13,7 @@ transitions::Vector{Vector{Int}} = [
                            ]
 
 
-function propensity(xs::Vector{Int}, p::Any)
+function propensity(xs::Vector, p)
     x, y = xs
     a₁ = p.k⁺[1] * x
     a₂ = p.k⁻[1] * y

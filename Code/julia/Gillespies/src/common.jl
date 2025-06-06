@@ -6,23 +6,42 @@ abstract type ParameterTypeSSA end
 """
 `S <: NovelSSA`
 """
-struct NovelStructSSA{T<:Real,V<:Real} <: ParameterTypeSSA
-    n::T
-    b::T
-    k⁺::Vector{V}
-    k⁻::Vector{V}
+struct NovelStructSSA{T<:Real} <: ParameterTypeSSA
+    n ::Real
+    b ::Real
+    k⁺::Vector{T}
+    k⁻::Vector{T}
 end
 
+function NovelStructSSA(;
+        n ::Real = 10,
+        b ::Real = 0,
+        k⁺::Vector{T} = [1;1],
+        k⁻::Vector{T} = [1;1],
+    ) ::NovelStructSSA where T<:Real
+    return NovelStructSSA(n, b, k⁺, k⁻)
+end
 
 """
 `S <: ODESSA`
 """
 struct DifferentialStructSSA{T<:Real,V<:Real} <: ParameterTypeSSA
-    k::Vector{V}
-    n::Vector{T}
-    w::Vector{V}
-    q::Vector{V}
-    m₀::V
+    k ::Vector{V}
+    n ::Vector{T}
+    w ::Vector{V}
+    q ::Vector{V}
+    m₀::Real
+end
+
+function DifferentialStructSSA(;
+        k ::Vector{V} = [1; 1],
+        n ::Vector{T} = [100; 100],
+        w ::Vector{V} = [0.015; 0.015],
+        q ::Vector{V} = [0.8; 0.8],
+        m₀::Real = 0,
+    ) ::DifferentialStructSSA where {T<:Real, V<:Real}
+
+    return DifferentialStructSSA(k, n, w, q, m₀)
 end
 
 
@@ -47,7 +66,6 @@ but I am not 100% sure why not all of them define `internal pieces'
 so to speak, the method thing, p.A
 """
 abstract type PropensityType end
-
 
 struct StepperSSA{F, T<:Real} <: PropensityType
     prop::F
