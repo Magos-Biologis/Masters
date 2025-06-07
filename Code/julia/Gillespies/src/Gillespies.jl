@@ -3,7 +3,7 @@ module Gillespies
 using LinearAlgebra
 
 using Random
-using Distributions
+import Distributions: Uniform
 
 using JSON
 using NPZ
@@ -41,12 +41,22 @@ files = readdir(PROPDIR)
 for file in files
     include(joinpath(PROPDIR, file))
 end
+
 # This seems to work a lot better than loading modules mid function,
 # as loading the modules at runtime overwrites the module and/or
 # prevents it from working
 # Could be a Julia REPL thing, but if it works in there, it'll work
 # elsewhere, so it's probably safer this way
 
+
+# # We will just manually load them all actually,
+# include("propensities/SimpleTwoChemicalSystem.jl")
+#
+# include("propensities/ODE3Par2Var.jl")
+# include("propensities/ODE3Par3Var.jl")
+#
+# include("propensities/NovelFiveTwo.jl")
+# include("propensities/NovelFiveThree.jl")
 
 
 end # module Gillespies

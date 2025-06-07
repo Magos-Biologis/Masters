@@ -3,7 +3,7 @@
 **.png
 
 **/Litterature/
-**/*.venv/
+**/.venv/
 *.djvu
 
 **/__pycache__/
