@@ -1,7 +1,7 @@
 """
 For a simple two part chemical species A₁ → A₂, A₁ ← A₂
 """
-module NovelFiveTwo
+module Novel5Par3Var
 
 export propensity,
        transitions
