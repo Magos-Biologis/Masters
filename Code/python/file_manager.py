@@ -274,6 +274,10 @@ for fn in file_names:
                 metadata=metadata_json,
             )
         except:
+            ## I forgot that I set the time to 0 for all the phase stuff,
+            ## lowkey just erased all that data
+            ## Whatever, it works fine cause I don't need to worry about
+            ## any randomness
             try:
                 for_npz = {
                     "c1": original_data["c1"],

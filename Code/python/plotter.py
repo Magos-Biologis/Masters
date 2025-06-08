@@ -225,8 +225,6 @@ args = parser.parse_args()
 
 
 ## Compiling the defaults and the choice of parameters
-
-
 data_source: str = args.source
 model: str = args.model
 model_count: int = args.index
@@ -251,9 +249,8 @@ capture_patterns: re.Pattern = re.compile(
 )
 
 
-## So there are two methods, search, and match
-## It seems that search is what works for what I want,
-## match is more for if you are decomposing the entire string from the start
+## Now that I have refactored the metadata storage, the organization process
+## becomes a lot less complicated
 records = []
 file_names = os.listdir(data_env)
 for fn in file_names:
