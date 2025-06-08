@@ -48,26 +48,26 @@ parser.add_argument(
 parser.add_argument(
     "model",
     help="State which model to run",
-    choices=[
-        "jesper",
-        "ode",
-        "2S",
-        "2L",
-        "5_2",
-        "5_3",
-        "5_2_fixed",
-        "5_3_fixed",
-        "ode_2",
-        "ode_2_2",
-        "ode_3",
-        "ode_3_2",
-        "ode_3_2_alt",
-        "ode_3_3",
-        "ode_5_2",
-        "ode_5_3",
-        "ode_7_2",
-        "ode_8_3",
-    ],
+    # choices=[
+    #     "jesper",
+    #     "ode",
+    #     "2S",
+    #     "2L",
+    #     "5_2",
+    #     "5_3",
+    #     "5_2_fixed",
+    #     "5_3_fixed",
+    #     "ode_2",
+    #     "ode_2_2",
+    #     "ode_3",
+    #     "ode_3_2",
+    #     "ode_3_2_alt",
+    #     "ode_3_3",
+    #     "ode_5_2",
+    #     "ode_5_3",
+    #     "ode_7_2",
+    #     "ode_8_3",
+    # ],
     type=str,
 )
 
@@ -245,11 +245,7 @@ ratio_pattern: re.Pattern = re.compile(r"R(?P<ratio>b.n)R")
 capture_patterns: re.Pattern = re.compile(
     r"(?P<datasource>^[^M]*)"  # phase, ssa, etc.
     r"M(?P<model>[^P]*)"  # Model specifier
-    r"P(?P<rawmetadata>[^SR]*)"  # Parameters and
-    r"[^S]*"  # a stupid way to ignore the ratio
-    r"S(?P<steps>[^T]*)"  # Step count
-    r"I(?P<initcond>[^CT]*)C"  # Initial conditions
-    r"T(?P<t>\d+)"
+    r"[TP](?P<serial>\d+)"
     r"\.(?P<filetype>\w*)$"
 )
 
@@ -263,13 +259,9 @@ for fn in file_names:
     rec = dict()
 
     matches = capture_patterns.match(fn)
-    ratio = ratio_pattern.search(fn)
 
     if matches is not None:
         rec.update(matches.groupdict())
-
-    if ratio is not None:
-        rec.update(ratio.groupdict())
 
     rec["file_name"] = fn
     records.append(rec)
@@ -277,38 +269,7 @@ for fn in file_names:
 
 ## So we assign it to a dataframe for easy access
 raw_frame = pd.DataFrame(records)
-raw_frame.sort_values(by="t", inplace=True)  ## Sorting by unix epoch time, ascending
-
-
-## I need to update the metadata column, to be a column of dict type.
-## Isolating all the matches in the strings so as to prepare a
-## list of tuple[str, float] types— which can be turned into a dictionary
-## For that I just use the same technique as for the filter flag type
-metadata_captures = re.compile(r"(\w[^=]*)=([^_]*)_")
-
-
-def parse_metadata(string):
-    matches: list[tuple] = metadata_captures.findall(string)
-    parameters = [(str(key).replace("-", "_"), float(value)) for key, value in matches]
-    return dict(parameters)
-
-
-raw_frame["metadata"] = raw_frame["rawmetadata"].map(parse_metadata)
-
-
-no_ratio = raw_frame["ratio"].isna()
-raw_frame.loc[no_ratio, "ratio"] = ""
-
-
-### Now we can mutate the dictionaries in memory and dynamically create columns
-defined_metadata = raw_frame["metadata"].map(lambda d: len(d) > 0)
-raw_frame = raw_frame.loc[defined_metadata]
-
-## That dict.pop has a default for missing entries is a literal godsend
-ssa_index = raw_frame.loc[raw_frame["datasource"] == "ssa"].index
-raw_frame["count"] = [int(d.pop("num", 0)) for d in raw_frame.loc[:, "metadata"]]
-# raw_frame["count"].astype(int, inplace=True)
-
+raw_frame.sort_values(by="serial", inplace=True)  ## Sorting by unix epoch time, ascending
 
 ## From the list, we then count the number of times each model shows up,
 ## assigning the number of each step accordingly.
@@ -316,31 +277,31 @@ raw_frame["count"] = [int(d.pop("num", 0)) for d in raw_frame.loc[:, "metadata"]
 ## so as to have an easier time choosing which file to plot
 raw_frame["model_index"] = raw_frame.groupby("model").cumcount()
 file_frame = raw_frame.set_index(["datasource", "model", "model_index"]).sort_index()
-parameters = file_frame["metadata"].apply(pd.Series)
 
-file_frame = pd.concat([file_frame, parameters], axis="columns")
+
+## Now we select only the entries with the entries we care about
 sourced_frame = file_frame.loc[(data_source, model)].copy()
-sourced_frame.dropna(axis="rows", how="all", subset=["count"], inplace=True)
-sourced_frame.dropna(axis="columns", how="all", inplace=True)
 
 
-## Just brute forces a sorting method, which is designed to fail if the list
-## gets too small. Returns the next best in that case
-def filter_frames(filters: list[tuple[str, float]], df: pd.DataFrame) -> pd.DataFrame:
-    for string, value in filters:
-        try:
-            df_temp = df.loc[df[string] == value]
-            if df_temp.empty:
-                continue
-            df = df_temp
-        except:
-            assert type(df) is pd.DataFrame, "Not a dataframe"
-            continue
-
-    return df
+# ## Just brute forces a sorting method, which is designed to fail if the list
+# ## gets too small. Returns the next best in that case
+# def filter_frames(filters: list[tuple[str, float]], df: pd.DataFrame) -> pd.DataFrame:
+#     for string, value in filters:
+#         try:
+#             df_temp = df.loc[df[string] == value]
+#             if df_temp.empty:
+#                 continue
+#             df = df_temp
+#         except:
+#             assert type(df) is pd.DataFrame, "Not a dataframe"
+#             continue
+#
+#     return df
 
 
 if args.filter is not None:
+    print("Not updated yet")  # TODO: this thing
+    exit()
     sourced_frame = filter_frames(args.filter, sourced_frame).reset_index()
 
 
@@ -348,15 +309,15 @@ if args.opts:
     match data_source:
         case "ssa":
             print("{}".format(args.model))
-            print(sourced_frame[["initcond", "count", "steps", "ratio", "t"]])
+            # print(sourced_frame[["initcond", "count", "steps", "ratio", "t"]])
             exit()
         case "ode":
             print("{}".format(args.model))
-            print(sourced_frame[["metadata"]])
+            # print(sourced_frame[["metadata"]])
             exit()
         case "phase":
             print("{}".format(args.model))
-            print(sourced_frame[["m0", "k1", "k2"]])
+            # print(sourced_frame[["m0", "k1", "k2"]])
             exit()
 
 
@@ -368,6 +329,7 @@ if args.index is None:
         m_index = sourced_frame.index.values[-1]
 else:
     m_index = args.index
+
 
 ## For if it is a comparison
 ## We try to set as many things up here to make it easier in the future
@@ -432,6 +394,7 @@ beta = m + 1  # file_choice["count"]
 boxes = np.arange(alpha, beta + 1, 1, dtype=np.int_)
 xlims = (alpha, beta)
 ylims = (alpha, beta)
+
 
 ##########################
 #   Default Plot Stuff   #

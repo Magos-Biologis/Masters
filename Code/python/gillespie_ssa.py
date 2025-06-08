@@ -355,7 +355,9 @@ for i in range(args.repeats):
             "run": 1 + i,
         }
     )
-    metadata_json = json.dumps(metadata_dict, cls=Numpy2Native)
+    metadata_json = json.dumps(
+        metadata_dict, cls=Numpy2Native, ensure_ascii=False
+    ).encode("utf-8")
     full_file_path = os.path.join(data_env, save_name)
 
     if args.save:

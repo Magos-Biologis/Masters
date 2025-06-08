@@ -3,7 +3,6 @@ import argparse
 import json
 import os
 import re
-import time
 from copy import deepcopy as dc
 
 import numpy as np
@@ -131,17 +130,25 @@ filename_addendum = [
 
 
 file_name += "M" + model
-file_name += "P"
-for entry in filename_addendum:
-    file_name += entry + "_"
-file_name += "S"
-file_name += "IC"
+file_namestring = (
+    "{}".format(m_0)
+    + "{}".format(k[0])
+    + "{}".format(k[1])
+    + "{}".format(n[0])
+    + "{}".format(n[1])
+    + "{}".format(w[0])
+    + "{}".format(w[1])
+    + "{}".format(q[0])
+    + "{}".format(q[1])
+).replace(".", "")
+file_name += "P{}".format(file_namestring)
 
-import time
 
-t = time.time()
+# print(file_namestring)
+# exit()
 
-file_name += "T" + "{}".format(0)
+
+# file_name += "T" + "{}".format(0)
 
 
 dt = 0.01
@@ -244,6 +251,11 @@ def c2_sol(c2):
 c1_nullcline = np.array([c2_sol(c2s), c2s])
 c2_nullcline = np.array([c1s, c1_sol(c1s)])
 
+#
+import time
+
+t = time.time()
+
 metadata_dict.update(
     {
         "data_source": "phase space",
@@ -275,7 +287,9 @@ class Numpy2Native(json.JSONEncoder):
         return super().default(obj)
 
 
-metadata_json = json.dumps(metadata_dict, cls=Numpy2Native)
+metadata_json = json.dumps(metadata_dict, cls=Numpy2Native, ensure_ascii=False).encode(
+    "utf-8"
+)
 
 np.savez(
     full_file_path,

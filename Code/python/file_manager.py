@@ -64,7 +64,7 @@ def parse_kwarg_string(string):
 ## Compiling the defaults and the choice of parameters
 
 
-proper_name_capture: re.Pattern = re.compile(r"((ODE)|(Novel)|(Simple)|(Three))")
+proper_name_capture: re.Pattern = re.compile(r"((ODE)|(Novel)|(Simple)|(Three)|(Ill))")
 metadata_captures: re.Pattern = re.compile(r"(\w[^=]*)=([^_]*)_")
 ratio_pattern: re.Pattern = re.compile(r"R(?P<ratio>b.n)R")
 capture_patterns: re.Pattern = re.compile(
@@ -116,6 +116,8 @@ file_names = os.listdir(data_env)
 for fn in file_names:
     correct_format = proper_name_capture.search(fn)
     if correct_format is not None:
+        # print("Already Updated Filename")
+        continue
         old_name = os.path.join(data_env, fn)
 
         ## This monstrocity is an attempt at loading correctly encoded json
@@ -168,7 +170,6 @@ for fn in file_names:
         rec["model_name"] = model_map[rec["model_name"]]
     except KeyError:
         rec["model_name"] = "IllDefinedModel"
-        continue
 
     new_file_name += "M{}".format(rec["model_name"])
     new_file_name += "L{}".format("python")
@@ -248,6 +249,11 @@ for fn in file_names:
 
     try:
         original_data = np.load(old_name)
+    except:
+        print("no data")
+        continue
+
+    try:
         np.savez(
             old_name,
             time=original_data["time"],
@@ -257,8 +263,43 @@ for fn in file_names:
         # new_data = np.load(old_name)
         # json_data = json.loads(new_data["metadata"].tobytes(order="C"))
     except:
-        print("Failed to load data")
-        continue
+        try:
+            # print(original_data)
+            # print(original_data["c1"])
+            # continue
+            np.savez(
+                old_name,
+                time=original_data["time"],
+                solution=original_data["solutions"],
+                metadata=metadata_json,
+            )
+        except:
+            try:
+                for_npz = {
+                    "c1": original_data["c1"],
+                    "c2": original_data["c2"],
+                    "dU": original_data["dU"],
+                    "dV": original_data["dV"],
+                }
+            except:
+                print("Failed to load data")
+                continue
+            else:
+                try:
+                    nulls = {
+                        "c1_nullcline": original_data["c1_nullcline"],
+                        "c2_nullcline": original_data["c2_nullcline"],
+                    }
+                except:
+                    pass
+                else:
+                    for_npz.update(nulls)
+
+                np.savez(
+                    old_name,
+                    **for_npz,
+                    metadata=metadata_json,
+                )
 
     # print(old_name)
     # print(new_name)
