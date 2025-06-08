@@ -244,7 +244,8 @@ if data_source == "phase" or data_source == "ode":
 ratio_pattern: re.Pattern = re.compile(r"R(?P<ratio>b.n)R")
 capture_patterns: re.Pattern = re.compile(
     r"(?P<datasource>^[^M]*)"  # phase, ssa, etc.
-    r"M(?P<model>[^P]*)"  # Model specifier
+    r"M(?P<model>[^L]*)"  # Model specifier
+    r"L(?P<language_source>[^TP]*)"
     r"[TP](?P<serial>\d+)"
     r"\.(?P<filetype>\w*)$"
 )
@@ -276,12 +277,16 @@ raw_frame.sort_values(by="serial", inplace=True)  ## Sorting by unix epoch time,
 ## From which multi-index is generated for the dataframe
 ## so as to have an easier time choosing which file to plot
 raw_frame["model_index"] = raw_frame.groupby("model").cumcount()
-file_frame = raw_frame.set_index(["datasource", "model", "model_index"]).sort_index()
+file_frame = raw_frame.set_index(["datasource", "model"]).sort_index()
 
 
 ## Now we select only the entries with the entries we care about
-sourced_frame = file_frame.loc[(data_source, model)].copy()
+sourced_frame = file_frame.loc[(data_source, model)]
+sourced_frame = sourced_frame.set_index(["model_index"]).sort_index()
 
+
+print(sourced_frame.loc[0])
+exit()
 
 # ## Just brute forces a sorting method, which is designed to fail if the list
 # ## gets too small. Returns the next best in that case
