@@ -126,10 +126,6 @@ repeats = parsed_args["repeats"]
 
 save_file = parsed_args["save"]
 
-# println(initial_condition)
-# println(typeof(initial_condition))
-# exit()
-
 
 file_name = "ssa"
 file_name *= "M" * model
@@ -140,7 +136,6 @@ file_name *= "L" * "julia"
 # get stored appropriatly, like k₄ → k⁺[4], and k₋₂ → into k⁻[2].
 # Additionally that all the parameters go into the eventual 'metadata' .json
 # for .npz
-
 """
 This function just returns an integer from the name of the model,
 for the sake of the parameter setting.
@@ -153,6 +148,7 @@ function variable_count(model::AbstractString) :: Int64#, is_ode::Bool)
     size = match(r"(\d+)Var", model).captures[1]
     return parse(Int64, size)
 end
+
 
 """
 This function modifies a given vector in place using the Dict.
@@ -241,7 +237,6 @@ var_count = variable_count(model)
 init = initial_condition[1:var_count]
 
 metadata_dict = Dict{String, Any}()
-merge!(metadata_dict, params.all)
 merge!(metadata_dict,
        Dict(
             "data_source" => "stochastic simulation algorithm",
@@ -249,11 +244,10 @@ merge!(metadata_dict,
             "number_of_variables" => var_count,
             "initial_condition" => init,
             "number_of_particles" => sum(init),
+            "parameters" => params.all
            )
       )
 
-#
-#
 # println(metadata_dict)
 # exit()
 

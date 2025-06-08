@@ -8,8 +8,8 @@ export propensity,
 
 
 transitions::Vector{Vector{Int}} = [
-                            [ 1;-1], # a1
-                            [-1; 1], # a-1
+                            [-1; 1], # a1
+                            [ 1;-1], # a-1
                             [ 1; 0], # a2
                             [-1; 0], # a-2
                             [ 0; 1], # a3
@@ -18,17 +18,17 @@ transitions::Vector{Vector{Int}} = [
 
 
 function propensity(p)::Function
-    return xs -> begin
-        x, y = xs
+    return cs::Vector{Integer} -> begin
+        c₁, c₂ = cs
 
-        a₁  = p.w[1] * x
-        a₋₁ = p.w[2] * y
+        a₁  = p.w[1] * c₁
+        a₋₁ = p.w[2] * c₂
 
-        a₂  = p.k[1] * p.n[1] * x
-        a₋₂ = p.k[1] * x^2
+        a₂  = p.k[1] * p.n[1] * c₁
+        a₋₂ = p.k[1] * c₁ * c₁
 
-        a₃  = p.k[2] * p.n[2] * y
-        a₋₃ = p.k[2] * y^2
+        a₃  = p.k[2] * p.n[2] * c₂
+        a₋₃ = p.k[2] * c₂ * c₂
 
         return [a₁; a₋₁; a₂; a₋₂; a₃; a₋₃]
     end
