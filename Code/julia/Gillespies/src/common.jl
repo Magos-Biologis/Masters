@@ -85,6 +85,16 @@ struct StepperStruct{T<:Real, S<:Integer} <: PropensityType
     states::AbstractArray{S}
 end
 
+mutable struct SSAOutputStruct <: PropensityType
+    j::Int8
+    τ::Float64
+end
+
+
+
+
+
+
 
 # prop::F
 # x⃗::Vector{T}

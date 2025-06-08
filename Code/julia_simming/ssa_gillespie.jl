@@ -7,6 +7,9 @@ using NPZ
 
 using Gillespies
 
+
+const BASEDIR = @__DIR__
+
 # Required for environment variables
 figure_env = get(ENV, "FPE_FIGURE_ENV", "")
 data_env = get(ENV, "THESIS_DATA_PATH", "")
@@ -36,6 +39,8 @@ struct ParameterDict{T<:Dict} <: Parameters
     negative::T
     all::T
 end
+
+
 
 function directional_rate(matches::Vector{RegexMatch}) :: Tuple{Vector{RegexMatch}, Vector{RegexMatch}}
     positive = filter(x ->  isnothing(x.captures[2]), matches)
@@ -136,18 +141,10 @@ file_name *= "L" * "julia"
 # get stored appropriatly, like k₄ → k⁺[4], and k₋₂ → into k⁻[2].
 # Additionally that all the parameters go into the eventual 'metadata' .json
 # for .npz
-"""
-This function just returns an integer from the name of the model,
-for the sake of the parameter setting.
-"""
-function parameter_count(model::AbstractString) :: Int64#, is_ode::Bool)
-    size = match(r"(\d+)Par", model).captures[1]
-    return parse(Int64, size)
-end
-function variable_count(model::AbstractString) :: Int64#, is_ode::Bool)
-    size = match(r"(\d+)Var", model).captures[1]
-    return parse(Int64, size)
-end
+
+
+## The model const functions
+include(joinpath(BASEDIR, "model_counts.jl"))
 
 
 """
@@ -163,11 +160,31 @@ function parameter_assignment!(par_vec::Vector, parameters::Dict)#, is_ode::Bool
 end
 
 
-function filtdic(dict::Dict, param::AbstractString, len::Int)
+"""
+This function constructs the missing entries in the dict
+"""
+function condic(dict::Dict, param::AbstractString, len::Int)
     filtered = Dict()
     for i ∈ 1:len
-        key = Symbol(param * "$i")
-        filtered[key] = get(dict, key, 1)
+        pos_key = Symbol(param * "$i")
+        neg_key = Symbol(param * "_$i")
+        filtered[pos_key] = get(dict, pos_key, 1.)
+        filtered[neg_key] = get(dict, neg_key, 1.)
+    end
+    return filtered
+end
+
+
+"""
+This function filters out the relevant `Dict` entries
+"""
+function condic(dict::Dict, param::AbstractString, len::Int)
+    filtered = Dict()
+    for i ∈ 1:len
+        pos_key = Symbol(param * "$i")
+        neg_key = Symbol(param * "_$i")
+        filtered[pos_key] = get(dict, pos_key, 1.)
+        filtered[neg_key] = get(dict, neg_key, 1.)
     end
     return filtered
 end
@@ -178,7 +195,7 @@ This function makes sure that the parameters fed into the simulators are
 consistently sized and sorted.
 It could probably be made more elegant with some for-loops
 """
-function rate_parameter_priming(P::ParameterDict, ode::Bool, model::AbstractString)
+function rate_parameter_priming(P::ParameterDict, ode::Bool)
     if ode
         par = P.all
 
@@ -197,9 +214,8 @@ function rate_parameter_priming(P::ParameterDict, ode::Bool, model::AbstractStri
         pos = P.positive
         neg = P.negative
 
-        count = parameter_count(model)
-        pos_vec = Vector{Float64}(undef, count); pos_vec .= 1
-        neg_vec = Vector{Float64}(undef, count); neg_vec .= 1
+        pos_vec = Vector{Float64}(undef, relevant_counts.par); pos_vec .= 1
+        neg_vec = Vector{Float64}(undef, relevant_counts.par); neg_vec .= 1
 
         parameter_assignment!(pos_vec, pos)
         parameter_assignment!(neg_vec, neg)
@@ -209,7 +225,7 @@ function rate_parameter_priming(P::ParameterDict, ode::Bool, model::AbstractStri
 end
 
 
-rate_vectors = rate_parameter_priming(params, is_ode, model)
+rate_vectors = rate_parameter_priming(params, is_ode)
 if is_ode
     parameters = DifferentialStructSSA(;
         m₀=get(params.all, "m0", 0),
@@ -233,15 +249,14 @@ end
 Setting the metadata json
 """
 
-var_count = variable_count(model)
-init = initial_condition[1:var_count]
+init = initial_condition[1:relevant_counts.var]
 
 metadata_dict = Dict{String, Any}()
 merge!(metadata_dict,
        Dict(
             "data_source" => "stochastic simulation algorithm",
             "model_name" => model,
-            "number_of_variables" => var_count,
+            "number_of_variables" => relevant_counts.var,
             "initial_condition" => init,
             "number_of_particles" => sum(init),
             "parameters" => params.all
@@ -271,24 +286,25 @@ for i::Int64 in 1:repeats
     save_name *= "T" * replace("$epoch", "." => "", "e9" => "")
 
     update_dict = Dict(
-            "steps_taken" => steps_taken,
-            "date" => epoch,
-            "runtime" => t2 - t1,
-            "run" => i,
-    )
+                       "steps_taken" => steps_taken,
+                       "date" => epoch,
+                       "runtime" => t2 - t1,
+                       "run" => i,
+                      )
 
     merge!(metadata_cycle, update_dict)
     metadata_json = json(metadata_cycle)
     metadata_bytes = collect(codeunits(metadata_json))
-
-    println(metadata_bytes)
-    exit()
 
     to_write = Dict(
                     "time"     => results.time,
                     "states"   => results.states,
                     "metadata" => metadata_bytes
                    )
+
+    # println(to_write["time"])
+    # println(to_write["states"])
+    exit()
 
     full_file_path = joinpath(data_env, save_name)
     if save_file
