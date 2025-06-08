@@ -314,7 +314,7 @@ metadata_dict.update(
         "number_of_variables": var_count,
         "initial_condition": initial,
         "number_of_particles": initial.sum(),
-        "original_run": True,
+        # "original_run": True,
     }
 )
 
@@ -344,7 +344,7 @@ for i in range(args.repeats):
     epoch = t1
 
     save_name += "S" + string_steps
-    save_name += "I{}C".format(initial_conds)
+    # save_name += "I{}C".format(initial_conds)
     save_name += "T{}".format(epoch).replace(".", "")
 
     metadata_dict.update(
