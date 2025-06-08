@@ -18,7 +18,7 @@ transitions::Vector{Vector{Int}} = [
 
 
 function propensity(p)::Function
-    return cs::Vector{Integer} -> begin
+    return cs -> begin
         c₁, c₂ = cs
 
         a₁  = p.w[1] * c₁

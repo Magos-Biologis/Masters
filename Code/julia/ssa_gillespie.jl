@@ -221,7 +221,7 @@ if is_ode
 else
     parameters = NovelStructSSA(;
         n = get(params.all, "n", 10),
-        b = get(params.all, "b", 10),
+        b = get(params.all, "b",  0),
         k⁺= rate_vectors[1],
         k⁻= rate_vectors[2],
     )
@@ -280,6 +280,9 @@ for i::Int64 in 1:repeats
     merge!(metadata_cycle, update_dict)
     metadata_json = json(metadata_cycle)
     metadata_bytes = collect(codeunits(metadata_json))
+
+    println(metadata_bytes)
+    exit()
 
     to_write = Dict(
                     "time"     => results.time,
