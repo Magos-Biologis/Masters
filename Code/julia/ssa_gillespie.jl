@@ -7,6 +7,9 @@ using JSON
 using NPZ
 
 
+using Random
+
+
 
 
 
@@ -32,6 +35,7 @@ params = parsed_args["parameters"]
 
 steps = parsed_args["steps"]
 initial_condition = parsed_args["init"]
+
 repeats = parsed_args["repeats"]
 
 save_file = parsed_args["save"]
@@ -47,16 +51,11 @@ file_name *= "L" * "julia"
 # Additionally that all the parameters go into the eventual 'metadata' .json
 # for .npz
 
-
 const relevant_counts::ParVarStruct = ModelCounts(model)
-init = initial_condition[1:relevant_counts.var]
+initial::Vector{Int64} = initial_condition[1:relevant_counts.var]
 
-
-
-
+particle_count = sum(initial)
 rate_vectors = RateParameterPrimer(params, is_ode, relevant_counts)
-
-
 if is_ode
     parameters = DifferentialStructSSA(;
         m₀=get(params.all, "m0", 0),
@@ -67,15 +66,12 @@ if is_ode
     )
 else
     parameters = NovelStructSSA(;
-        n = get(params.all, "n", 10),
-        b = get(params.all, "b",  0),
+        n = get(params.all, "n", 1),
+        b = get(params.all, "b", 0),
         k⁺= rate_vectors[1],
         k⁻= rate_vectors[2],
     )
 end
-
-
-
 
 
 """
@@ -87,16 +83,11 @@ merge!(metadata_dict,
             "data_source" => "stochastic simulation algorithm",
             "model_name" => model,
             "number_of_variables" => relevant_counts.var,
-            "initial_condition" => init,
-            "number_of_particles" => sum(init),
+            "initial_condition" => initial,
+            "number_of_particles" => sum(initial),
             "parameters" => params.all
            )
       )
-
-# println(metadata_dict)
-# exit()
-
-
 
 
 for i::Int64 in 1:repeats
@@ -104,12 +95,11 @@ for i::Int64 in 1:repeats
     metadata_cycle = deepcopy(metadata_dict)
 
     t1 = Float64(time())
-    results = StepIterator(model, steps, init, parameters)
+    results = StepIterator(model, steps, initial, parameters)
     t2 = Float64(time())
 
-    # println(typeof(results))
-    # exit()
-
+    println(t2 - t1)
+    exit()
     steps_taken = length(results.time)
 
     epoch = t1
@@ -132,11 +122,8 @@ for i::Int64 in 1:repeats
                     "metadata" => metadata_bytes
                    )
 
-    # println(to_write["time"])
-    println(to_write["states"])
-    exit()
 
-    full_file_path = joinpath(data_env, save_name)
+    full_file_path = joinpath(DATASTORE, save_name)
     if save_file
         npzwrite(
              full_file_path * ".npz",

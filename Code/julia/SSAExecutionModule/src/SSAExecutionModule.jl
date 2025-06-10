@@ -10,7 +10,9 @@ using ArgParse
 
 export ArgumentSetter,
 
+       ParameterDict,
        ParVarStruct,
+
        ModelCounts,
        RateParameterPrimer
 
