@@ -2,12 +2,14 @@
 """
 This function modifies a given vector in place using the Dict.
 By taking the value of the 'subscript' of a parameter, it places that one
-in the (hopefully) correct place the vector
+in the (hopefully) correct place the vector.
+Ignoring any variables that can not be assigned.
 """
 function parameter_assignment!(par_vec::Vector, parameters::Dict)#, is_ode::Bool)
-    for (k, v) ∈ parameters
-        entry = match(r"(\d+)", String(k)).captures[1]
-        par_vec[ parse(Int, entry) ] = v
+    vector_keys = keys(par_vec)
+    for (k, v) ∈  parameters
+        entry = parse(Int, match(r"(\d+)", String(k)).captures[1])
+        entry ∈ vector_keys && eval(:($par_vec[$entry] = $v))
     end
 end
 
@@ -47,7 +49,12 @@ This function makes sure that the parameters fed into the simulators are
 consistently sized and sorted.
 It could probably be made more elegant with some for-loops
 """
-function RateParameterPrimer(P::ParameterDict, ode::Bool, counts::ParVarStruct)
+function RateParameterPrimer(
+        P::ParameterDict,
+        ode::Bool,
+        counts::ParVarStruct,
+    )
+
     if ode
         par = P.all
 
@@ -61,7 +68,7 @@ function RateParameterPrimer(P::ParameterDict, ode::Bool, counts::ParVarStruct)
         parameter_assignment!( w_vec, filtdic(par, "w", 2) )
         parameter_assignment!( q_vec, filtdic(par, "q", 2) )
 
-        return n_vec, k_vec, w_vec, q_vec
+        output = n_vec, k_vec, w_vec, q_vec
     else
         pos = P.positive
         neg = P.negative
@@ -72,8 +79,10 @@ function RateParameterPrimer(P::ParameterDict, ode::Bool, counts::ParVarStruct)
         parameter_assignment!(pos_vec, pos)
         parameter_assignment!(neg_vec, neg)
 
-        return pos_vec, neg_vec
+        output =  pos_vec, neg_vec
     end
+
+    return output
 end
 
 
