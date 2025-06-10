@@ -52,7 +52,7 @@ file_name *= "L" * "julia"
 # for .npz
 
 const relevant_counts::ParVarStruct = ModelCounts(model)
-initial::Vector{Int64} = initial_condition[1:relevant_counts.var]
+initial::Vector{<:Integer} = initial_condition[1:relevant_counts.var]
 
 particle_count = sum(initial)
 rate_vectors = RateParameterPrimer(params, is_ode, relevant_counts)
@@ -97,9 +97,10 @@ for i::Int64 in 1:repeats
     t1 = Float64(time())
     results = StepIterator(model, steps, initial, parameters)
     t2 = Float64(time())
+    Δt::Float64 = t2 - t1
 
-    println(t2 - t1)
-    exit()
+    println(Δt)
+
     steps_taken = length(results.time)
 
     epoch = t1
@@ -108,7 +109,7 @@ for i::Int64 in 1:repeats
     update_dict = Dict(
                        "steps_taken" => steps_taken,
                        "date" => epoch,
-                       "runtime" => t2 - t1,
+                       "runtime" => Δt,
                        "run" => i,
                       )
 
@@ -131,7 +132,7 @@ for i::Int64 in 1:repeats
             )
         println("saved as '$save_name'")
     else
-        println("file name is '$save_name'")
+        println("file name would be is '"*"$save_name"*".npz"*"'")
     end
 
 end

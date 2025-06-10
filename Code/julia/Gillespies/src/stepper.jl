@@ -4,8 +4,8 @@ using Base: final_shred!
 """
 function StepIterator(
         model::String,
-        steps::Int,
-        x₀::Vector{Int},
+        steps::Int64,
+        x₀::Vector{Int64},
         parameters::ParameterTypeSSA,
     )::StepperStruct
 

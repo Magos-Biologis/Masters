@@ -53,7 +53,7 @@ function RateParameterPrimer(
         P::ParameterDict,
         ode::Bool,
         counts::ParVarStruct,
-    )
+    ) :: Tuple
 
     if ode
         par = P.all
