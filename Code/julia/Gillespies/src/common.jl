@@ -31,27 +31,27 @@ end
 `S <: ODESSA`
 """
 struct DifferentialStructSSA{T<:Real} <: ParameterTypeSSA
-    k ::Vector{T}
     n ::Vector{T}
+    k ::Vector{T}
     w ::Vector{T}
     q ::Vector{T}
     m₀::T
 end
 
-function DifferentialStructSSA(k, n, w, q, m₀)
-    T = promote_type(eltype(k), eltype(n), eltype(w), eltype(q), typeof(m₀))
-    return DifferentialStructSSA(T.(k), T.(n), T.(w), T.(q), T(m₀))
+function DifferentialStructSSA(n, k, w, q, m₀)
+    T = promote_type(eltype(n), eltype(k), eltype(w), eltype(q), typeof(m₀))
+    return DifferentialStructSSA(T.(n), T.(k), T.(w), T.(q), T(m₀))
 end
 
 function DifferentialStructSSA(;
-        k ::Vector{<:Real} = [1.0; 1.0],
         n ::Vector{<:Real} = [100; 100],
+        k ::Vector{<:Real} = [1.0; 1.0],
         w ::Vector{<:Real} = [0.015; 0.015],
         q ::Vector{<:Real} = [0.8; 0.8],
         m₀::Real = 0.,
     ) ::DifferentialStructSSA
 
-    return DifferentialStructSSA(k, n, w, q, m₀)
+    return DifferentialStructSSA(n, k, w, q, m₀)
 end
 
 
@@ -62,7 +62,7 @@ non-modified and the modified values are different
 """
 Base.:/(::ParameterTypeSSA, ::Number) = println("Not defined")
 Base.:/(P::NovelStructSSA, N::Number) = NovelStructSSA(P.n, P.b, /(P.k⁺, N), /(P.k⁻, N))
-Base.:/(P::DifferentialStructSSA, N::Number) = DifferentialStructSSA(/(P.k,N), P.n, /(P.w, N), /(P.q, N), /(P.m₀, N))
+Base.:/(P::DifferentialStructSSA, N::Number) = DifferentialStructSSA(P.n, /(P.k,N), /(P.w, N), /(P.q, N), /(P.m₀, N))
 
 """
 Also overloading the convert type to work for my structs
