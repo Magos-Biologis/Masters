@@ -97,11 +97,12 @@ for i::Int64 in 1:repeats
     t1 = Float64(time())
     results = StepIterator(model, steps, initial, parameters)
     t2 = Float64(time())
+
     Δt::Float64 = t2 - t1
+    steps_taken::Int64 = length(results.time)
 
-    println(Δt)
+    # println(Δt)
 
-    steps_taken = length(results.time)
 
     epoch = t1
     save_name *= "T" * replace("$epoch", "." => "", "e9" => "")
