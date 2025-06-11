@@ -4,9 +4,10 @@
 
 **/Litterature/
 **/Litterature/**
-**/*.venv/
+**/.venv/
 *.djvu
 
 **/__pycache__/
 *.npz
 **/.latex_build/
+*.history
