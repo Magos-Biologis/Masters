@@ -10,3 +10,4 @@
 *.npz
 **/.latex_build/
 *.history
+/Presentation/.latex_build
