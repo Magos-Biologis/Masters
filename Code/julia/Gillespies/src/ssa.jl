@@ -2,26 +2,24 @@
 A Julia-fied version of my python implementation of the Gillespie Stochastic
 Simulation Algorithm.
 """
-function SSA(aⱼ:: Vector{T})::Tuple{Int, Float64} where T<:Real
+function SSA(aⱼ:: Vector{T})::SSAOutputStruct where T<:Real
     a₀::Real = sum( aⱼ )
-    if a₀ <= 0
+    output = SSAOutputStruct(0, 0.)
+    if a₀ <= 0.
         println("womp womp")
-        return 0, 0
+        return output
     end
 
-    r::Vector{Float64} = rand(Uniform(eps(Float64),1), 2)
-    j::Int = 0
-    τ::Float64 = log(1 / r[1]) / a₀
+    r = rand(Uniform(eps(Float64),1), 2)
     rₐ₀::Float64 = r[2] * a₀
+    output.τ = log(1 / r[1]) / a₀
 
-    for ( i, sⱼ) ∈ enumerate(cumsum( aⱼ ))
-        if sⱼ>= rₐ₀
-            j += i
-            break
-        end
+    for sⱼ ∈  cumsum( aⱼ)
+        output.j += 1
+        sⱼ >= rₐ₀ && break ## The && is a 'short circuiting boolean AND'
     end
 
-    return j, τ
+    return output
 end
 
 

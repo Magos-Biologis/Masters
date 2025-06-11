@@ -314,7 +314,7 @@ metadata_dict.update(
         "number_of_variables": var_count,
         "initial_condition": initial,
         "number_of_particles": initial.sum(),
-        "original_run": True,
+        # "original_run": True,
     }
 )
 
@@ -344,7 +344,7 @@ for i in range(args.repeats):
     epoch = t1
 
     save_name += "S" + string_steps
-    save_name += "I{}C".format(initial_conds)
+    # save_name += "I{}C".format(initial_conds)
     save_name += "T{}".format(epoch).replace(".", "")
 
     metadata_dict.update(
@@ -355,7 +355,9 @@ for i in range(args.repeats):
             "run": 1 + i,
         }
     )
-    metadata_json = json.dumps(metadata_dict, cls=Numpy2Native)
+    metadata_json = json.dumps(
+        metadata_dict, cls=Numpy2Native, ensure_ascii=False
+    ).encode("utf-8")
     full_file_path = os.path.join(data_env, save_name)
 
     if args.save:

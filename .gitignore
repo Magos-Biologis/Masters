@@ -3,7 +3,6 @@
 **.png
 
 **/Litterature/
-**/Litterature/**
 **/.venv/
 *.djvu
 
@@ -11,3 +10,16 @@
 *.npz
 **/.latex_build/
 *.history
+/Presentation/.latex_build
+Presentation/.latex_build/main.aux
+Presentation/.latex_build/main.bbl
+Presentation/.latex_build/main.bcf
+Presentation/.latex_build/main.blg
+Presentation/.latex_build/main.fdb_latexmk
+Presentation/.latex_build/main.fls
+Presentation/.latex_build/main.log
+Presentation/.latex_build/main.nav
+Presentation/.latex_build/main.out
+Presentation/.latex_build/main.snm
+Presentation/.latex_build/main.toc
+Presentation/output/main.synctex.gz
