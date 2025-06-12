@@ -1,0 +1,16 @@
+name = "VecCalc"
+uuid = "75cb7ea8-8454-4032-be8c-5242daeda730"
+authors = ["Magos-Biologis <127683931+Magos-Biologis@users.noreply.github.com>"]
+version = "0.1.0"
+
+[deps]
+DifferentialEquations = "0c46a032-eb83-5123-abaf-570d42b7fbaa"
+ModelingToolkit = "961ee093-0014-501f-94e3-6117800e7a78"
+StochasticDiffEq = "789caeaf-c7a9-5a7d-9973-96adeb23e2a0"
+Symbolics = "0c5d862f-8b57-4792-8d23-62f2024744c7"
+
+[compat]
+DifferentialEquations = "7.16.1"
+ModelingToolkit = "10.2.0"
+StochasticDiffEq = "6.80.0"
+Symbolics = "6.40.0"
