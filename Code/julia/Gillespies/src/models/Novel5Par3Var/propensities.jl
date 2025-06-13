@@ -1,27 +1,22 @@
-"""
-For a simple two part chemical species A₁ → A₂, A₁ ← A₂
-"""
-module Novel5Par3Var
+begin
+    local function propensity(p)::Function
+        return xs -> begin
+            x, y = xs
+            a₁ = p.k⁺[1] * x
+            a₂ = p.k⁻[1] * y
 
-export propensity,
-       transitions
+            return [a₁; a₂]
+        end
+    end
 
+    local transitions::Vector{Vector{Int}} = [
+                                [-1;1],
+                                [1;-1],
+                               ]
 
-transitions::Vector{Vector{Int}} = [
-                            [-1;1],
-                            [1;-1],
-                           ]
-
-
-function propensity(xs::Vector, p)
-    x, y = xs
-    a₁ = p.k⁺[1] * x
-    a₂ = p.k⁻[1] * y
-
-    return [a₁; a₂]
+    """
+    For a simple two part chemical species A₁ → A₂, A₁ ← A₂
+    """
+    global Novel5Par3Var = PropsAndTrans(propensity,
+                                         copy(transitions))
 end
-
-
-end
-
-

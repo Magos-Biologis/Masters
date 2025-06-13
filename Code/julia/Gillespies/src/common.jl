@@ -80,7 +80,8 @@ so to speak, the method thing, p.A
 """
 abstract type PropensityType end
 
-struct StepperStruct{T <: AbstractVector{<: AbstractFloat}, S <: AbstractArray{<: Integer}} <: PropensityType
+struct StepperStruct{ T <: AbstractVector{<: AbstractFloat},
+                      S <: AbstractArray{<: Integer} } <: PropensityType
     time   :: T
     states :: S
 end

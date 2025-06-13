@@ -1,5 +1,5 @@
-begin
-    function propensity(p)::Function
+let transitions = Vector()
+    local function propensity(p)::Function
         return xs -> begin
             x, y = xs
             a₁ = p.k⁺[1] * x
@@ -9,13 +9,12 @@ begin
         end
     end
 
-    transitions::Vector{Vector{Int}} = [
-                                [-1;1],
-                                [1;-1],
-                               ]
+    push!(transitions, [-1; 1])
+    push!(transitions, [ 1;-1])
 
     """
     For a simple two part chemical species A₁ → A₂, A₁ ← A₂
     """
-    global SimpleChemical1Par2Var = PropsAndTrans(propensity, transitions)
+    global SimpleChemical1Par2Var = PropsAndTrans(propensity,
+                                                  copy(transitions))
 end
