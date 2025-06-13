@@ -29,8 +29,6 @@ Made to function 'in-place' by just modifying the same preallocated array.
 """
 function SSA!(output :: SSAOutput, aⱼ:: Vector{T}) :: SSAOutput where T<:Real
     a₀::Real = sum( aⱼ )
-    output.j = 0;
-
     a₀ <= 0. ? ( println("womp womp");  return output) : nothing
 
     r = rand(Uniform(eps(Float64),1), 2)

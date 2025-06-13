@@ -24,7 +24,7 @@ function NovelStruct(;
         n :: Real = 10, b :: Real = 0.,
         k⁺:: Vector{<: T} = [1;1], k⁻:: Vector{<: T} = [1;1],
     ) :: NovelStruct where T <: Real
-    nn, bb   = float.(promote(n, b))
+    nn,  bb  = float.(promote(n, b))
     kk⁺, kk⁻ = float.(promote(k⁺, k⁻))
 
     return NovelStruct{typeof(nn), typeof(kk⁺)}(nn, bb, kk⁺, kk⁻)
@@ -80,24 +80,29 @@ so to speak, the method thing, p.A
 """
 abstract type PropensityType end
 
-struct StepperStruct{T <: AbstractVector{Real}, S <: AbstractArray{Integer}} <: PropensityType
+struct StepperStruct{T <: AbstractVector{<: AbstractFloat}, S <: AbstractArray{<: Integer}} <: PropensityType
     time   :: T
     states :: S
 end
-
 
 struct PropsAndTrans{F, V <: AbstractVector}
     propensity :: F
     transition :: V
 end
 
-
 mutable struct SSAOutput{I <: Integer, F <: AbstractFloat} <: PropensityType
     j :: I
     τ :: F
 end
 
-SSAOutput() = SSAOutput(0, 0.)
+SSAOutput() = SSAOutput(0, float(0))
+
+
+# function SSAOutput(j::Integer, τ::Real)
+#     ττ = float(τ)
+#     return SSAOutput{typeof(j), typeof(ττ)}(j, ττ)
+# end
+
 
 
 """

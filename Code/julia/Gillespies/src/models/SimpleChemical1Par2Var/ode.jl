@@ -4,7 +4,7 @@
 """
 The Drift vector and Diffusion matrix for the simple chemical system
 """
-function SimpleChemical1Par2Var(P :: NovelStruct )
+function SimpleChemical1Par2VarODE(P :: NovelStruct)
 
     @variables x(t)::Real y(t)::Real #-> So as to only make the variables at compile time
     @parameters k₁=P.k⁺[1]  k₋₁=P.k⁻[1]
