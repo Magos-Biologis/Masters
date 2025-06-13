@@ -4,18 +4,20 @@
 """
 The Drift vector and Diffusion matrix for the simple chemical system
 """
-function SimpleChemical1Par2Var(P :: NovelStructCalc{T} ) :: LangevinStruct{T} where T <: Real
+function SimpleChemical1Par2Var(P :: NovelStructCalc )
 
-    @variables x::Real y::Real
+    @variables x(t)::Real y(t)::Real #-> So as to only make the variables at compile time
+    @parameters k₁=P.k⁺[1]  k₋₁=P.k⁻[1]
 
     r₁ = [-1; 1]
-    t⁺ = P.k⁺[1] * x
-    t⁻ = P.k⁻[2] * y
+    t⁺ = k₁  * x
+    t⁻ = k₋₁ * y
 
-    φ = r₁ * (t⁻ - t⁺)
-    A = build_function(φ, x, y)
+    A = r₁ .* (t⁻ - t⁺)
+    B = (r₁ * r₁') .* (t⁻ - t⁺)
 
-    return eval(A)
+    return LangevinStruct(A, B)
 end
 
 
+# ODEProblem() = ODEProblem(f::ODEFunction,u0,tspan,p=NullParameters(),callback=CallbackSet())

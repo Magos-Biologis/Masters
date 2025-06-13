@@ -1,5 +1,7 @@
 module Gillespies
 
+# import Pkg
+
 using LinearAlgebra
 
 using Random
@@ -40,6 +42,7 @@ include("stepper.jl")
 files = readdir(PROPDIR)
 for file in files
     include(joinpath(PROPDIR, file))
+    # Pkg.import(joinpath(PROPDIR, file))
 end
 
 # This seems to work a lot better than loading modules mid function,
