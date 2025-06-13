@@ -5,10 +5,8 @@ Simulation Algorithm.
 function SSA(aⱼ:: Vector{T})::SSAOutputStruct where T<:Real
     a₀::Real = sum( aⱼ )
     output = SSAOutputStruct(0, 0.)
-    if a₀ <= 0.
-        println("womp womp")
-        return output
-    end
+
+    a₀ <= 0. ? ( println("womp womp"); return output ) : nothing
 
     r = rand(Uniform(eps(Float64),1), 2)
     rₐ₀::Float64 = r[2] * a₀

@@ -9,7 +9,8 @@ function parameter_assignment!(par_vec::Vector, parameters::Dict)#, is_ode::Bool
     vector_keys = keys(par_vec)
     for (k, v) ∈  parameters
         entry = parse(Int, match(r"(\d+)", String(k)).captures[1])
-        entry ∈ vector_keys && eval(:($par_vec[$entry] = $v))
+        # entry ∈ vector_keys && eval(:($par_vec[$entry] = $v))
+        entry ∈ vector_keys ? (par_vec[entry] = v) : nothing
     end
 end
 
