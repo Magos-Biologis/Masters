@@ -5,128 +5,82 @@ Structs go here
 
 abstract type FockPlanType end
 
+abstract type ChemicalDynamic end
+
 # struct SimpleChemicalStruct <: FockPlanType end
 
 
 """
 Struct for use in defining the langevin equations used by the FPE
 """
-struct LangevinStruct{F} <: FockPlanType
-    A :: AbstractVector{F}
-    B :: AbstractMatrix{F}
+struct LangevinStruct{F, V <: AbstractVector{F}, M <: AbstractMatrix{F}} <: FockPlanType
+    A :: V
+    B :: M
 end
 
-
-function LangevinEquation(Lₑ:: LangevinStruct)
-
-    dW = @brownian a b c d
-    println(dW)
-
-    return Lₑ.A + Lₑ.B * dW
-
-end
-
-
-struct ReactionStruct{F} <: FockPlanType
+struct ReactionStruct{F, V <: AbstractVector} <: ChemicalDynamic
     t⁺:: F
     t⁻:: F
-    r :: AbstractVector{Integer}
+    r :: V
 end
 
+function ReactionStruct(t⁺:: Real, t⁻:: Real, r::Vector{<: Integer})
 
-# function LangevinStruct(A, B)
-#     A = convert(AbstractVector{Number}, A)
-#     B = convert(AbstractMatrix{Number}, B)
-#     T = promote_type(eltype(A), eltype(B))
-#     return LangevinStruct(T.(A), T.(B))
-# end
-#
-# function LangevinStruct(;
-#         A :: AbstractVector{T} = [0],
-#         B :: AbstractMatrix{T} = [0]
-#     ) :: LangevinStruct where T <: Real
-#     return LangevinStruct(A, B)
-# end
+end
 
 
 """
-`T <: ParamatersSSA` specifies the parameters for stochastic sampling
+`T <: ParamatersTypeCalc` specifies the parameters for stochastic sampling
 """
 abstract type ParameterTypeCalc end
 
 """
 `S <: NovelStructCalc`
 """
-struct NovelStructCalc{T <: AbstractFloat} <: ParameterTypeCalc
+struct NovelStructCalc{T <: AbstractFloat, V <: AbstractVector{T}} <: ParameterTypeCalc
     n :: T
     b :: T
-    k⁺:: AbstractVector{T}
-    k⁻:: AbstractVector{T}
+    k⁺:: V
+    k⁻:: V
+
+    function NovelStructCalc(n::T, b::T, k⁺:: V, k⁻:: V)
+        lengths = [length(k⁺), length(k⁻)]
+        if length(unique(lengths)) != 1
+            error("All vectors must have the same length. Got lengths: $(lengths)")
+        end
+        new(n, b, k⁺, k⁻)
+    end
 end
-
-
-
-
-# n = convert(AbstractFloat, n)
-# b = convert(AbstractFloat, b)
-# k⁺= convert(AbstractVector{AbstractFloat}, k⁺)
-# k⁻= convert(AbstractVector{AbstractFloat}, k⁻)
-
-# function NovelStructCalc(n, b, k⁺, k⁻)
-#     n = float(n)
-#     b = float(b)
-#     k⁺= float.(k⁺)
-#     k⁻= float.(k⁻)
-#
-#     T = promote_type(typeof(n), typeof(b), eltype(k⁺), eltype(k⁻))
-#     return NovelStructCalc(T(n), T(b), T.(k⁺), T.(k⁻))
-# end
 
 function NovelStructCalc(;
-        n :: Number = 10,
-        b :: Number = 0,
-        k⁺:: Vector{T} = [1; 1],
-        k⁻:: Vector{T} = [1; 1],
-    ) :: NovelStructCalc where T <: Number
-    return NovelStructCalc{AbstractFloat}(n, b, k⁺, k⁻)
+        n :: Real = 10, b :: Real = 0,
+        k⁺:: Vector{<: T} = [1;1], k⁻:: Vector{<: T} = [1;1],
+    ) :: NovelStructCalc where T <: Real
+    nn, bb   = float.(promote(n, b))
+    kk⁺, kk⁻ = float.(promote(k⁺, k⁻))
+
+    return NovelStructCalc{typeof(nn), typeof(kk⁺)}(nn, bb, kk⁺, kk⁻)
 end
+# return NovelStructCalc{Float64, Vector{Float64}}(n, b, k⁺, k⁻)
 
 """
 `S <: DifferentialStructCalc`
 """
-struct DifferentialStructCalc{T <: AbstractFloat} <: ParameterTypeCalc
-    n :: Vector{T}
-    k :: Vector{T}
-    w :: Vector{T}
-    q :: Vector{T}
+struct DifferentialStructCalc{T <: AbstractFloat, V <: AbstractVector{T}} <: ParameterTypeCalc
+    n :: V
+    k :: V
+    w :: V
+    q :: V
     m₀:: T
 end
 
 function DifferentialStructCalc(;
-        n :: Vector{Real} = [100; 100],
-        k :: Vector{Real} = [1.0; 1.0],
-        w :: Vector{Real} = [0.015; 0.015],
-        q :: Vector{Real} = [0.8; 0.8],
-        m₀:: Real = 0,
-    ) :: DifferentialStructCalc
-    return DifferentialStructCalc{AbstractFloat}(n, k, w, q, m₀)
+        n ::Vector{<: T} = [100; 100], k ::Vector{<: T} = [1.0; 1.0],
+        w ::Vector{<: T} = [0.015; 0.015], q ::Vector{<: T} = [0.8; 0.8],
+        m₀::Real = 0 ) :: DifferentialStructCalc where T <: Real
+
+    nn, kk, ww, qq = promote(n, w, k, q)
+    mm₀ = float(m₀)
+    return DifferentialStructCalc{typeof(mm₀), typeof(nn)}(nn, kk, ww, qq, mm₀)
 end
-
-
-# # n = convert(AbstractVector{AbstractFloat}, n)
-# # k = convert(AbstractVector{AbstractFloat}, k)
-# # w = convert(AbstractVector{AbstractFloat}, w)
-# # q = convert(AbstractVector{AbstractFloat}, q)
-# # m₀= convert(AbstractFloat, m₀)
-# function DifferentialStructCalc(n, k, w, q, m₀)
-#     n = float.(n)
-#     k = float.(k)
-#     w = float.(w)
-#     q = float.(q)
-#     m₀= float(m₀)
-#     T = promote_type(eltype(n), eltype(k), eltype(w), eltype(q), typeof(m₀))
-#     return DifferentialStructCalc(T.(n), T.(k), T.(w), T.(q), T(m₀))
-# end
-
-
 

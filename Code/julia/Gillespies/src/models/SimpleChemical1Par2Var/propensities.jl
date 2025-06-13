@@ -1,7 +1,7 @@
 """
 For a simple two part chemical species A₁ → A₂, A₁ ← A₂
 """
-module SimpleChemical1Par2Var
+module SimpleChemical1Par2VarOther
 
 export propensity,
        transitions

@@ -1,7 +1,3 @@
-__precompile__()
-module VecCalc
-
-const BASEDIR::AbstractString = @__DIR__
 
 
 # using Symbolics #-> Just in case, though it may be reimported by ModelingToolkit
@@ -23,8 +19,4 @@ export ParameterTypeCalc,
        LangevinEquation
 
 
-include("common.jl")
 
-include("odes/SimpleChemical1Par2Var.jl")
-
-end

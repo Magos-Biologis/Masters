@@ -5,7 +5,7 @@ As well as instantiating the propensity function
 """
 function instantiate_propensities(
         module_name::AbstractString,
-        parameters::ParameterTypeSSA,
+        parameters::ParameterType,
     )::Tuple{Function, AbstractArray}
     symbol_name::Symbol = Symbol(module_name)
     mod = getfield(Gillespies, symbol_name)
