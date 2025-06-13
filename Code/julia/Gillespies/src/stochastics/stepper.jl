@@ -6,7 +6,7 @@ function StepIterator(
         model::String,
         steps::Int64,
         x₀::Vector{Int64},
-        parameters::ParameterTypeSSA,
+        parameters::ParameterType,
     )::StepperStruct
 
     ## Instantiating the parameters
@@ -26,10 +26,11 @@ function StepIterator(
     ## a function with the appropriate parameters filled in
     ## I'm sure python can do it too, but it's much smoother in Julia
     ( aⱼ, v ) = instantiate_propensities(model, parameters)
+    ssa = SSAOutput()
 
     for i ∈ 2:steps
         x = state_array[i-1, :]
-        ssa::SSAOutputStruct = SSA( aⱼ(x) )
+        SSA!( ssa, aⱼ(x) )
 
         if ssa.j == 0
             final_step = i - 1

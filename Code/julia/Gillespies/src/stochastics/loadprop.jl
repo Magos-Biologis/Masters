@@ -5,15 +5,19 @@ As well as instantiating the propensity function
 """
 function instantiate_propensities(
         module_name::AbstractString,
-        parameters::ParameterTypeSSA,
+        parameters::ParameterType,
     )::Tuple{Function, AbstractArray}
+
     symbol_name::Symbol = Symbol(module_name)
-    mod = getfield(Gillespies, symbol_name)
 
-    propensity = getfield(mod, :propensity)
-    transitions = getfield(mod, :transitions)
+    model  = getfield(Gillespies, symbol_name)
 
-    return propensity(parameters), transitions
+    propensity  = getfield(model, :propensity)(parameters)
+    transitions = getfield(model, :transition)
+
+    println(propensity)
+
+    return propensity, transitions
 end
 
 
