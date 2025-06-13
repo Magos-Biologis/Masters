@@ -19,7 +19,8 @@ export ParameterTypeCalc,
 
        SimpleChemical1Par2Var,
 
-       @langivinify
+
+       LangevinEquation
 
 
 include("common.jl")

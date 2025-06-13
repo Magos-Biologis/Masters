@@ -17,32 +17,12 @@ struct LangevinStruct{F} <: FockPlanType
 end
 
 
-macro langivinify(expression)
-
-    show(expression)
-
-    args = expression.args
-
-    A = :($args[1])
-    len = :(length(A))
-
-
-    b = :($@brownian C)
-    C = :()
-
-    B = :($:($args[2]) * $C)
-
-
-
-    result = 0
-    return esc(result)
-
-end
-
-
 function LangevinEquation(Lₑ:: LangevinStruct)
 
-    @brownian Bx By Bz
+    dW = @brownian a b c d
+    println(dW)
+
+    return Lₑ.A + Lₑ.B * dW
 
 end
 
@@ -85,19 +65,13 @@ struct NovelStructCalc{T <: AbstractFloat} <: ParameterTypeCalc
 end
 
 
-function NovelStructCalc(;
-        n :: Real = 10,
-        b :: Real = 0,
-        k⁺:: Vector{Real} = [1;1],
-        k⁻:: Vector{Real} = [1;1],
-    ) :: NovelStructCalc where T<:Real
-    return NovelStructCalc{AbstractFloat}(n, b, k⁺, k⁻)
-end
+
 
 # n = convert(AbstractFloat, n)
 # b = convert(AbstractFloat, b)
 # k⁺= convert(AbstractVector{AbstractFloat}, k⁺)
 # k⁻= convert(AbstractVector{AbstractFloat}, k⁻)
+
 # function NovelStructCalc(n, b, k⁺, k⁻)
 #     n = float(n)
 #     b = float(b)
@@ -107,6 +81,15 @@ end
 #     T = promote_type(typeof(n), typeof(b), eltype(k⁺), eltype(k⁻))
 #     return NovelStructCalc(T(n), T(b), T.(k⁺), T.(k⁻))
 # end
+
+function NovelStructCalc(;
+        n :: Number = 10,
+        b :: Number = 0,
+        k⁺:: Vector{T} = [1; 1],
+        k⁻:: Vector{T} = [1; 1],
+    ) :: NovelStructCalc where T <: Number
+    return NovelStructCalc{AbstractFloat}(n, b, k⁺, k⁻)
+end
 
 """
 `S <: DifferentialStructCalc`
