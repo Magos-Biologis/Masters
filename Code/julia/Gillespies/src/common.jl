@@ -96,7 +96,7 @@ The benefit of now having defined an abstract supertype, is that we can easily
 define functions for the base actions like 'iteration'
 """
 Base.iterate(S :: T)        where T <: PropensityType = (getfield(S, 1), 1)
-Base.iterate(S :: T, state) where T <: PropensityType = state == 1 ? (getfield(S, 2), 1) : nothing
+Base.iterate(S :: T, state) where T <: PropensityType = state == 1 ? (getfield(S, 2), 2) : nothing
 
 
 
@@ -106,7 +106,7 @@ SDE structs go here
 """
 abstract type FockPlanType end
 
-abstract type ChemicalDynamic end
+abstract type ChemicalKinetic end
 
 """
 Struct for use in defining the langevin equations used by the FPE
@@ -139,19 +139,39 @@ LangevinType(A::F₁, B::F₂) where {F₁, F₂}          = Langevin(A, B)
 And again we define the iteration scope
 """
 Base.iterate(S :: T)        where T <: LangevinType = (S.A, 1)
-Base.iterate(S :: T, state) where T <: LangevinType = state == 1 ? (S.B, 1) : nothing
+Base.iterate(S :: T, state) where T <: LangevinType = state == 1 ? (S.B, 2) : nothing
 
 
 
-struct ReactionStruct{F, V <: AbstractVector} <: ChemicalDynamic
-    t⁺:: F
-    t⁻:: F
-    r :: V
+struct ReactionStruct{N <: Number, I <: Integer} <: ChemicalKinetic
+    t⁺:: N
+    t⁻:: N
+    r :: Union{I, AbstractVector{<: I}}
 end
 
-function ReactionStruct(t⁺:: Real, t⁻:: Real, r::AbstractVector{<: Integer})
 
+function ReactionStruct(; t⁺:: Number = 0, t⁻:: Number = 0, r :: Union{I, AbstractVector{I}} = 1) where I <: Integer
+    tt⁺, tt⁻ = promote(t⁺, t⁻)
+    if typeof(r) <: AbstractVector
+        return ReactionStruct{typeof(tt⁺), eltype(r)}(tt⁺, tt⁻, r)
+    else
+        return ReactionStruct{typeof(tt⁺), typeof(r)}(tt⁺, tt⁻, r)
+    end
 end
+
+
+
+"""
+Once again we define the iteration scope, a little more fancy cause its got
+more than two
+"""
+Base.iterate(S :: T)                 where T <: ReactionStruct = (S.t⁺, 1)
+function Base.iterate(S :: T, state) where T <: ReactionStruct
+    state == 1 && return (S.t⁻, 2)
+    state == 2 && return (S.r , 3)
+    return nothing
+end
+
 
 
 

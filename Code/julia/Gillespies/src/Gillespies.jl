@@ -32,9 +32,10 @@ export ParameterType,
        StepIterator,
        SSAOutput,
 
+       ReactionStruct,
+
        ### Vector Calculus stuff
        # SimpleChemical1Par2Var,
-
        Langevin,
        ScalarLangevin,
        VectorLangevin,
@@ -53,6 +54,7 @@ const MODEDIR::AbstractString = joinpath(BASEDIR, "models")
 include("common.jl")
 
 include("stochastics/loadprop.jl")
+include("stochastics/reaction_kinetics.jl")
 include("stochastics/ssa.jl")
 include("stochastics/stepper.jl")
 
