@@ -16,3 +16,10 @@ function LangevinEquation(Lₑ:: ScalarLangevin)
     @brownian dW
     return Lₑ.A + Lₑ.B * dW
 end
+
+
+
+
+
+
+

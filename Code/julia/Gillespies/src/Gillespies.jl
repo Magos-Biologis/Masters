@@ -57,6 +57,7 @@ include("stochastics/ssa.jl")
 include("stochastics/stepper.jl")
 
 include("vector_calculus/operations.jl")
+include("vector_calculus/parameter_setters.jl")
 include("vector_calculus/langevin.jl")
 include("vector_calculus/potentify.jl")
 
