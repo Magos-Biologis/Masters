@@ -1,3 +1,9 @@
+ENV["JULIA_PKG_PRECOMPILE_AUTO"] = 0
+import Pkg
+Pkg.activate(@__DIR__)
+ENV["JULIA_PKG_PRECOMPILE_AUTO"] = 1
+# pushfirst!(LOAD_PATH, joinpath(BASEDIR, "Gillespies/"))
+# pushfirst!(LOAD_PATH, joinpath(BASEDIR, "SSAExecutionModule/"))
 
 const BASEDIR::AbstractString = @__DIR__
 const DATASTORE::AbstractString = get(ENV, "THESIS_DATA_PATH", "")
@@ -6,22 +12,10 @@ using ArgParse
 using JSON
 using NPZ
 
-
 using Random
 
-
-
-
-
-"""
-Relevant constants for the sake of the model choosen in the command line.
-"""
-# push!(LOAD_PATH, joinpath(BASEDIR, "Gillespies"))
-using Gillespies
-
-push!(LOAD_PATH, joinpath(BASEDIR, "SSAExecutionModule"))
-using SSAExecutionModule
-
+using Gillespies #-> Custom local module
+using SSAExecutionModule #-> Custom local module
 
 
 parsed_args = ArgumentSetter()
@@ -57,7 +51,7 @@ initial::Vector{<:Integer} = initial_condition[1:relevant_counts.var]
 particle_count = sum(initial)
 rate_vectors = RateParameterPrimer(params, is_ode, relevant_counts)
 if is_ode
-    parameters = DifferentialStructSSA(;
+    parameters = DifferentialStruct(;
         m₀=get(params.all, "m0", 0),
         n = rate_vectors[1],
         k = rate_vectors[2],
@@ -65,7 +59,7 @@ if is_ode
         q = rate_vectors[4],
     )
 else
-    parameters = NovelStructSSA(;
+    parameters = NovelStruct(;
         n = get(params.all, "n", 1),
         b = get(params.all, "b", 0),
         k⁺= rate_vectors[1],

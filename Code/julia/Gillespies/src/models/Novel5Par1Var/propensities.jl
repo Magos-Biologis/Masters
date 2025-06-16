@@ -1,22 +1,21 @@
+let transitions = Vector()
+    function propensity(p) :: Function
+        return x -> begin
+            a₁ = p.k⁺[1] * p.n * x
+            a₂ = p.k⁻[1] * x^2
 
-# begin
-#     function propensity(p)::Function
-#         return xs -> begin
-#             x, y = xs
-#             a₁ = p.k⁺[1] * x
-#             a₂ = p.k⁻[1] * y
-#
-#             return [a₁; a₂]
-#         end
-#     end
-#
-#     transitions::Vector{Vector{Int}} = [
-#                                 [-1;1],
-#                                 [1;-1],
-#                                ]
-#
-#     """
-#     For a simple two part chemical species A₁ → A₂, A₁ ← A₂
-#     """
-#     global SimpleChemical1Par2Var = PropsAndTrans(propensity, transitions)
-# end
+            a₃ = p.k⁺[3] * p.b * x
+
+            return [a₁; a₂; a₃]
+        end
+    end
+
+    push!(transitions,  1)
+    push!(transitions, -1)
+    push!(transitions, -1)
+
+    """
+    """
+    global Novel5Par1Var = PropsAndTrans(propensity,
+                                         copy(transitions))
+end

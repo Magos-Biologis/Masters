@@ -13,13 +13,6 @@ struct NovelStruct{T <: AbstractFloat, V <: AbstractVector{T}} <: ParameterType
     k⁻:: V
 end
 
-# function NovelStruct(n::T, b::T, k⁺::V, k⁻::V) where {T <: AbstractFloat, V <: AbstractVector{T}}
-#     lengths = Set(length.((k⁺, k⁻)))
-#     length(lengths) ≡ 1 ? nothing : error("All vectors must have the same length. Got lengths: $(lengths)")
-#     new{T,V}(n, b, k⁺, k⁻)
-# end
-
-
 function NovelStruct(;
         n :: Real = 10, b :: Real = 0.,
         k⁺:: Vector{<: T} = [1;1], k⁻:: Vector{<: T} = [1;1],
@@ -32,7 +25,7 @@ end
 
 
 """
-`S <: ODE`
+`S <: DifferentialStruct`
 """
 struct DifferentialStruct{T <: AbstractFloat, V <: AbstractVector{T}} <: ParameterType
     n :: V
@@ -60,7 +53,7 @@ non-modified and the modified values are different
 """
 Base.:/(::ParameterType, ::Number) = println("Not defined")
 Base.:/(P::NovelStruct, N::Number) = NovelStruct(P.n, P.b, /(P.k⁺, N), /(P.k⁻, N))
-Base.:/(P::DifferentialStruct, N::Number) = DifferentialStruct(P.n, /(P.k,N), /(P.w, N), /(P.q, N), /(P.m₀, N))
+Base.:/(P::DifferentialStruct, N::Number) = DifferentialStruct(P.n, /(P.k, N), /(P.w, N), /(P.q, N), /(P.m₀, N))
 
 """
 Also overloading the convert type to work for my structs
@@ -86,7 +79,7 @@ struct StepperStruct{ T <: AbstractVector{<: AbstractFloat},
     states :: S
 end
 
-struct PropsAndTrans{F, V <: AbstractVector}
+struct PropsAndTrans{F, V <: AbstractVector} <: PropensityType
     propensity :: F
     transition :: V
 end
@@ -98,29 +91,57 @@ end
 
 SSAOutput() = SSAOutput(0, float(0))
 
+"""
+The benefit of now having defined an abstract supertype, is that we can easily
+define functions for the base actions like 'iteration'
+"""
+Base.iterate(S :: T)        where T <: PropensityType = (getfield(S, 1), 1)
+Base.iterate(S :: T, state) where T <: PropensityType = state == 1 ? (getfield(S, 2), 1) : nothing
 
-# function SSAOutput(j::Integer, τ::Real)
-#     ττ = float(τ)
-#     return SSAOutput{typeof(j), typeof(ττ)}(j, ττ)
-# end
 
 
 
 """
 SDE structs go here
 """
-
 abstract type FockPlanType end
 
 abstract type ChemicalDynamic end
 
 """
 Struct for use in defining the langevin equations used by the FPE
+We need one for when scalars are involved, and one for when elements of vector
+spaces are involved
 """
-struct LangevinStruct{F, V <: AbstractVector{F}, M <: AbstractMatrix{F}} <: FockPlanType
+abstract type LangevinType end
+
+struct Langevin{F₁, F₂} <: LangevinType
+    A :: F₁
+    B :: F₂
+end
+
+struct ScalarLangevin{F} <: LangevinType
+    A :: F
+    B :: F
+end
+
+struct VectorLangevin{F, V <: AbstractVector{F}, M <: AbstractMatrix{F}} <: LangevinType
     A :: V
     B :: M
 end
+
+LangevinType(A::AbstractVector, B::AbstractMatrix) = VectorLangevin(A, B)
+LangevinType(A::Number, B::Number)                 = ScalarLangevin(A, B)
+LangevinType(A::F₁, B::F₂) where {F₁, F₂}          = Langevin(A, B)
+
+
+"""
+And again we define the iteration scope
+"""
+Base.iterate(S :: T)        where T <: LangevinType = (S.A, 1)
+Base.iterate(S :: T, state) where T <: LangevinType = state == 1 ? (S.B, 1) : nothing
+
+
 
 struct ReactionStruct{F, V <: AbstractVector} <: ChemicalDynamic
     t⁺:: F
@@ -128,12 +149,27 @@ struct ReactionStruct{F, V <: AbstractVector} <: ChemicalDynamic
     r :: V
 end
 
-function ReactionStruct(t⁺:: Real, t⁻:: Real, r::Vector{<: Integer})
+function ReactionStruct(t⁺:: Real, t⁻:: Real, r::AbstractVector{<: Integer})
 
 end
 
 
 
+#
+# struct LangevinStyle <: Base.Broadcast.BroadcastStyle end
+#
+# BroadcastStyle(::Type{<:LangevinType}) = LangevinStyle()
+# BroadcastStyle(::LangevinStyle, ::Broadcast.DefaultArrayStyle) = LangevinStyle()
+# BroadcastStyle(::Broadcast.DefaultArrayStyle, ::LangevinStyle) = LangevinStyle()
+#
+# # Define how to broadcast operations
+# function broadcasted(::LangevinStyle, f, ms::Langevin)
+#     Langevin(f.(ms.A), f.(ms.B))
+# end
+#
+# function broadcasted(::LangevinStyle, f, ms1::Langevin, ms2::Langevin)
+#     Langevin(f.(ms1.A, ms2.A), f.(ms1.B, ms2.B))
+# end
 
 
 # prop::F

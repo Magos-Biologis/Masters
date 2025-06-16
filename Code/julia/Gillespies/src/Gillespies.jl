@@ -9,6 +9,8 @@ import Distributions: Uniform
 using ModelingToolkit
 using ModelingToolkit: t_nounits as t, D_nounits as D
 
+import ModelingToolkit: Symbolics
+
 using StochasticDiffEq
 
 using JSON
@@ -23,14 +25,19 @@ export ParameterType,
        PropensityType,
        StepperStruct,
 
-       # load_propensity_stuff,
+       ### Stochastic Simulation Algorithm
        SSA!,
+       SSA,
+
        StepIterator,
        SSAOutput,
 
        ### Vector Calculus stuff
        # SimpleChemical1Par2Var,
 
+       Langevin,
+       ScalarLangevin,
+       VectorLangevin,
 
        LangevinEquation
 
@@ -49,7 +56,9 @@ include("stochastics/loadprop.jl")
 include("stochastics/ssa.jl")
 include("stochastics/stepper.jl")
 
+include("vector_calculus/operations.jl")
 include("vector_calculus/langevin.jl")
+include("vector_calculus/potentify.jl")
 
 # The stochastic sim modules
 # including it programatically cause why not
@@ -57,8 +66,10 @@ models = readdir(MODEDIR)
 for model in models
     model_dir = joinpath(MODEDIR, model)
     include(joinpath(model_dir, "propensities.jl"))
-    include(joinpath(model_dir, "ode.jl"))
+    include(joinpath(model_dir, "drift_and_diffusion.jl"))
 end
+
+include("models/SimpleChemical1Par1Var/analytic.jl")
 
 
 end # module Gillespies
