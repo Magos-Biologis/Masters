@@ -6,6 +6,9 @@ function Base.:*(∇ :: Matrix{<: Differential}, A :: AbstractVector{<: Num})
     return sum([xᵢ|> ∇ᵢ for (∇ᵢ, xᵢ) ∈ zip(∇, A)])
 end
 
+"""
+Additionally so for matrix divergence as well
+"""
 function Base.:*(∇ :: Matrix{<: Differential}, B :: AbstractMatrix{<: Num})
     return collect([sum([xᵢ|> ∇ᵢ for (∇ᵢ, xᵢ) ∈ zip(∇,A)]) for A ∈ eachcol(B)])
 end
