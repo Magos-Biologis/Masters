@@ -15,7 +15,7 @@ function SimpleChemical1Par1VarAB(P :: NovelStruct; symbolic = true)
 
     r₁ = ReactionStruct(t⁺ = k₁ * x, t⁻ = k₋₁ * (1 - x), r = 1)
     A  = A_i(r₁)
-    B  = B_ij(r₁) / n
+    B  = Bij(r₁) / n
 
     # A =  r₁        .* (t⁻ - t⁺)
     # B = (r₁ * r₁') .* (t⁻ + t⁺) / n

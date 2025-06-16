@@ -13,12 +13,12 @@ function SimpleChemical1Par2VarAB(P :: NovelStruct; symbolic = true)
     eval(@parameterification params)
 
 
-    r₁ = [ 1;-1]
-    t⁺ = k₁  * x
-    t⁻ = k₋₁ * y
+    r₁ = ReactionStruct( t⁺ = k₁ * x, t⁻ = k₋₁ * y, r = [ 1;-1])
 
-    A =  r₁        .* (t⁻ - t⁺)
-    B = (r₁ * r₁') .* (t⁻ + t⁺)
+    A = A_i(r₁)
+    B = Bij(r₁)
+    # A =  r₁        .* (t⁻ - t⁺)
+    # B = (r₁ * r₁') .* (t⁻ + t⁺)
 
 
     if symbolic
