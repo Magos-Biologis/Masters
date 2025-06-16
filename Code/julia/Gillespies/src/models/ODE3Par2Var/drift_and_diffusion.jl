@@ -31,8 +31,8 @@ function ODE3Par2VarAB(P :: DifferentialStruct; symbolic = true)
     if symbolic
         return LangevinType(A, B)
     else
-        AA = build_function(substitute(A, params), x; expression = Val{false})
-        BB = build_function(substitute(B, params), x; expression = Val{false})
+        AA = build_function(substitute(A, params), c; expression = Val{false})
+        BB = build_function(substitute(B, params), c; expression = Val{false})
 
         return LangevinType(AA, BB)
     end
