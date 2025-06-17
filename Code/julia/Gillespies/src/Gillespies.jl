@@ -2,6 +2,7 @@ __precompile__()
 module Gillespies
 
 using LinearAlgebra
+# using LinearAlgebra: dot
 
 using Random
 import Distributions: Uniform
@@ -40,7 +41,10 @@ export ParameterType,
        ScalarLangevin,
        VectorLangevin,
 
-       LangevinEquation
+       LangevinEquation,
+
+       ### Macros
+       @∇
 
 
        # SaveToNPZ
@@ -58,7 +62,7 @@ include("stochastics/reaction_kinetics.jl")
 include("stochastics/ssa.jl")
 include("stochastics/stepper.jl")
 
-include("vector_calculus/operations.jl")
+include("vector_calculus/operation_extensions.jl")
 include("vector_calculus/parameter_setters.jl")
 include("vector_calculus/langevin.jl")
 include("vector_calculus/potentify.jl")
