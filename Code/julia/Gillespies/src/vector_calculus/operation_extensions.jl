@@ -12,33 +12,32 @@ end
 
 
 """
+Adding the gradiant operation to exist under the '*' binary operation
+"""
+function Base.:*(∇ :: AbstractVecOrMat{<: Differential}, f :: Num)
+    return [ f |> ∇ᵢ for ∇ᵢ ∈ ∇ ]
+end
+
+
+"""
 Adding the divergence operation to exist under the '·' binary operation
 """
-function LinearAlgebra.dot(∇ :: Matrix{<: Differential}, A :: AbstractVector{<: Num})
-    return sum([xᵢ|> ∇ᵢ for (xᵢ, ∇ᵢ) ∈ zip(A,∇)])
+function LinearAlgebra.dot(∇ :: AbstractVecOrMat{<: Differential}, F :: AbstractVector{<: Num})
+    return sum([ xᵢ|> ∇ᵢ for (xᵢ, ∇ᵢ) ∈ zip(F,∇) ])
 end
 
 """
 Additionally so for matrix divergence as well
 """
-function LinearAlgebra.dot(∇ :: Matrix{<: Differential}, B :: AbstractMatrix{<: Num})
-    return [ ∇·A for A ∈ eachcol(B)]
+function LinearAlgebra.dot(∇ :: AbstractVecOrMat{<: Differential}, A :: AbstractMatrix{<: Num})
+    return [ ∇·F for F ∈ eachcol(A) ]
 end
 
 
 
-"""
-Adding the gradiant operation to exist under the '*' binary operation
-"""
-function Base.:*(∇ :: Matrix{<: Differential}, F :: Num)
-    return nothing
-end
-
-function Base.:*(∇ :: Matrix{<: Differential}, F :: Num)
-    return nothing
-end
-
-# Base.:*(∇ :: Matrix{<: Differential}, A :: AbstractMatrix{<: Num}) = sum([xᵢ|> ∇ᵢ for (∇ᵢ, xᵢ) ∈ zip(∇,A)])
-
-# Base.:*(:: Val{:∇}, A :: Vector{<: Num}) = sum([xᵢ|> ∇ᵢ for (∇ᵢ, xᵢ) ∈ zip(∇,A)])
-# Base.:*(S :: Symbol, A :: Vector{<: Num}) = *(Val(S), A)
+# """
+# Adding the curl operation to exist under the '×' binary operation
+# """
+# function LinearAlgebra.cross(∇ :: AbstractVecOrMat{<: Differential}, F :: AbstractVector{<: Num})
+#     return [ F |> ∇ᵢ for ∇ᵢ ∈ ∇ ]
+# end
