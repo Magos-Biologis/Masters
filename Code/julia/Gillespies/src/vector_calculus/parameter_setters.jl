@@ -11,8 +11,8 @@ Additionally we replace the existing dictionary that was fed into it.
 """
 macro parameterification(expr)
     name = string(expr)
-    out = quote dict_to_parameters($expr, $(Symbol(name))) end
-    return esc(out)
+    out  = quote dict_to_parameters($expr, $(Symbol(name))) end
+    return esc(:(eval($out)))
 end
 
 

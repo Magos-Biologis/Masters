@@ -16,9 +16,9 @@ function ODE3Par2VarAB(P :: DifferentialStruct; symbolic = true)
     eval(@parameterification params)
 
 
-    r₁ = ReactionStruct(t⁺ = k₁ * x, t⁻ = k₋₁ * (1 - x), r = 1)
-    r₂ = ReactionStruct(t⁺ = k₁ * x, t⁻ = k₋₁ * (1 - x), r = 1)
-    r₃ = ReactionStruct(t⁺ = k₁ * x, t⁻ = k₋₁ * (1 - x), r = 1)
+    r₁ = ReactionStruct( t⁺ = k₁ * x, t⁻ = k₋₁ * (1 - x), r = [ 1; 0] )
+    r₂ = ReactionStruct( t⁺ = k₁ * x, t⁻ = k₋₁ * (1 - x), r = [ 1; 0] )
+    r₃ = ReactionStruct( t⁺ = k₁ * x, t⁻ = k₋₁ * (1 - x), r = [ 1; 0] )
 
 
     R = [r₁ r₂ r₃]
@@ -31,8 +31,8 @@ function ODE3Par2VarAB(P :: DifferentialStruct; symbolic = true)
     if symbolic
         return LangevinType(A, B)
     else
-        AA = build_function(substitute(A, params), c; expression = Val{false})
-        BB = build_function(substitute(B, params), c; expression = Val{false})
+        AA, AA! = build_function(substitute(A, params), c; expression = Val{false})
+        BB, BB! = build_function(substitute(B, params), c; expression = Val{false})
 
         return LangevinType(AA, BB)
     end

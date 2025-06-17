@@ -1,29 +1,26 @@
 
-function potentiating(L :: T ) where T <: LangevinType
+function potentiating(L :: T, vars :: Num...) where {T <: LangevinType}
 
     A, B = L
+    eval(quote @∇ $(vars...) end)
 
-
-
-    difference = A .- 1
-    ∇log_p = pinv(B) * 1
-
-
+    ∇_B = expand_derivatives.(∇ ⋅B)
+    ∇log_p = inv(B) * (A - ∇_B)
 end
 
 
 
-function divergence(A :: M) where M <: AbstractMatrix
-    m, n = size(A)
-    Dx = Differential(x)
-    Dy = Differential(y)
-    Dz = Differential(z)
-
-    ∇ = [Dx Dy Dz][1:m]
-
-    return ∇ * A
-end
-
+# function divergence(A :: M) where M <: AbstractMatrix
+#     m, n = size(A)
+#     Dx = Differential(x)
+#     Dy = Differential(y)
+#     Dz = Differential(z)
+#
+#     ∇ = [Dx Dy Dz][1:m]
+#
+#     return ∇ * A
+# end
+#
 
 
 # The `pinv()` of LinearAlgebra already does this

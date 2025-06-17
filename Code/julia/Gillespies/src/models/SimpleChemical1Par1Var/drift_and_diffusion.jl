@@ -10,7 +10,7 @@ function SimpleChemical1Par1VarAB(P :: NovelStruct; symbolic = true)
                   :k₋₁ => P.k⁻[1],
                   :n   => P.n
                  )
-    eval(@parameterification params)
+    @parameterification params
 
 
     r₁ = ReactionStruct(t⁺ = k₁ * x, t⁻ = k₋₁ * (1 - x), r = 1)
@@ -21,7 +21,7 @@ function SimpleChemical1Par1VarAB(P :: NovelStruct; symbolic = true)
     # B = (r₁ * r₁') .* (t⁻ + t⁺) / n
 
     if symbolic
-        return LangevinType(A, B)
+        return LangevinType(A, B), params
     else
         AA = build_function(substitute(A, params), x; expression = Val{false})
         BB = build_function(substitute(B, params), x; expression = Val{false})
