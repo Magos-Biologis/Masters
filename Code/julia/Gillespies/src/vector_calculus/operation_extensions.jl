@@ -4,15 +4,6 @@ A julia macro to dynamically construct the needed ∇ operator depending on
 use case.
 """
 macro ∇(vars...)
-
-    # typeof(vars) <: Tuple && (println(vars); println(typeof(vars)))
-    # typeof(vars) <: Symbol && (println(vars); println(typeof(vars)))
-    #
-    # typeof(vars) <: Tuple{Expr} && (vars = vars[1].args) # This is to make the macro more robust
-    # typeof(vars) <: Tuple{Symbol} && println(vars) # This is to make the macro more robust
-    # return nothing
-
-
     names = [:($(Symbol("D" * "$var"))) for var ∈ vars]
     lines = [:($func = Differential($var)) for (func, var) ∈ zip(names, vars)]
     push!(lines, :( ∇ = reshape(eval.($names), 1, :)))
