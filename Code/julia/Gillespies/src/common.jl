@@ -143,14 +143,18 @@ Base.iterate(S :: T, state) where T <: LangevinType = state == 1 ? (S.B, 2) : no
 
 
 
-struct ReactionStruct{N <: Number, I <: Integer} <: ChemicalKinetic
+"""
+So as to more easily control which datatypes are allowed in the ReactionStruct
+"""
+const AbstractIntSpace{I} = Union{I, AbstractVector{I}} where I <: Integer
+
+struct ReactionStruct{N <: Number, I <: Integer } <: ChemicalKinetic
     t⁺:: N
     t⁻:: N
-    r :: Union{I, AbstractVector{<: I}}
+    r :: AbstractIntSpace{I}
 end
 
-
-function ReactionStruct(; t⁺:: Number = 0, t⁻:: Number = 0, r :: Union{I, AbstractVector{I}} = 1) where I <: Integer
+function ReactionStruct(; t⁺:: Number = 0, t⁻:: Number = 0, r :: AbstractIntSpace = 1)
     tt⁺, tt⁻ = promote(t⁺, t⁻)
     if typeof(r) <: AbstractVector
         return ReactionStruct{typeof(tt⁺), eltype(r)}(tt⁺, tt⁻, r)
