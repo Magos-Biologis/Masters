@@ -26,6 +26,7 @@ function LinearAlgebra.dot(∇ :: AbstractVecOrMat{<: Differential}, F :: Abstra
     return sum([ xᵢ|> ∇ᵢ for (xᵢ, ∇ᵢ) ∈ zip(F,∇) ])
 end
 
+
 """
 Additionally so for matrix divergence as well
 """
