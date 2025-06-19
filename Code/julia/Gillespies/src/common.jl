@@ -150,14 +150,25 @@ And again we define the iteration scope
 Base.iterate(S :: T)        where T <: LangevinType = (getfield(S, 1), 1)
 Base.iterate(S :: T, state) where T <: LangevinType = state == 1 ? (getfield(S, 2), 2) : nothing
 
-"""
-"""
-abstract type AnalyticalSolutions end
 
-struct AnalyticalSol{V <: AbstractVector{BigFloat}}
+"""
+"""
+abstract type AnalyticalSpace{T, N} end
+
+const OneDimensional{T}   = AnalyticalSpace{T, 1}
+const TwoDimensional{T}   = AnalyticalSpace{T, 2}
+const ThreeDimensional{T} = AnalyticalSpace{T, 3}
+
+
+struct AnalyticalSol{T <: BigFloat, V <: AbstractVector{T}} <: OneDimensional{T}
     x :: V
-    y :: V
+    p :: V
 end
+
+# struct AnalyticalSol{V <: AbstractVector{BigFloat}} <: TwoDimensional
+#     xs :: V
+#     y :: V
+# end
 
 
 """

@@ -1,14 +1,5 @@
-
-
-
-
-
-
-# Base.convert(::Type{Num}, s::Symbol) = Symbolics.variable(s)
-# Base.convert(::Type{Num}, v::Vector{Symbol}) = eval( :( @parameters $(v...) ) )
-#
-#
-
+import ModelingToolkit.Symbolics.variable as variable
+import ModelingToolkit.Symbolics.variables as variables
 
 """
 A function to take the Dict of parameter assignments, and place it into a
