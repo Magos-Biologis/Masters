@@ -3,10 +3,10 @@ The Drift vector and Diffusion matrix for the most basic ODE
 """
 function ODE3Par2VarAB(P :: DifferentialStruct; symbolic = true)
 
-    c = Symbolics.variables(:c, 1:2)
+    c = variables(:c, 1:2)
 
     vars = c
-    params = Dict(
+    params = Dict{Union{Symbol, Num}, Number}(
                   :k₁  => P.k[1],
                   :k₂  => P.k[2],
                   :n₁  => P.n[1],
@@ -31,7 +31,7 @@ function ODE3Par2VarAB(P :: DifferentialStruct; symbolic = true)
     # B = (r₁ * r₁') .* (t⁻ + t⁺) / n
 
     if symbolic
-        return LangevinType(A, B), vars, params
+        return LangevinType(A, B), (; vars, params)
     else
         AA, AA! = build_function(substitute(A, params), c; expression = Val{false})
         BB, BB! = build_function(substitute(B, params), c; expression = Val{false})

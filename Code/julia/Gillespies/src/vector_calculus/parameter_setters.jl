@@ -19,7 +19,6 @@ the line of code that would say `@parameters x=1 y=2 ...` at parse time,
 so it can be compiled into the line of code it would otherwise be.
 """
 macro parameterification(dictionary)
-
     local dict = esc(dictionary)
 
     local list₁ = :( [ :($k=$v) for (k,v) ∈  $dictionary ] )

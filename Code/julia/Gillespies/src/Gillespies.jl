@@ -12,6 +12,7 @@ using ModelingToolkit: t_nounits as t, D_nounits as D
 
 import ModelingToolkit: Symbolics
 import ModelingToolkit.Symbolics.variable as variable
+import ModelingToolkit.Symbolics.variables as variables
 
 using StochasticDiffEq
 
