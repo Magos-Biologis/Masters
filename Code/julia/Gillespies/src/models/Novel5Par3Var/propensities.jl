@@ -1,4 +1,4 @@
-begin
+let transitions = Vector()
     local function propensity(p)::Function
         return xs -> begin
             x, y = xs
@@ -9,10 +9,8 @@ begin
         end
     end
 
-    local transitions::Vector{Vector{Int}} = [
-                                [-1;1],
-                                [1;-1],
-                               ]
+    push!(transitions, [-1;1])
+    push!(transitions, [1;-1])
 
     """
     For a simple two part chemical species A₁ → A₂, A₁ ← A₂

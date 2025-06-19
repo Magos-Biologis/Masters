@@ -128,7 +128,7 @@
     \stepcounter{reaction} %
     \IfNoValueTF{#1}
     { \arabic{reaction} & #3 & #4 & \(t^+_{\arabic{reaction}}\of{\vec{x}}\) & #2 & \(\br{#5}\) \\ \hline }
-    { \multirow{2}*{\arabic{reaction}} & #3 & #4 & \(t^+_{\arabic{reaction}}\of{\vec{x}}\) & #2 &  \multirow{2}*{\(\br{#5}\)} \\
+    { \multirow{2}*{\arabic{reaction}} & #3 & #4 & \(t^+_{\arabic{reaction}}\of{\vec{x}}\) & #2 &  \multirow{2}*{\(#5\)} \\
                                        & #4 & #3 & \(t^-_{\arabic{reaction}}\of{\vec{x}}\) & #1 &                             \\ \hline }
 }
 
@@ -149,6 +149,7 @@
 % |                        |
 % |(-1,-1)   (0,-1)  (1,-1)|
 % --------------------------
+
 
 % For beamer title
 \newcommand\makebeamertitle{\frame{\maketitle}}%
@@ -185,23 +186,66 @@
 
 
 \section{Introduction}
-\begin{frame}{frame title}
+\begin{frame}{Introduction}
+
+    \begin{enumerate}
+        \item Welcome/Introduction
+        \item Brief reminder of the themes/goals
+        \item What are we going to cover, i.e. \emph{a cock tease}
+    \end{enumerate}
+
+\end{frame}
+
+\begin{frame}{}
     frame contents
 \end{frame}
 
-
+% TODO:
 \section{Birth-Death Processes}
 \begin{frame}{frame title}
     frame contents
 \end{frame}
 
 
+% TODO:
 \section{My Model in 1-Dimension}
-\begin{frame}{frame title}
-    frame contents
+\begin{frame}{Simplest Novel Model}
+
+    \begin{enumerate}
+        \item It somehow never crossed my mind to make my model in one dimension
+        \item So we present it
+    \end{enumerate}
+
+    \begin{reactiontable}
+        \reactionterm[\(k_{-1} x^2\)]{\(k_1 n x\)}{\(X+N\)}{\(2 X\)}{ 1 }
+        \reactionterm{\(k_3 b x\)}{\(X+B\)}{\(B+N\)}{ -1 }
+    \end{reactiontable}
+
+
+\end{frame}
+
+% TODO:
+\section{Revisitng the Proof}
+\begin{frame}{The Proposition}
+
+    \begin{enumerate}
+        \item Statement
+    \end{enumerate}
+
+\end{frame}
+
+\begin{frame}{Applied to the 1D Model}
+
+    \begin{enumerate}
+        \item From the Proposition, we see that 1-var will decay
+        \item The behavior is then of course easily carried to the higher
+            dimensional models
+    \end{enumerate}
+
 \end{frame}
 
 
+% TODO:
 \section{Extension of the Framework}
 \begin{frame}{frame title}
     frame contents

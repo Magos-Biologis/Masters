@@ -9,14 +9,12 @@ let transitions = Vector()
         end
     end
 
-    push!(transitions, [-1; 1])
-    push!(transitions, [ 1;-1])
+    push!(transitions, [-1;1])
+    push!(transitions, [1;-1])
 
     """
-    For a simple two part chemical species A₁ → A₂, A₁ ← A₂
+    For the novel model with 5 parameters and 2 variables
     """
     global Novel5Par2Var = PropsAndTrans(propensity,
                                          copy(transitions))
 end
-
-
