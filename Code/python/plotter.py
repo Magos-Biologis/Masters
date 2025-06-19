@@ -550,16 +550,41 @@ odeies = ps.odePlotters(stream_kwargs=stream_kwargs, **plot_class_dict)
 
 #############################################################################
 
+## Trying to use a 'switch case' to make the plotting hopefully smoother
+## the idea is that we can seperate the source of the data here, and plot it after?
+numpy_datas = []
+metadatas = []
+for i, path in enumerate(path_list):
+    file_path = os.path.join(data_env, path)
+    numpy_data = np.load(file_path)
+    numpy_datas.append(numpy_data)
+    ## As the metadata is encoded in utf-8 for julia compatibility, we need
+    ## to decode it here for the json module to properly read it
+    metadatas.append(json.loads(numpy_data["metadata"].tobytes()))
 
-fig1 = plt.figure(num=1, figsize=(5, 2.5))
-fig3 = plt.figure(num=3, figsize=(6, 5))
+## Using the switch case to 'prime' the plotting space so to speak
+match data_source:
+    case "ssa":
+        fig1 = plt.figure(num=1, figsize=(5, 2.5))
+        fig3 = plt.figure(num=3, figsize=(6, 5))
 
-if args.compare_plots:
-    fig2 = plt.figure(num=2, figsize=(5, 2.5))
-    fig4 = plt.figure(num=4, figsize=(5, 5))
+        if args.compare_plots:
+            fig2 = plt.figure(num=2, figsize=(5, 2.5))
+            fig4 = plt.figure(num=4, figsize=(5, 5))
 
+    case "ode":
+        fig1 = plt.figure(num=1, figsize=(5, 2.5))
+
+        if args.compare_plots:
+            fig2 = plt.figure(num=2, figsize=(5, 2.5))
+
+    case "phase":
+        fig1 = plt.figure(num=1, figsize=(5, 5))
+
+## Programmatically accessing the figs and axes
 figs = [plt.figure(i) for i in plt.get_fignums()]
 axes = [fig.add_subplot() for fig in figs]
+
 
 ## By partitioning the axes list where the first half is the hists, and the
 ## second half is the walks, we can just use the data_set_quantity to split it
@@ -567,223 +592,16 @@ walk_axes = axes[:data_set_quantity]
 hist_axes = axes[data_set_quantity:]
 
 
-## Trying to use a 'switch case' to make the plotting hopefully smoother
-## the idea is that we can seperate the source of the data here, and plot it after?
-numpy_datas = []
-match data_source:
-    case "ssa":
-        for i, path in enumerate(path_list):
-            file_path = os.path.join(data_env, path)
-            numpy_data = np.load(file_path)
-            numpy_datas.append(numpy_data)
-        if is_ode:
-            for ax in hist_axes:
-                ax.set_title(
-                    "Cell Population Densities",
-                    fontdict=font_kwargs,
-                )
-        else:
-            for ax in hist_axes:
-                if model == "5_2":
-                    ax.set_title(
-                        "Distribution of Gene Copy Number\n"
-                        + "${}$".format(para_version.replace("$", "")),
-                        fontdict=font_kwargs,
-                    )
-                else:
-                    ax.set_title(
-                        "Distribution of Gene Copy Number",
-                        fontdict=font_kwargs,
-                    )
-
-        for i, ax in enumerate(hist_axes):
-            ax.set_xlim(xlims)
-            ax.set_ylim(bottom=0)
-            ax.set_ylabel(
-                "Fraction of States",
-                fontdict=font_kwargs,
-            )
-            ax.set_xlabel(
-                "Counts",
-                fontdict=font_kwargs,
-            )
-        for fig in figs:
-            fig.tight_layout()
-
-        if args.plot_fixedpoints:
-            inputs = data_frame["metadata"]
-            # input_dict = dict([(string.replace("-", "_"), val) for string, val in inputs])
-
-            if args.compare_plots:
-                for i, ax in enumerate(walk_axes):
-                    odeies.plot_fixed("ode", ax, inputs, xmax=100, ymax=100)
-                    gillespies.plot_walk_fixed(
-                        ax,
-                        model,
-                        "x",
-                        xmax=1e10,
-                        parameters=inputs,
-                        color=x_color,
-                    )
-                    gillespies.plot_walk_fixed(
-                        ax,
-                        model,
-                        "y",
-                        xmax=1e10,
-                        parameters=inputs,
-                        color=y_color,
-                    )
-
-                for i, ax in enumerate(hist_axes):
-                    odeies.plot_fixed("ode", ax, inputs, axis="x", xmax=100, ymax=100)
-                    gillespies.plot_hist_fixed(
-                        ax,
-                        model,
-                        "x",
-                        ymax=1,
-                        parameters=inputs,
-                        color=x_color,
-                    )
-                    gillespies.plot_hist_fixed(
-                        ax,
-                        model,
-                        "y",
-                        ymax=1,
-                        parameters=inputs,
-                        color=y_color,
-                    )
-            else:
-                gillespies.plot_walk_fixed(
-                    walk_axes[0], model, "x", xmax=1e10, parameters=inputs
-                )
-                gillespies.plot_walk_fixed(
-                    walk_axes[1], model, "y", xmax=1e10, parameters=inputs
-                )
-
-                gillespies.plot_hist_fixed(
-                    hist_axes[0], model, "x", ymax=1, parameters=inputs
-                )
-
-        if args.plot_on_phase:
-            plt.close("all")
-
-            fig1 = plt.figure(1, figsize=(6, 6))
-            ax1 = fig1.add_subplot()
-
-            phase_frame = file_frame.loc[("phase", "jesper")]
-            data_frame["metadata"]["n1"] *= 2
-            data_frame["metadata"]["n2"] *= 2
-            phase_filters: list[tuple[str, float]] = [*data_frame["metadata"].items()]
-
-            filtered_phase = filter_frames(phase_filters, phase_frame)
-            phase_name = filtered_phase.reset_index().loc[0, "file_name"]
-            phase_path = os.path.join(data_env, phase_name)
-            phase_data = np.load(phase_path)
-
-            c1, c2 = phase_data["c1"], phase_data["c2"]
-            dU, dV = phase_data["dU"], phase_data["dV"]
-
-            odeies.plot_phase_space(ax1, c1, c2, dU, dV)
-            odeies.plot_trajectories(ax1, states[0, :], states[1, :])
-
-            ax1.set_xlim(0, 100)
-            ax1.set_ylim(0, 100)
-
-    case "phase":
-        plt.close("all")
-
-        file_path = os.path.join(data_env, path_list[0])
-        numpy_data = np.load(file_path)
-
-        c1, c2 = numpy_data["c1"], numpy_data["c2"]
-        dU, dV = numpy_data["dU"], numpy_data["dV"]
-
-        c1_null = numpy_data["c1_nullcline"]
-        c2_null = numpy_data["c2_nullcline"]
-
-        fig1 = plt.figure(1, figsize=(6, 6))
-        ax1 = fig1.add_subplot()
-
-        # fig2 = plt.figure(figsize=(6, 6))
-        # ax2 = fig2.add_subplot()
-
-        odeies.plot_phase_space(ax1, c1, c2, dU, dV)
-        odeies.plot_nullclines(ax1, *c2_null, *c1_null)
-
-        # level_set = numpy_data["level"]
-        # odeies._plot_phase_curve(ax1, *c1_null, label="$c_2$ Nullcline", color="b")
-        # odeies._plot_phase_curve(ax1, *level_set, label="Levelset", color="g")
-
-        if args.plot_fixedpoints:
-            parameters: dict[str, float] = data_frame["metadata"]
-            odeies.plot_fixed(data_source, ax1, parameters, xmax=100, ymax=100)
-
-        ax1.set_xlim(left=0, right=100)
-        ax1.set_ylim(bottom=0, top=100)
-
-        ax1.legend(loc="upper right", fontsize=legend_font_size)
-
-        ax1.set_xlabel("Number of $c_1$")
-        ax1.set_ylabel("Number of $c_2$")
-
-    case "ode":
-        plt.close("all")
-
-        file_path = os.path.join(data_env, path_list[0])
-        numpy_data = np.load(file_path)
-
-        time = numpy_data["time"]
-        solutions = numpy_data["solutions"]
-
-        fig1 = plt.figure(1, figsize=(6, 4))
-        ax1 = fig1.add_subplot()
-
-        # fig2 = plt.figure(figsize=(6, 6))
-        # ax2 = fig2.add_subplot()
-
-        odeies.plot_curves(ax1, time, solutions)
-
-        if args.plot_fixedpoints:
-            parameters: dict[str, float] = data_frame["metadata"]
-            odeies.plot_fixed(
-                data_source, ax1, parameters, total_vars=2, xmax=time[-1], ymax=100
-            )
-
-        ax1.set_xlim(left=0, right=time[-1])
-        ax1.set_ylim(bottom=0)
-
-        ax1.legend(loc="upper right", fontsize=legend_font_size)
-
-        ax1.set_xlabel("Time")
-        ax1.set_ylabel("Value of Variable")
-    case _:
-        print("Fucked it")
-        exit()
-
-
-### What is intended to be the actual plotting portion
-### But in the frantic last days of plotting, my beautiful system has fallen apart
+### The actual plotting portion
 match data_source:
     case "ssa":
         for i, data in enumerate(numpy_datas):
             time = data["time"]
             states = data["states"]
             try:
-                raw_meta = str(data["metadata"])
-
-                from metadata_json import JsonAsNumpy
-
-                metadata = json.loads(raw_meta, cls=JsonAsNumpy)
-
+                metadata = metadatas[i]
             except:
                 pass
-
-            # print(data_frame[metadata)
-            # exit()
-            # print(metadata)
-            # print(type(metadata))
-            # exit()
-            # metadata = json.loads(raw_meta)  # , cls=JsonAsNumpy)
 
             init_cond_string: str = "{}".format(initial_list[i])
 
@@ -813,12 +631,10 @@ match data_source:
 
             # axe =
             # import matplotlib.pyplot as plt
-
             # my_cmap = plt.cm.jet
             # my_cmap.set_under("w", 1)
             # ...
             # plt.hist2d( ..., cmap = my_cmap)
-
             # hist2d_boxes = np.arange(alpha, beta + 10, 1)
             # counts, xedges, yedges, im = hist_axes[i].hist2d(
             #     states[0, :],
@@ -831,7 +647,6 @@ match data_source:
             #     label="Heatmap of x and y",
             # )
             # fig3.colorbar(im, ax=hist_axes[i], label="Fraction of Samples")
-
             # phase_frame = file_frame.loc[("phase", "jesper")]
             # # data_frame["metadata"]["n1"] *= 2
             # # data_frame["metadata"]["n2"] *= 2
@@ -857,16 +672,13 @@ match data_source:
             # # odeies.plot_trajectories(hist_axes[i], *level / 2, label="Levelset curve")
             # # odeies.plot_trajectories(hist_axes[i], *c1_null)
             # # odeies.plot_trajectories(hist_axes[i], *c2_null)
-
             # axe = hist_axes[i].contourf(*plot_space, output, 20)
             # fig3.colorbar(axe)
             # hist_axes[i].set_xlim(0, beta)
             # hist_axes[i].set_ylim(0, beta)
-
             # file_name += ":2dhist"
             # file_name += ":compared"
             # file_name += ":twice"
-
             # plt.show()
             # exit()
             # shared_ax = hist_axes[i].twinx()
@@ -899,45 +711,220 @@ match data_source:
             # hist_axes[i].set_xlim(left=alpha, right=beta)
             # hist_axes[i].set_ylim(bottom=alpha, top=beta)
             # shared_ax.set_ylim(bottom=0)
-
             # shared_ax.hlines([1, 0.1, 0.01], 0, m)
-
             # shared_ax.set_ylim(bottom=0, top=y_range.max())
-
             # plt.show()
             # exit()
 
-        # for i, ax in enumerate(walk_axes):
-        #     plot_kwargs.update(label=names[i], color=colors[i])
-        #
-        #     gillespies.plot_walk(
-        #         ax,
-        #         time=time,
-        #         steps=states[i, :],
-        #         plot_kwargs=plot_kwargs,
-        #         plot_starts=args.include_starts,
-        #     )
-        #
-        #     gillespies.plot_hist(
-        #         hist_axes[i], states[i, :], label=names[i], color=colors[i]
-        #     )
-        #
-        #     y_max = min(states[i, :].max(), 100)
-        #     ax.set_yticks([y for y in np.linspace(0, y_max + 1, 5, dtype=np.int_)])
-        #     ax.set_xlim(left=0)
-        #     ax.set_ylim(bottom=0, top=y_max)
-
     case "phase":
-        pass
+        for i, data in enumerate(numpy_datas):
+            c1, c2 = data["c1"], data["c2"]
+            dU, dV = data["dU"], data["dV"]
 
-if model == "2S":
-    hist_axes[0].set_title("2D histogram of chemical species distribution")
+            c1_null = data["c1_nullcline"]
+            c2_null = data["c2_nullcline"]
 
-# for ax in axes:
+            odeies.plot_phase_space(ax1, c1, c2, dU, dV)
+            odeies.plot_nullclines(ax1, *c2_null, *c1_null)
+
+            # file_path = os.path.join(data_env, path_list[0])
+            # numpy_data = np.load(file_path)
+            #
+            # fig1 = plt.figure(1, figsize=(6, 6))
+            # ax1 = fig1.add_subplot()
+
+            # fig2 = plt.figure(figsize=(6, 6))
+            # ax2 = fig2.add_subplot()
+
+            # level_set = numpy_data["level"]
+            # odeies._plot_phase_curve(ax1, *c1_null, label="$c_2$ Nullcline", color="b")
+            # odeies._plot_phase_curve(ax1, *level_set, label="Levelset", color="g")
+            if args.plot_fixedpoints:
+                try:
+                    metadata = metadatas[i]
+                except:
+                    pass
+                else:
+                    parameters: dict[str, float] = metadata["metadata"]
+                    odeies.plot_fixed(data_source, ax1, parameters, xmax=100, ymax=100)
+
+            ax1.set_xlim(left=0, right=100)
+            ax1.set_ylim(bottom=0, top=100)
+
+            ax1.legend(loc="upper right", fontsize=legend_font_size)
+
+            ax1.set_xlabel("Number of $c_1$")
+            ax1.set_ylabel("Number of $c_2$")
+
+            # for i, ax in enumerate(walk_axes):
+            #     plot_kwargs.update(label=names[i], color=colors[i])
+            #
+            #     gillespies.plot_walk(
+            #         ax,
+            #         time=time,
+            #         steps=states[i, :],
+            #         plot_kwargs=plot_kwargs,
+            #         plot_starts=args.include_starts,
+            #     )
+            #
+            #     gillespies.plot_hist(
+            #         hist_axes[i], states[i, :], label=names[i], color=colors[i]
+            #     )
+            #
+            #     y_max = min(states[i, :].max(), 100)
+            #     ax.set_yticks([y for y in np.linspace(0, y_max + 1, 5, dtype=np.int_)])
+            #     ax.set_xlim(left=0)
+            #     ax.set_ylim(bottom=0, top=y_max)
+
+    #     if is_ode:
+    #         for ax in hist_axes:
+    #             ax.set_title(
+    #                 "Cell Population Densities",
+    #                 fontdict=font_kwargs,
+    #             )
+    #     else:
+    #         for ax in hist_axes:
+    #             if model == "5_2":
+    #                 ax.set_title(
+    #                     "Distribution of Gene Copy Number\n"
+    #                     + "${}$".format(para_version.replace("$", "")),
+    #                     fontdict=font_kwargs,
+    #                 )
+    #             else:
+    #                 ax.set_title(
+    #                     "Distribution of Gene Copy Number",
+    #                     fontdict=font_kwargs,
+    #                 )
+    #
+    #     for i, ax in enumerate(hist_axes):
+    #         ax.set_xlim(xlims)
+    #         ax.set_ylim(bottom=0)
+    #         ax.set_ylabel(
+    #             "Fraction of States",
+    #             fontdict=font_kwargs,
+    #         )
+    #         ax.set_xlabel(
+    #             "Counts",
+    #             fontdict=font_kwargs,
+    #         )
+    #     for fig in figs:
+    #         fig.tight_layout()
+    #
+    #     if args.plot_fixedpoints:
+    #         inputs = data_frame["metadata"]
+    #         # input_dict = dict([(string.replace("-", "_"), val) for string, val in inputs])
+    #
+    #         if args.compare_plots:
+    #             for i, ax in enumerate(walk_axes):
+    #                 odeies.plot_fixed("ode", ax, inputs, xmax=100, ymax=100)
+    #                 gillespies.plot_walk_fixed(
+    #                     ax,
+    #                     model,
+    #                     "x",
+    #                     xmax=1e10,
+    #                     parameters=inputs,
+    #                     color=x_color,
+    #                 )
+    #                 gillespies.plot_walk_fixed(
+    #                     ax,
+    #                     model,
+    #                     "y",
+    #                     xmax=1e10,
+    #                     parameters=inputs,
+    #                     color=y_color,
+    #                 )
+    #
+    #             for i, ax in enumerate(hist_axes):
+    #                 odeies.plot_fixed("ode", ax, inputs, axis="x", xmax=100, ymax=100)
+    #                 gillespies.plot_hist_fixed(
+    #                     ax,
+    #                     model,
+    #                     "x",
+    #                     ymax=1,
+    #                     parameters=inputs,
+    #                     color=x_color,
+    #                 )
+    #                 gillespies.plot_hist_fixed(
+    #                     ax,
+    #                     model,
+    #                     "y",
+    #                     ymax=1,
+    #                     parameters=inputs,
+    #                     color=y_color,
+    #                 )
+    #         else:
+    #             gillespies.plot_walk_fixed(
+    #                 walk_axes[0], model, "x", xmax=1e10, parameters=inputs
+    #             )
+    #             gillespies.plot_walk_fixed(
+    #                 walk_axes[1], model, "y", xmax=1e10, parameters=inputs
+    #             )
+    #
+    #             gillespies.plot_hist_fixed(
+    #                 hist_axes[0], model, "x", ymax=1, parameters=inputs
+    #             )
+    #
+    #     if args.plot_on_phase:
+    #         plt.close("all")
+    #
+    #         fig1 = plt.figure(1, figsize=(6, 6))
+    #         ax1 = fig1.add_subplot()
+    #
+    #         phase_frame = file_frame.loc[("phase", "jesper")]
+    #         data_frame["metadata"]["n1"] *= 2
+    #         data_frame["metadata"]["n2"] *= 2
+    #         phase_filters: list[tuple[str, float]] = [*data_frame["metadata"].items()]
+    #
+    #         filtered_phase = filter_frames(phase_filters, phase_frame)
+    #         phase_name = filtered_phase.reset_index().loc[0, "file_name"]
+    #         phase_path = os.path.join(data_env, phase_name)
+    #         phase_data = np.load(phase_path)
+    #
+    #         c1, c2 = phase_data["c1"], phase_data["c2"]
+    #         dU, dV = phase_data["dU"], phase_data["dV"]
+    #
+    #         odeies.plot_phase_space(ax1, c1, c2, dU, dV)
+    #         odeies.plot_trajectories(ax1, states[0, :], states[1, :])
+    #
+    #         ax1.set_xlim(0, 100)
+    #         ax1.set_ylim(0, 100)
+    #
+    #
+    case "ode":
+        numpy_data = numpy_datas[0]
+
+        time = numpy_data["time"]
+        solutions = numpy_data["solutions"]
+
+        fig1 = plt.figure(1, figsize=(6, 4))
+        ax1 = fig1.add_subplot()
+
+        odeies.plot_curves(ax1, time, solutions)
+
+        if args.plot_fixedpoints:
+            parameters: dict[str, float] = metadatas[0]
+            odeies.plot_fixed(
+                data_source, ax1, parameters, total_vars=2, xmax=time[-1], ymax=100
+            )
+
+        ax1.set_xlim(left=0, right=time[-1])
+        ax1.set_ylim(bottom=0)
+
+        ax1.legend(loc="upper right", fontsize=legend_font_size)
+
+        ax1.set_xlabel("Time")
+        ax1.set_ylabel("Value of Variable")
+
+    case _:
+        print("Fucked it")
+        exit()
+
+# if model == "2S":
+#     hist_axes[0].set_title("2D histogram of chemical species distribution")
+#
+#
+# for ax in walk_axes:
 #     ax.legend(loc="upper right", fontsize=legend_font_size)
-
-for ax in walk_axes:
-    ax.legend(loc="upper right", fontsize=legend_font_size)
 
 figs = [plt.figure(i) for i in plt.get_fignums()]
 for fig in figs:
