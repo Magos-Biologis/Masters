@@ -282,8 +282,8 @@ sourced_frame = file_frame.loc[(data_source, model)]
 sourced_frame = sourced_frame.set_index(["model_index"]).sort_index()
 
 
-print(sourced_frame.loc[0])
-exit()
+# print(sourced_frame.loc[0])
+# exit()
 
 # ## Just brute forces a sorting method, which is designed to fail if the list
 # ## gets too small. Returns the next best in that case
