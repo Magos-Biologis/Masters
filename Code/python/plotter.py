@@ -41,6 +41,7 @@ parser.add_argument(
         "ode",
         "phase",
         "ssa",
+        "anal",
     ],
     type=str,
 )
@@ -564,6 +565,9 @@ for i, path in enumerate(path_list):
 
 ## Using the switch case to 'prime' the plotting space so to speak
 match data_source:
+    case "anal":
+        fig1 = plt.figure(num=1, figsize=(5, 2.5))
+
     case "ssa":
         fig1 = plt.figure(num=1, figsize=(5, 2.5))
         fig3 = plt.figure(num=3, figsize=(6, 5))
@@ -594,8 +598,14 @@ hist_axes = axes[data_set_quantity:]
 
 ### The actual plotting portion
 match data_source:
+    case "anal":
+        pass
+
     case "ssa":
         for i, data in enumerate(numpy_datas):
+            walk_axis = walk_axes[i]
+            hist_axis = hist_axes[i]
+
             time = data["time"]
             states = data["states"]
             try:
@@ -607,7 +617,7 @@ match data_source:
 
             plot_kwargs.update(label=names[i], color=colors[i])
             gillespies.plot_walks(
-                ax=walk_axes[i],
+                ax=walk_axis,
                 time=time,
                 results=states,
                 xstart=init_cond_string,
@@ -616,18 +626,38 @@ match data_source:
             )
 
             gillespies.plot_hists(
-                ax=hist_axes[i],
+                ax=hist_axis,
                 results=states,
-                # color=colors[i],
-                # label=names[i],
             )
+            # color=colors[i],
+            # label=names[i],
 
-            walk_axes[i].set_xlabel("Time", fontdict=font_kwargs)
-            walk_axes[i].set_ylabel("Count", fontdict=font_kwargs)
+            walk_axis.set_xlabel("Time", fontdict=font_kwargs)
+            walk_axis.set_ylabel("Count", fontdict=font_kwargs)
 
+            walk_axis.set_xlim(left=0)  # , right=30000)
+            walk_axis.set_ylim(bottom=0, top=m)
             # ax.set_yticks([y for y in range(y_min, y_max + 1, axis_step)])
-            walk_axes[i].set_xlim(left=0)  # , right=30000)
-            walk_axes[i].set_ylim(bottom=0, top=m)
+
+            if is_ode:
+                for ax in hist_axes:
+                    ax.set_title(
+                        "Cell Population Densities",
+                        fontdict=font_kwargs,
+                    )
+            else:
+                for ax in hist_axes:
+                    if model == "Novel5Par2Var":
+                        ax.set_title(
+                            "Distribution of Gene Copy Number\n"
+                            + "${}$".format(para_version.replace("$", "")),
+                            fontdict=font_kwargs,
+                        )
+                    else:
+                        ax.set_title(
+                            "Distribution of Gene Copy Number",
+                            fontdict=font_kwargs,
+                        )
 
             # axe =
             # import matplotlib.pyplot as plt
@@ -716,46 +746,6 @@ match data_source:
             # plt.show()
             # exit()
 
-    case "phase":
-        for i, data in enumerate(numpy_datas):
-            c1, c2 = data["c1"], data["c2"]
-            dU, dV = data["dU"], data["dV"]
-
-            c1_null = data["c1_nullcline"]
-            c2_null = data["c2_nullcline"]
-
-            odeies.plot_phase_space(ax1, c1, c2, dU, dV)
-            odeies.plot_nullclines(ax1, *c2_null, *c1_null)
-
-            # file_path = os.path.join(data_env, path_list[0])
-            # numpy_data = np.load(file_path)
-            #
-            # fig1 = plt.figure(1, figsize=(6, 6))
-            # ax1 = fig1.add_subplot()
-
-            # fig2 = plt.figure(figsize=(6, 6))
-            # ax2 = fig2.add_subplot()
-
-            # level_set = numpy_data["level"]
-            # odeies._plot_phase_curve(ax1, *c1_null, label="$c_2$ Nullcline", color="b")
-            # odeies._plot_phase_curve(ax1, *level_set, label="Levelset", color="g")
-            if args.plot_fixedpoints:
-                try:
-                    metadata = metadatas[i]
-                except:
-                    pass
-                else:
-                    parameters: dict[str, float] = metadata["metadata"]
-                    odeies.plot_fixed(data_source, ax1, parameters, xmax=100, ymax=100)
-
-            ax1.set_xlim(left=0, right=100)
-            ax1.set_ylim(bottom=0, top=100)
-
-            ax1.legend(loc="upper right", fontsize=legend_font_size)
-
-            ax1.set_xlabel("Number of $c_1$")
-            ax1.set_ylabel("Number of $c_2$")
-
             # for i, ax in enumerate(walk_axes):
             #     plot_kwargs.update(label=names[i], color=colors[i])
             #
@@ -776,25 +766,6 @@ match data_source:
             #     ax.set_xlim(left=0)
             #     ax.set_ylim(bottom=0, top=y_max)
 
-    #     if is_ode:
-    #         for ax in hist_axes:
-    #             ax.set_title(
-    #                 "Cell Population Densities",
-    #                 fontdict=font_kwargs,
-    #             )
-    #     else:
-    #         for ax in hist_axes:
-    #             if model == "5_2":
-    #                 ax.set_title(
-    #                     "Distribution of Gene Copy Number\n"
-    #                     + "${}$".format(para_version.replace("$", "")),
-    #                     fontdict=font_kwargs,
-    #                 )
-    #             else:
-    #                 ax.set_title(
-    #                     "Distribution of Gene Copy Number",
-    #                     fontdict=font_kwargs,
-    #                 )
     #
     #     for i, ax in enumerate(hist_axes):
     #         ax.set_xlim(xlims)
@@ -891,29 +862,77 @@ match data_source:
     #
     #
     case "ode":
-        numpy_data = numpy_datas[0]
+        for i, data in enumerate(numpy_datas):
+            time = data["time"]
+            solutions = data["solutions"]
 
-        time = numpy_data["time"]
-        solutions = numpy_data["solutions"]
+            axis = walk_axes[i]
 
-        fig1 = plt.figure(1, figsize=(6, 4))
-        ax1 = fig1.add_subplot()
+            fig1 = plt.figure(1, figsize=(6, 4))
+            ax1 = fig1.add_subplot()
 
-        odeies.plot_curves(ax1, time, solutions)
+            odeies.plot_curves(axis, time, solutions)
+
+            if args.plot_fixedpoints:
+                parameters: dict[str, float] = metadatas[0]
+                odeies.plot_fixed(
+                    data_source,
+                    axis,
+                    parameters,
+                    total_vars=2,
+                    xmax=time[-1],
+                    ymax=100,
+                )
+
+            ax1.set_xlim(left=0, right=time[-1])
+            ax1.set_ylim(bottom=0)
+
+            ax1.legend(loc="upper right", fontsize=legend_font_size)
+
+            ax1.set_xlabel("Time")
+            ax1.set_ylabel("Value of Variable")
+
+    case "phase":
+        data = numpy_datas[0]
+
+        c1, c2 = data["c1"], data["c2"]
+        dU, dV = data["dU"], data["dV"]
+
+        c1_null = data["c1_nullcline"]
+        c2_null = data["c2_nullcline"]
+
+        odeies.plot_phase_space(ax1, c1, c2, dU, dV)
+        odeies.plot_nullclines(ax1, *c2_null, *c1_null)
 
         if args.plot_fixedpoints:
-            parameters: dict[str, float] = metadatas[0]
-            odeies.plot_fixed(
-                data_source, ax1, parameters, total_vars=2, xmax=time[-1], ymax=100
-            )
+            try:
+                metadata = metadatas[i]
+            except:
+                pass
+            else:
+                parameters: dict[str, float] = metadata["metadata"]
+                odeies.plot_fixed(data_source, ax1, parameters, xmax=100, ymax=100)
 
-        ax1.set_xlim(left=0, right=time[-1])
-        ax1.set_ylim(bottom=0)
+        ax1.set_xlim(left=0, right=100)
+        ax1.set_ylim(bottom=0, top=100)
 
         ax1.legend(loc="upper right", fontsize=legend_font_size)
 
-        ax1.set_xlabel("Time")
-        ax1.set_ylabel("Value of Variable")
+        ax1.set_xlabel("Number of $c_1$")
+        ax1.set_ylabel("Number of $c_2$")
+
+        # file_path = os.path.join(data_env, path_list[0])
+        # numpy_data = np.load(file_path)
+        #
+        # fig1 = plt.figure(1, figsize=(6, 6))
+        # ax1 = fig1.add_subplot()
+
+        # fig2 = plt.figure(figsize=(6, 6))
+        # ax2 = fig2.add_subplot()
+
+        # level_set = numpy_data["level"]
+        # odeies._plot_phase_curve(ax1, *c1_null, label="$c_2$ Nullcline", color="b")
+        # odeies._plot_phase_curve(ax1, *level_set, label="Levelset", color="g")
 
     case _:
         print("Fucked it")
