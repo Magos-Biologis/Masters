@@ -127,7 +127,7 @@
 \ProvideDocumentCommand\reactionterm{ o m m m m }{% --> Function for reaction lines
     \stepcounter{reaction} %
     \IfNoValueTF{#1}
-    { \arabic{reaction} & #3 & #4 & \(t^+_{\arabic{reaction}}\of{\vec{x}}\) & #2 & \(\br{#5}\) \\ \hline }
+    { \arabic{reaction} & #3 & #4 & \(t^+_{\arabic{reaction}}\of{\vec{x}}\) & #2 & \(#5\) \\ \hline }
     { \multirow{2}*{\arabic{reaction}} & #3 & #4 & \(t^+_{\arabic{reaction}}\of{\vec{x}}\) & #2 &  \multirow{2}*{\(#5\)} \\
                                        & #4 & #3 & \(t^-_{\arabic{reaction}}\of{\vec{x}}\) & #1 &                             \\ \hline }
 }
@@ -228,9 +228,52 @@
 \section{Revisitng the Proof}
 \begin{frame}{The Proposition}
 
-    \begin{enumerate}
-        \item Statement
-    \end{enumerate}
+    \begin{proposition}[name={Stochastic Stability Decay}] \label{prp.ssd}
+
+        %which we can represent with \gls{fpe}
+        Assume \(M\) is a manifold denoting a state space with an unstable origin,
+        whose {evolution rule} is \(\varphi:\R\times M\to M\),
+        \(t\in\R\), and that \(N\subset M\) is a submanifold that includes the origin.
+
+        % with an attracting point \(\vec{x}^*\in N\backslash\{\vec{0}\}\).
+        Additionally assume we have system of \acrfullpl{sde},
+        which involves an isolated autocatalytic process,
+        \begin{equation*}
+            \delta \vec{x}\of t
+            = \vec{A}\br{\vec{x}\of t, t}
+            + \sqrt{\bfm B\br{\vec{x}\of t, t}} \ \delta{\vec{W}\of{t\st \vec{x}}}
+        \end{equation*}
+        Such that the drift term \(\vec{A}:N\to\R^n\) is the vector field
+        associated with the flow \(\varphi_t\of N\).
+        % homeomorphic to \(N\).
+
+        If \(\varphi_t\of{N}\) can be partitioned into a trapping region,
+        \(N\backslash\{\vec{0}\}\), and the unstable point \(\{\vec{0}\}\).
+        Then given a large enough time interval,
+        the stochastic system will inevitably decay from stability.
+
+    \end{proposition}
+
+\end{frame}
+
+\begin{frame}{Corollary}
+
+    \begin{corollary} \label{con:timetodestable}
+
+
+        Assuming that we have a system that fufills the properties of a stochastic
+        stability decay.
+        And assuming that \(Z\) is a standard normal random variable.
+        Then, the median interval of time, \(t-s\), \(s<t\in[0,\infty[\),
+        needed to hit the origin, will be dependent on the distance
+        \(\mu\of{0, x^*}= L\) and the diffusion term, such that
+        \begin{equation}
+            t-s = \Delta t = \pa{{L \over z_\alpha \sqrt{|\nabla \cdot {B}\of{\vec{x}^*}|}}}^2
+        \end{equation}
+        will give a \(100\pa{1-\alpha}\) confidence interval for the
+        system to decay to zero.
+
+    \end{corollary}
 
 \end{frame}
 
