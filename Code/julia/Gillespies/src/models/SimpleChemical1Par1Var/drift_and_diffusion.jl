@@ -22,7 +22,7 @@ function SimpleChemical1Par1VarAB(P :: NovelStruct; symbolic = true)
     # B = (r₁ * r₁') .* (t⁻ + t⁺) / n
 
     if symbolic
-        return LangevinType(A, B), (; vars, params)
+        return LangevinType(A, B, vars, params)
     else
         AA = build_function(substitute(A, params), x; expression = Val{false})
         BB = build_function(substitute(B, params), x; expression = Val{false})

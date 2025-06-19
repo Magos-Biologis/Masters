@@ -51,7 +51,7 @@ Updating the division method to work with these structs,
 importantly, we had to make sure that the datatype of the
 non-modified and the modified values are different
 """
-Base.:/(::ParameterType, ::Number) = println("Not defined")
+Base.:/(::ParameterType, ::Number) = error("Not defined for this type")
 Base.:/(P::NovelStruct, N::Number) = NovelStruct(P.n, P.b, /(P.k⁺, N), /(P.k⁻, N))
 Base.:/(P::DifferentialStruct, N::Number) = DifferentialStruct(P.n, /(P.k, N), /(P.w, N), /(P.q, N), /(P.m₀, N))
 
@@ -106,7 +106,6 @@ SDE structs go here
 """
 abstract type FockPlanType end
 
-abstract type ChemicalKinetic end
 
 """
 Struct for use in defining the langevin equations used by the FPE
@@ -135,17 +134,30 @@ LangevinType(A::Number, B::Number)                 = ScalarLangevin(A, B)
 LangevinType(A::F₁, B::F₂) where {F₁, F₂}          = Langevin(A, B)
 
 
+struct LangevinParams{V <: AbstractVector, D <: AbstractDict} <: LangevinType
+    variables  :: V
+    parameters :: D
+end
+
+
+function LangevinType(A::T₁, B::T₂, v::AbstractVector, d::AbstractDict) where {T₁, T₂}
+    return (LangevinType(A, B), LangevinParams(v, d))
+end
+
+
 """
 And again we define the iteration scope
 """
-Base.iterate(S :: T)        where T <: LangevinType = (S.A, 1)
-Base.iterate(S :: T, state) where T <: LangevinType = state == 1 ? (S.B, 2) : nothing
+Base.iterate(S :: T)        where T <: LangevinType = (getfield(S, 1), 1)
+Base.iterate(S :: T, state) where T <: LangevinType = state == 1 ? (getfield(S, 2), 2) : nothing
 
 
 
 """
 So as to more easily control which datatypes are allowed in the ReactionStruct
 """
+abstract type ChemicalKinetic end
+
 const AbstractIntSpace{I} = Union{I, AbstractVector{I}} where I <: Integer
 
 struct ReactionStruct{N <: Number, I <: Integer } <: ChemicalKinetic
