@@ -139,7 +139,6 @@ struct LangevinParams{V <: AbstractVector, D <: AbstractDict} <: LangevinType
     parameters :: D
 end
 
-
 function LangevinType(A::T₁, B::T₂, v::AbstractVector, d::AbstractDict) where {T₁, T₂}
     return (LangevinType(A, B), LangevinParams(v, d))
 end
@@ -151,6 +150,14 @@ And again we define the iteration scope
 Base.iterate(S :: T)        where T <: LangevinType = (getfield(S, 1), 1)
 Base.iterate(S :: T, state) where T <: LangevinType = state == 1 ? (getfield(S, 2), 2) : nothing
 
+"""
+"""
+abstract type AnalyticalSolutions end
+
+struct AnalyticalSol{V <: AbstractVector{BigFloat}}
+    x :: V
+    y :: V
+end
 
 
 """

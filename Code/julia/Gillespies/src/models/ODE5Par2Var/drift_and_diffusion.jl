@@ -7,12 +7,9 @@ function ODE5Par2VarAB(P :: DifferentialStruct; symbolic = true)
 
     vars = c
     params = Dict{Union{Symbol, Num}, Number}(
-                  :k₁  => P.k[1],
-                  :k₂  => P.k[2],
-                  :n₁  => P.n[1],
-                  :n₂  => P.n[2],
-                  :w₁  => P.w[1],
-                  :w₂  => P.w[2],
+                  :k₁  => P.k[1], :k₂  => P.k[2],
+                  :n₁  => P.n[1], :n₂  => P.n[2],
+                  :w₁  => P.w[1], :w₂  => P.w[2],
                  )
 
     @parameterification params
@@ -32,8 +29,8 @@ function ODE5Par2VarAB(P :: DifferentialStruct; symbolic = true)
     if symbolic
         return LangevinType(A, B, vars, params)
     else
-        AA, AA! = build_function(substitute(A, params), c; expression = Val{false})
-        BB, BB! = build_function(substitute(B, params), c; expression = Val{false})
+        AA, AA! = build_function(substitute(A, params), vars; expression = Val{false})
+        BB, BB! = build_function(substitute(B, params), vars; expression = Val{false})
 
         return LangevinType(AA, BB)
     end

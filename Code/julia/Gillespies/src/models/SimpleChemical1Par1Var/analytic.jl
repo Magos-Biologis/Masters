@@ -1,4 +1,4 @@
-function SimpleChemical1Par1VarAs(u :: AbstractVector{<: AbstractFloat}, p :: NovelStruct, l :: ScalarLangevin)
+function SimpleChemical1Par1VarAs(u :: AbstractVector, p :: NovelStruct, l :: Langevin)
     x = BigFloat.(u)
 
     if p.k⁺[1] == p.k⁻[1]
@@ -12,5 +12,4 @@ function SimpleChemical1Par1VarAs(u :: AbstractVector{<: AbstractFloat}, p :: No
     exped = @. 2 * p.n * C
     out = @. l.B(x)^-1 * exp(exped)
     return out
-
 end

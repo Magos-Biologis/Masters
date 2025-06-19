@@ -28,6 +28,9 @@ export ParameterType,
        PropensityType,
        StepperStruct,
 
+       AnalyticalSolutions,
+       AnalyticalSol,
+
        ### Stochastic Simulation Algorithm
        SSA!,
        SSA,

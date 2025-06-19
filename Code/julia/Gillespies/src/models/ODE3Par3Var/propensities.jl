@@ -1,5 +1,4 @@
-begin
-
+let transitions = Vector()
     local function propensity(p)::Function
         return cs -> begin
             c₁, c₂ = cs
@@ -17,14 +16,12 @@ begin
         end
     end
 
-    local transitions::Vector{Vector{Int}} = [
-                                        [-1; 1], # a1
-                                        [ 1;-1], # a-1
-                                        [ 1; 0], # a2
-                                        [-1; 0], # a-2
-                                        [ 0; 1], # a3
-                                        [ 0;-1], # a-3
-                                       ]
+    push!(transitions, [-1; 1; 0]) # a1
+    push!(transitions, [ 1;-1; 0]) # a-1
+    push!(transitions, [ 1; 0;-1]) # a2
+    push!(transitions, [-1; 0; 1]) # a-2
+    push!(transitions, [ 0; 1;-1]) # a3
+    push!(transitions, [ 0;-1; 1]) # a-3
 
 
     """
