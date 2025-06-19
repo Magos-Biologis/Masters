@@ -10,6 +10,15 @@ macro ∇(vars...)
     return esc(Expr(:block, lines...))
 end
 
+# """
+# Turns out I can overload macros too
+# """
+# macro ∇(vars)
+#     parse = quote @∇ ( $(vars...) ) end
+#     return esc(parse)
+# end
+
+
 
 """
 Adding the gradiant operation to exist under the '*' binary operation

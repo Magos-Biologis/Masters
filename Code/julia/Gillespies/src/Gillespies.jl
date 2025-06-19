@@ -11,6 +11,7 @@ using ModelingToolkit
 using ModelingToolkit: t_nounits as t, D_nounits as D
 
 import ModelingToolkit: Symbolics
+import ModelingToolkit.Symbolics.variable as variable
 
 using StochasticDiffEq
 
@@ -78,5 +79,15 @@ end
 
 include("models/SimpleChemical1Par1Var/analytic.jl")
 
+
+
+
+
+
+# """
+# My quirky little Julia-fied equivalent package for my Python package of
+# the same name.
+# """
+# Gillespies
 
 end # module Gillespies

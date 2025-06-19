@@ -5,7 +5,8 @@ function ODE3Par2VarAB(P :: DifferentialStruct; symbolic = true)
 
     c = Symbolics.variables(:c, 1:2)
 
-    params :: Dict{Union{Symbol, Num}, Number} = Dict(
+    vars = c
+    params = Dict(
                   :k₁  => P.k[1],
                   :k₂  => P.k[2],
                   :n₁  => P.n[1],
@@ -13,12 +14,13 @@ function ODE3Par2VarAB(P :: DifferentialStruct; symbolic = true)
                   :w₁  => P.w[1],
                   :w₂  => P.w[2],
                  )
-    eval(@parameterification params)
+
+    @parameterification params
 
 
-    r₁ = ReactionStruct( t⁺ = k₁ * x, t⁻ = k₋₁ * (1 - x), r = [ 1; 0] )
-    r₂ = ReactionStruct( t⁺ = k₁ * x, t⁻ = k₋₁ * (1 - x), r = [ 1; 0] )
-    r₃ = ReactionStruct( t⁺ = k₁ * x, t⁻ = k₋₁ * (1 - x), r = [ 1; 0] )
+    r₁ = ReactionStruct( t⁺ = w₁ * c[1], t⁻ = w₂ * c[2], r = [-1; 1] )
+    r₂ = ReactionStruct( t⁺ = k₁ * n₁ * c[1], t⁻ = k₁ * c[1]^2, r = [ 1; 0] )
+    r₃ = ReactionStruct( t⁺ = k₂ * n₂ * c[2], t⁻ = k₂ * c[2]^2, r = [ 0; 1] )
 
 
     R = [r₁ r₂ r₃]
@@ -29,7 +31,7 @@ function ODE3Par2VarAB(P :: DifferentialStruct; symbolic = true)
     # B = (r₁ * r₁') .* (t⁻ + t⁺) / n
 
     if symbolic
-        return LangevinType(A, B)
+        return LangevinType(A, B), vars, params
     else
         AA, AA! = build_function(substitute(A, params), c; expression = Val{false})
         BB, BB! = build_function(substitute(B, params), c; expression = Val{false})
