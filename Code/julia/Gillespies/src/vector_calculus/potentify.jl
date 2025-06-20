@@ -1,14 +1,79 @@
 
 
-
-function potentiating(L :: T, vars :: Num...) where {T <: LangevinType}
-
+"""
+Takes in the drift and diffusion elements, alongside with the parameters and
+variables returning ∇log(pₛ(x))
+"""
+function potentiating(L :: T, Par :: N ) where {T <: LangevinType, N <: LangevinParams}
     A, B = L
-    eval(quote @∇ $(vars...) end)
+    vars = Par.variables
 
-    ∇_B = expand_derivatives.(∇ ⋅B)
-    ∇log_p = inv(B) * (A - ∇_B)
+    eval(quote @∇ $(vars...) end)
+    A_∇B = 2A - expand_derivatives.( ∇·B )
+
+    B⁺ = (vars...) -> langevin_build( B, Par )(vars...) |> pinv
+    φ  = langevin_build( A_∇B, Par )
+
+    return (vars...) -> B⁺(vars...) * φ(vars...)
 end
+
+
+
+function Symbolics.substitute(L :: LangevinType, s :: AbstractDict)
+    AA = Num.(substitute(L.A, s))
+    BB = Num.(substitute(L.B, s))
+    return LangevinType( AA, BB )
+end
+function Symbolics.substitute(L :: LangevinType, P :: LangevinParams)
+    return substitute(L, P.parameters)
+end
+
+
+
+function langevin_build(L :: T, Par :: N ) where {T <: LangevinType, N <: LangevinParams}
+    A, B = L
+    AA = langevin_build(A, Par)
+    BB = langevin_build(B, Par)
+    return LangevinType(AA, BB)
+end
+function langevin_build( m :: AbstractVecOrMat,  Par :: N ) where N <: LangevinParams
+    vars, pars = Par; M = substitute(m, pars)
+    MM, M! = build_function(M, vars...; expression = false)
+    return MM
+end
+function langevin_build( m :: Num,  Par :: N ) where N <: LangevinParams
+    vars, pars = Par; M = substitute(m, pars)
+    MM = build_function(M, vars...; expression = false)
+    return MM
+end
+
+
+function gradient_int_two_dim(L :: T, Par :: N;
+    ) where {T <: LangevinType, N <: LangevinParams}
+
+    local ε  = eps(Float64)
+    local Δx = 0.01
+
+    X = collect( ε:Δx:1-ε )
+
+    f  = potentiating(L, Par)
+    ∇F = f.(X, X')
+
+    Fx = ∇F .|> first
+    Fy = ∇F .|> last
+
+    Φ = similar(Fx)
+    Φ .= 0
+
+    Φ  .= cumsum( Fx .* Δx; dims = 2 )
+    Φ .+= cumsum( Fy .* Δx; dims = 1 ) .|> x -> x
+
+    F = exp.(-Φ)
+
+    return F ./ maximum(F)
+end
+
+
 
 
 # abstract type AbstractShapedMatrix{T,M,N} <: AbstractArray{T,2} end
@@ -35,19 +100,20 @@ end
 
 
 
-"""
-Needing to define my own Moore-Penrose pseudo-inverse for symbolics as
-it does not already exist in `Symbolics.jl`
-"""
-function LinearAlgebra.pinv(A :: AbstractMatrix{Num})
-    m, n = size(A)
-    if m ≠ n
-        m < n && (return (A' *  A)^-1 * A'      )
-        m > n && (return  A' * (A     * A')^-1  )
-    else
-        return A^-1
-    end
-end
+
+# """
+# Needing to define my own Moore-Penrose pseudo-inverse for symbolics as
+# it does not already exist in `Symbolics.jl`
+# """
+# function LinearAlgebra.pinv(A :: AbstractMatrix{Num})
+#     m, n = size(A)
+#     if m ≠ n
+#         m < n && (return (A' *  A)^-1 * A'      )
+#         m > n && (return  A' * (A     * A')^-1  )
+#     else
+#         return A^-1
+#     end
+# end
 
 
 
