@@ -4,11 +4,11 @@ A julia macro to dynamically construct the needed ∇ operator depending on
 use case.
 """
 macro ∇(vars...)
-    set_var = :( @variables $(vars...) )
+    # set_var = :( @variables $(vars...) )
     names = [:($(Symbol("D" * "$var"))) for var ∈ vars]
     dlines = [:($func = Differential($var)) for (func, var) ∈ zip(names, vars)]
     push!(dlines, :( ∇ = reshape(eval.($names), 1, :)))
-    return esc(Expr(:block, set_var, dlines...))
+    return esc(Expr(:block, dlines...))
 end
 
 
@@ -16,7 +16,7 @@ end
 Adding the gradiant operation to exist under the '*' binary operation
 """
 function Base.:*(∇ :: AbstractVecOrMat{<: Differential}, f :: Num)
-    return [ f |> ∇ᵢ for ∇ᵢ ∈ ∇ ]
+    return collect([ f |> ∇ᵢ for ∇ᵢ ∈ ∇ ])
 end
 
 
@@ -50,7 +50,7 @@ function LinearAlgebra.dot(∇₁ :: AbstractVector{D}, ∇₂ :: AbstractVector
 end
 
 function Base.:^(∇ :: AbstractVecOrMat{<: Differential}, n :: Integer)
-    return fill(∇, n) |> splat(·)
+    return ∇ .^ n
 end
 
 
