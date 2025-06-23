@@ -45,6 +45,8 @@ export ParameterType,
 
        LangevinEquation,
 
+       GradientSol,
+
        ### Macros
        @∇
 
@@ -82,8 +84,6 @@ end
 include("models/SimpleChemical1Par1Var/analytic.jl")
 
 
-
-
 include("precompile.jl")
 
 
@@ -93,5 +93,6 @@ My quirky little Julia-fied equivalent package for my Python package of
 the same name.
 """
 Gillespies
+
 
 end # module Gillespies

@@ -1,5 +1,5 @@
 \beamer@sectionintoc {1}{Introduction}{3}{0}{1}
 \beamer@sectionintoc {2}{Birth-Death Processes}{5}{0}{2}
-\beamer@sectionintoc {3}{My Model in 1-Dimension}{6}{0}{3}
-\beamer@sectionintoc {4}{Revisitng the Proof}{7}{0}{4}
-\beamer@sectionintoc {5}{Extension of the Framework}{10}{0}{5}
+\beamer@sectionintoc {3}{My Model in 1-Dimension}{7}{0}{3}
+\beamer@sectionintoc {4}{Revisiting the Proof}{10}{0}{4}
+\beamer@sectionintoc {5}{Extension of the Framework}{14}{0}{5}

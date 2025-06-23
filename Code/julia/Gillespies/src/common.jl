@@ -134,12 +134,18 @@ LangevinType(A::Number, B::Number)                 = ScalarLangevin(A, B)
 LangevinType(A::F₁, B::F₂) where {F₁, F₂}          = Langevin(A, B)
 
 
-struct LangevinParams{V <: AbstractVector, D <: AbstractDict} <: LangevinType
-    variables  :: V
+"""
+It keeps coming up that it is honestly easier to define a new parametric type
+then to just account for the possibilities.
+"""
+const ReactionSpecies{N} = Union{AbstractVector{N}, N} where N <: Num
+
+struct LangevinParams{N <: Num, D <: AbstractDict} <: LangevinType
+    variables  :: ReactionSpecies{N}
     parameters :: D
 end
 
-function LangevinType(A::T₁, B::T₂, v::AbstractVector, d::AbstractDict) where {T₁, T₂}
+function LangevinType(A::T₁, B::T₂, v::ReactionSpecies, d::AbstractDict) where {T₁, T₂}
     return (LangevinType(A, B), LangevinParams(v, d))
 end
 

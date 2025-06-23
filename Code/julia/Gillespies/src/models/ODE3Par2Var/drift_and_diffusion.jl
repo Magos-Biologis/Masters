@@ -7,12 +7,9 @@ function ODE3Par2VarAB(P :: DifferentialStruct; symbolic = true)
 
     vars = c
     params = Dict{Union{Symbol, Num}, Number}(
-                  :k₁  => P.k[1],
-                  :k₂  => P.k[2],
-                  :n₁  => P.n[1],
-                  :n₂  => P.n[2],
-                  :w₁  => P.w[1],
-                  :w₂  => P.w[2],
+                  :k₁  => P.k[1], :k₂  => P.k[2],
+                  :n₁  => P.n[1], :n₂  => P.n[2],
+                  :w₁  => P.w[1], :w₂  => P.w[2],
                  )
 
     @parameterification params

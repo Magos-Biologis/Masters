@@ -23,6 +23,7 @@
 
 
 \usepackage{myMathQA}
+
 \usepackage{graphicx}
 \usepackage{siunitx}
 \usepackage{subcaption}
@@ -191,17 +192,65 @@
     \begin{enumerate}
         \item Welcome/Introduction
         \item Brief reminder of the themes/goals
-        \item What are we going to cover, i.e. \emph{a cock tease}
+        \item Missing Details
+            \begin{enumerate}
+                \item Martingales
+                \item Birth-Death Processes
+                \item How it applies with a 1 dimensional version of the model
+                    I used.
+            \end{enumerate}
+    \end{enumerate}
+
+
+\end{frame}
+
+
+% TODO:
+\begin{frame}{Motivation}
+
+    \begin{enumerate}
+        \item Statistics are weird and powerful
+        \item Biology is weird and incredibly adaptive
+        \item If the physicists could use statistics to explain the bizzare
+            nature of quantum tomfoolery
+        \item Adaptation and power can be considered the same
+        \item Is statistics and biology the same?
     \end{enumerate}
 
 \end{frame}
 
-\begin{frame}{}
+% \begin{frame}{ Proof }
+%
+%     \begin{columns}
+%         \column{ 0.5\framewidth}
+%
+%         \begin{description}
+%             \item[S:] Statistics
+%             \item[B:] Biology
+%             \item[R:]
+%         \end{description}
+%
+%         | \hfill |
+%
+%         \column{ 0.5\framewidth}
+%
+%         \begin{description}
+%             \item \(P \implies Q\)
+%             \item \(Q \implies R\)
+%             \item \(P \implies Q, Q \implies R \vdash P \implies R\)
+%         \end{description}
+%
+%         | \hfill |
+%
+%     \end{columns}
+%
+% \end{frame}
+
+\section{Birth-Death Processes}
+\begin{frame}{Martingales}
     frame contents
 \end{frame}
 
-% TODO:
-\section{Birth-Death Processes}
 \begin{frame}{frame title}
     frame contents
 \end{frame}
@@ -224,8 +273,29 @@
 
 \end{frame}
 
+\begin{frame}{The Equation}
+
+    \begin{align}
+        A &= k_{-1} x^2 + \pa{ k_3 b - k_1 n } x
+        \\
+        B &= {1 \over \Omega} \pa{k_{-1} x^2 + \pa{ k_1 n + k_3 b } x}
+    \end{align}
+
+
+
+\end{frame}
+
+\begin{frame}{Drift}
+    frame contents
+\end{frame}
+
+
+\begin{frame}{Fuuuck}
+    frame contents
+\end{frame}
+
 % TODO:
-\section{Revisitng the Proof}
+\section{Revisiting the Proof}
 \begin{frame}{The Proposition}
 
     \begin{proposition}[name={Stochastic Stability Decay}] \label{prp.ssd}
@@ -236,7 +306,7 @@
         \(t\in\R\), and that \(N\subset M\) is a submanifold that includes the origin.
 
         % with an attracting point \(\vec{x}^*\in N\backslash\{\vec{0}\}\).
-        Additionally assume we have system of \acrfullpl{sde},
+        Additionally assume we have system of SDEs,
         which involves an isolated autocatalytic process,
         \begin{equation*}
             \delta \vec{x}\of t
@@ -256,26 +326,6 @@
 
 \end{frame}
 
-\begin{frame}{Corollary}
-
-    \begin{corollary} \label{con:timetodestable}
-
-
-        Assuming that we have a system that fufills the properties of a stochastic
-        stability decay.
-        And assuming that \(Z\) is a standard normal random variable.
-        Then, the median interval of time, \(t-s\), \(s<t\in[0,\infty[\),
-        needed to hit the origin, will be dependent on the distance
-        \(\mu\of{0, x^*}= L\) and the diffusion term, such that
-        \begin{equation}
-            t-s = \Delta t = \pa{{L \over z_\alpha \sqrt{|\nabla \cdot {B}\of{\vec{x}^*}|}}}^2
-        \end{equation}
-        will give a \(100\pa{1-\alpha}\) confidence interval for the
-        system to decay to zero.
-
-    \end{corollary}
-
-\end{frame}
 
 \begin{frame}{Applied to the 1D Model}
 
@@ -283,7 +333,36 @@
         \item From the Proposition, we see that 1-var will decay
         \item The behavior is then of course easily carried to the higher
             dimensional models
+        \item As established
     \end{enumerate}
+
+\end{frame}
+
+
+\begin{frame}{The Corollary}
+
+    \begin{corollary} \label{con:timetodestable}
+
+        Assuming that we have a system that fufills the properties of a stochastic
+        stability decay.
+        And assuming that \(Z\) is a standard normal random variable.
+        Then, the median interval of time, \(t-s\), \(s<t\in[0,\infty[\),
+        needed to hit the origin, will be dependent on the distance
+        \(\mu\of{0, x^*}= L\) and the diffusion term, such that
+        \begin{equation*}
+            t-s = \Delta t = \pa{
+                {L \over z_\alpha \sqrt{|\nabla \cdot \bfm B\of{\vec{x}^*}|}}
+            }^2
+        \end{equation*}
+        will give a \(100\pa{1-\alpha}\) confidence interval for the
+        system to decay to zero.
+
+    \end{corollary}
+
+\end{frame}
+
+\begin{frame}{Does this even make sense as a claim?}
+
 
 \end{frame}
 

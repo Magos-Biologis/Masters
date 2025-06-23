@@ -18,8 +18,6 @@ function SimpleChemical1Par1VarAB(P :: NovelStruct; symbolic = true)
     A  = A_i(r₁)
     B  = Bij(r₁) / n
 
-    # A =  r₁        .* (t⁻ - t⁺)
-    # B = (r₁ * r₁') .* (t⁻ + t⁺) / n
 
     if symbolic
         return LangevinType(A, B, [vars], params)
