@@ -53,7 +53,7 @@ const BoundOrBounds{T} = Union{Vector{T}, T} where T <: Number
 function GradientSol(L :: T, Par :: N;
         west_bc :: BoundOrBounds{B₁} = eps(Float64),
         east_bc :: BoundOrBounds{B₂} = 1-eps(Float64),
-        Δx      :: BoundOrBounds{B₃} = 0.001,
+        Δx      :: BoundOrBounds{B₃} = 0.005,
     ) where { T <: LangevinType, N <: LangevinParams, B₁, B₂, B₃ }
 
 
@@ -83,12 +83,11 @@ function gradient_int_one_dim(L :: T, Par :: N, range :: Vector{S};
 
     ∇F = f.(x)
 
-    Φ = similar(∇F)
+    Φ  = similar(∇F)
     Φ .= cumsum( ∇F .* diff( [x[1]; x] )   )
 
-    F = exp.(Φ)
 
-    return (x, F ./ maximum(F))
+    return (x, Φ)
 end
 
 function gradient_int_two_dim(L :: T, Par :: N, ranges :: Vector{S};
@@ -99,7 +98,8 @@ function gradient_int_two_dim(L :: T, Par :: N, ranges :: Vector{S};
 
     f  = potentiating(L, Par)
     ∇F = f.(x, y')
-    Fx, Fy = ∇F .|> first, ∇F .|> last
+    Fx = ∇F .|> first
+    Fy = ∇F .|> last
 
     Δx = sum(diff(ranges[1])) / length(ranges[1])
     Δy = sum(diff(ranges[2])) / length(ranges[2])

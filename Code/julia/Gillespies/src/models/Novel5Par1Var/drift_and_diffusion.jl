@@ -21,8 +21,8 @@ function Novel5Par1VarAB(P :: NovelStruct; symbolic = true)
     if symbolic
         return LangevinType(A, B, vars, params)
     else
-        AA, AA! = build_function(substitute(A, params), [vars]; expression=Val{false})
-        BB, BB! = build_function(substitute(B, params), [vars]; expression=Val{false})
+        AA, AA! = build_function(substitute(A, params), vars; expression=Val{false})
+        BB, BB! = build_function(substitute(B, params), vars; expression=Val{false})
 
         return LangevinType(AA, BB)
     end
