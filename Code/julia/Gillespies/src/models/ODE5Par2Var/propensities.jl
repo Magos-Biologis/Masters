@@ -1,4 +1,5 @@
 let transitions = Vector()
+
     local function propensity(p)::Function
         return cs -> begin
             c₁, c₂ = cs
@@ -12,7 +13,11 @@ let transitions = Vector()
             a₃  = p.k[2] * p.n[2] * c₂
             a₋₃ = p.k[2] * c₂ * c₂
 
-            return [a₁; a₋₁; a₂; a₋₂; a₃; a₋₃]
+            a₄ = p.k[1] * c₁ * c₂
+
+            a₅ = p.k[2] * c₁ * c₂
+
+            return [a₁; a₋₁; a₂; a₋₂; a₃; a₋₃; a₄; a₅]
         end
     end
 
@@ -22,11 +27,13 @@ let transitions = Vector()
     push!(transitions, [-1; 0]) # a-2
     push!(transitions, [ 0; 1]) # a3
     push!(transitions, [ 0;-1]) # a-3
+    push!(transitions, [-1; 0]) # a4
+    push!(transitions, [ 0;-1]) # a5
+
 
     """
     For a simple compartment system
     """
-    global ODE3Par2Var = PropsAndTrans(propensity,
+    global ODE5Par2Var = PropsAndTrans(propensity,
                                        copy(transitions))
-
 end

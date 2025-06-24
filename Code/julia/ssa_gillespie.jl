@@ -1,7 +1,9 @@
-ENV["JULIA_PKG_PRECOMPILE_AUTO"] = 0
-import Pkg
-Pkg.activate(@__DIR__)
-ENV["JULIA_PKG_PRECOMPILE_AUTO"] = 1
+ENV["JULIA_PKG_PRECOMPILE_AUTO"] = 0    # I don't think this is needed if
+import Pkg                              # I do `julia --project` when
+Pkg.activate(@__DIR__)                  # running the file
+ENV["JULIA_PKG_PRECOMPILE_AUTO"] = 1    #
+
+
 # pushfirst!(LOAD_PATH, joinpath(BASEDIR, "Gillespies/"))
 # pushfirst!(LOAD_PATH, joinpath(BASEDIR, "SSAExecutionModule/"))
 

@@ -1,9 +1,8 @@
-__precompile__()
 module Gillespies
 
-using LinearAlgebra
-# using LinearAlgebra: dot
+import PrecompileTools
 
+using LinearAlgebra
 using Random
 import Distributions: Uniform
 
@@ -11,7 +10,6 @@ using ModelingToolkit
 using ModelingToolkit: t_nounits as t, D_nounits as D
 
 import ModelingToolkit: Symbolics
-import ModelingToolkit.Symbolics.variable as variable
 
 using StochasticDiffEq
 
@@ -26,6 +24,9 @@ export ParameterType,
 
        PropensityType,
        StepperStruct,
+
+       AnalyticalSpace,
+       AnalyticalSol,
 
        ### Stochastic Simulation Algorithm
        SSA!,
@@ -43,6 +44,8 @@ export ParameterType,
        VectorLangevin,
 
        LangevinEquation,
+
+       GradientSol,
 
        ### Macros
        @∇
@@ -68,6 +71,7 @@ include("vector_calculus/parameter_setters.jl")
 include("vector_calculus/langevin.jl")
 include("vector_calculus/potentify.jl")
 
+
 # The stochastic sim modules
 # including it programatically cause why not
 models = readdir(MODEDIR)
@@ -80,14 +84,15 @@ end
 include("models/SimpleChemical1Par1Var/analytic.jl")
 
 
+include("precompile.jl")
 
 
 
+"""
+My quirky little Julia-fied equivalent package for my Python package of
+the same name.
+"""
+Gillespies
 
-# """
-# My quirky little Julia-fied equivalent package for my Python package of
-# the same name.
-# """
-# Gillespies
 
 end # module Gillespies

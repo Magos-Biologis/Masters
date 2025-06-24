@@ -60,19 +60,22 @@
 %% ----------------------------------------------------------------
 %% Font Specifications
 %% ----------------------------------------------------------------
-\ifTUTeX
-    % \usepackage[utf8]{luainputenc}
-    % \usepackage[T1]{fontenc}
-    % \usepackage{pxfonts}
-    \RequirePackage[no-math]{fontspec}
-    \RequirePackage[MnSymbol]{mathspec}
-    \RequirePackage{unicode-math}
-    % \defaultfontfeatures{Ligatures={TeX}}
-    \setmainfont{Minion Pro}
-\fi
+\RequirePackage{amsmath}
+\RequirePackage{mathtools}
 \ifPDFTeX
-    \RequirePackage[utf8]{inputenc} % utf8-unicode compatible input
-    \RequirePackage[T1]{fontenc} % Font type specifier
+    \PassOptionsToPackage{pdftex}{graphicx}
+    \PassOptionsToPackage{pdftex}{hyperref}
+    \RequirePackage[utf8]{inputenc}
+    \RequirePackage[T3,OT2,T1]{fontenc}
+    \PassOptionsToPackage{noenc}{tipa}
+    %\RequirePackage[noenc]{tipa}
+    \RequirePackage{mathptmx}
+\fi
+\ifLuaTeX
+    \RequirePackage[no-math]{fontspec}
+    \setmainfont{TeX Gyre Pagella} % Palatino esque
+
+    \RequirePackage{euler-math}
 \fi
 \ifPDFTeX
     \RequirePackage[draft]{microtype}
@@ -81,7 +84,6 @@
     \PassOptionsToPackage{pdftex}{graphicx}
     \PassOptionsToPackage{pdftex}{hyperref}
 \fi
-\RequirePackage{amsmath,mathtools}
 \RequirePackage{cancel}  % Striking through text \cancel{x}
 \RequirePackage{geometry}
 \RequirePackage[table, dvipsnames]{xcolor}
@@ -175,8 +177,9 @@
     %     \setacronymstyle{long-sc-short}
     % }
 \fi
+
 %% ----------------------------------------------------------------
-%% Powerful Tools
+%% Powerful Tool(s)
 %% ----------------------------------------------------------------
 % Defining a new coordinate system for the page:
 %

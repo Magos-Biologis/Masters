@@ -2,7 +2,7 @@
 
 julia_version = "1.11.5"
 manifest_format = "2.0"
-project_hash = "fa3b1cb4d9906a335fe3dc1d5367839bb21c6a69"
+project_hash = "4be8cc309757ae213435b950ef9f6f05f5ceae69"
 
 [[deps.ADTypes]]
 git-tree-sha1 = "e2478490447631aedba0823d4d7a80b2cc8cdb32"
@@ -650,7 +650,7 @@ uuid = "46192b85-c4d5-4398-a991-12ede77f4527"
 version = "0.2.0"
 
 [[deps.Gillespies]]
-deps = ["Distributions", "JSON", "LinearAlgebra", "ModelingToolkit", "NPZ", "Random", "StochasticDiffEq"]
+deps = ["Distributions", "JSON", "LinearAlgebra", "ModelingToolkit", "NPZ", "PrecompileTools", "Random", "StochasticDiffEq"]
 path = "Gillespies"
 uuid = "abee9424-dfe6-4e1a-848e-dd7b9d15045f"
 version = "0.1.0"
@@ -1293,6 +1293,7 @@ version = "0.4.27"
 [[deps.PrecompileTools]]
 deps = ["Preferences"]
 git-tree-sha1 = "5aa36f7049a63a1528fe8f7c3f2113413ffd4e1f"
+pinned = true
 uuid = "aea7be01-6a6a-4083-8856-8a6e6704d82a"
 version = "1.2.1"
 
@@ -1439,7 +1440,7 @@ uuid = "94e857df-77ce-4151-89e5-788b33177be4"
 version = "0.1.0"
 
 [[deps.SSAExecutionModule]]
-deps = ["ArgParse"]
+deps = ["ArgParse", "PrecompileTools"]
 path = "SSAExecutionModule"
 uuid = "c96e3573-cddc-40ac-bc73-ee1c3589917c"
 version = "0.1.0"
