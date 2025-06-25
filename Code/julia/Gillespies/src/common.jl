@@ -37,7 +37,7 @@ end
 
 function DifferentialStruct(;
         n ::Vector{<: T} = [100; 100],     k ::Vector{<: T} = [1.0; 1.0],
-        w ::Vector{<: T} = [0.015; 0.015], q ::Vector{<: T} = [0.8; 0.8],
+        w ::Vector{<: T} = [0.15; 0.15], q ::Vector{<: T} = [0.8; 0.8],
         m₀::Real = 0 ) :: DifferentialStruct where T <: Real
 
     nn, kk, ww, qq = promote(n, k, w, q)
