@@ -87,7 +87,7 @@ function gradient_int_one_dim(L :: T, Par :: N, range :: Vector{S};
     Φ .= cumsum( ∇F .* diff( [x[1]; x] )   )
 
 
-    return (x, Φ)
+    return OneDimGradient{eltype(x)}(x, Φ)
 end
 
 function gradient_int_two_dim(L :: T, Par :: N, ranges :: Vector{S};
@@ -105,10 +105,10 @@ function gradient_int_two_dim(L :: T, Par :: N, ranges :: Vector{S};
     Δy = sum(diff(ranges[2])) / length(ranges[2])
 
     Φ  = similar( Fx )
-    Φ .= cumsum( Fx .* Δx; dims = 2 )
-    Φ += cumsum( Fy .* Δy; dims = 1 )
+    Φ .= cumsum( Fx .* Δx; dims = 1 )
+    Φ += cumsum( Fy .* Δy; dims = 2 )
 
-    return ( x, y, Φ )
+    return TwoDimGradient{eltype(x)}( x, y, Φ )
 end
 
 
@@ -134,10 +134,10 @@ function gradient_int_thr_dim(L :: T, Par :: N, ranges :: Vector{S};
     Δz = sum(diff(ranges[3])) / length(ranges[3])
 
     Φ  = similar( Fx )
-    Φ .= cumsum( Fx .* Δx; dims = 2 )
-    Φ += cumsum( Fy .* Δy; dims = 1 )
+    Φ .= cumsum( Fx .* Δx; dims = 1 )
+    Φ += cumsum( Fy .* Δy; dims = 2 )
     Φ += cumsum( Fy .* Δz; dims = 3 )
 
-    return ( x, y, z, Φ )
+    return ThreeDimGradient{eltype(x)}( x, y, z, Φ )
 end
 
