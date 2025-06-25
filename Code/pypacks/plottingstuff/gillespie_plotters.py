@@ -131,8 +131,9 @@ class gillespiePlotters(PlottingData):
         x_label = "Walk of {}".format(self.x_name)
         y_label = "Walk of {}".format(self.y_name)
         n_label = "Walk of {}".format(self.n_name)
+        b_label = "Walk of {}".format(self.b_name)
 
-        labels = [x_label, y_label, n_label]
+        labels = [x_label, y_label, n_label, b_label]
 
         if plot_starts:
             x_label += " with start {}".format(xstart)

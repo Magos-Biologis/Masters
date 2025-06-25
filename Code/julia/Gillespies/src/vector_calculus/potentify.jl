@@ -53,7 +53,7 @@ const BoundOrBounds{T} = Union{Vector{T}, T} where T <: Number
 function GradientSol(L :: T, Par :: N;
         west_bc :: BoundOrBounds{B₁} = eps(Float64),
         east_bc :: BoundOrBounds{B₂} = 1-eps(Float64),
-        Δx      :: BoundOrBounds{B₃} = 0.005,
+        Δx      :: BoundOrBounds{B₃} = 0.01,
     ) where { T <: LangevinType, N <: LangevinParams, B₁, B₂, B₃ }
 
 
@@ -68,7 +68,7 @@ function GradientSol(L :: T, Par :: N;
 
     nᵥ≡ 1 && return gradient_int_one_dim(L, Par, ranges)
     nᵥ≡ 2 && return gradient_int_two_dim(L, Par, ranges)
-    # nᵥ≡ 3 && return gradient_int_thr_dim(L, Par, ranges)
+    nᵥ≡ 3 && return gradient_int_thr_dim(L, Par, ranges)
 
     return error("Invalid Model Dimensions")
 end
@@ -112,4 +112,32 @@ function gradient_int_two_dim(L :: T, Par :: N, ranges :: Vector{S};
 end
 
 
+function gradient_int_thr_dim(L :: T, Par :: N, ranges :: Vector{S};
+    ) where {T <: LangevinType, N <: LangevinParams, S <: Steppers}
+
+    x = ranges[1]
+    y = ranges[2]
+    z = ranges[3]
+    ∇F = Array{Any}(undef, length(x),length(y),length(z))
+
+    f  = potentiating(L, Par)
+    for (i, zᵢ) ∈ enumerate(z)
+        ∇F[:,:,i] = f.(x, y', zᵢ)
+    end
+
+    Fx = ∇F .|> x -> x[1]
+    Fy = ∇F .|> x -> x[2]
+    Fz = ∇F .|> x -> x[3]
+
+    Δx = sum(diff(ranges[1])) / length(ranges[1])
+    Δy = sum(diff(ranges[2])) / length(ranges[2])
+    Δz = sum(diff(ranges[3])) / length(ranges[3])
+
+    Φ  = similar( Fx )
+    Φ .= cumsum( Fx .* Δx; dims = 2 )
+    Φ += cumsum( Fy .* Δy; dims = 1 )
+    Φ += cumsum( Fy .* Δz; dims = 3 )
+
+    return ( x, y, z, Φ )
+end
 

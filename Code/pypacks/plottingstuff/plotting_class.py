@@ -17,6 +17,7 @@ class PlottingData:
     x_color: str = "r"
     y_color: str = "b"
     z_color: str = "g"
+    w_color: str = "m"
 
     def __postinit__(self):
         self.throw_in_lists()
@@ -33,6 +34,7 @@ class PlottingData:
             self.x_color,
             self.y_color,
             self.z_color,
+            self.w_color,
         ]
 
         return self

@@ -1,4 +1,4 @@
-\documentclass[aspectratio=169,  notheorems, sOuRcEs]{RUCPresentation}
+\documentclass[aspectratio=169, onlytextwidth,  notheorems, sOuRcEs, fleqn, leqno, ]{RUCPresentation}
 
 %\usepackage{pgfforeach}
 % \usepackage{foreach}
@@ -22,7 +22,10 @@
 % \tikzset{overlay, remember picture}
 
 
+
 \usepackage{myMathQA}
+
+\usepackage{ulem}
 
 \usepackage{graphicx}
 \usepackage{siunitx}
@@ -156,7 +159,7 @@
 \newcommand\makebeamertitle{\frame{\maketitle}}%
 
 % For sections?
-\graphicspath{{./images/}{../Thesis/images/}{../Thesis/images/phase/}{../Thesis/images/ode/}{../Thesis/images/fpe/}}
+\graphicspath{{./images/}}%{../Thesis/images/}{../Thesis/images/phase/}{../Thesis/images/ode/}{../Thesis/images/fpe/}}
 
 
 \def\cfp#1{c_#1^*}
@@ -167,7 +170,11 @@
 }
 \subtitle{Presentation For The MSc Thesis Exam}
 
-\author{by Anakin}
+% \author{by Anakin}
+\author[Anakin]{Anakin Diermayr\inst{1}}% \newline \texttt{anakin@ruc.dk} }
+\institute[RUC]{
+    \inst{1} Roskilde University
+}
 
 %\mode<presentation>
 
@@ -178,94 +185,136 @@
 \makebeamertitle
 
 
-% \begin{frame}{Outline}
+% \section*{Outline}
+% \begin{frame}[allowdisplaybreaks=4]{Outline}
 %
-%     \tableofcontents
+%     \tableofcontents[pausesections]
 %
 % \end{frame}
 
+% \begin{frame}{Workshopping}
+%
+%     \begin{enumerate}
+%         \item Welcome/Introduction
+%         \item Brief reminder of the themes/goals
+%         \item Missing Details
+%             \begin{enumerate}
+%                 \item Martingales?
+%                 \item Birth-Death Processes < -- --
+%                 \item How it applies with a 1 dimensional version of the model
+%                     I used.
+%             \end{enumerate}
+%     \end{enumerate}
+%
+% \end{frame}
 
 
 \section{Introduction}
 \begin{frame}{Introduction}
 
-    \begin{enumerate}
-        \item Welcome/Introduction
-        \item Brief reminder of the themes/goals
-        \item Missing Details
-            \begin{enumerate}
-                \item Martingales
-                \item Birth-Death Processes
-                \item How it applies with a 1 dimensional version of the model
-                    I used.
-            \end{enumerate}
-    \end{enumerate}
-
-\end{frame}
+    \vspace{2em}
 
 
-% TODO:
-\section{ Motivation }
-\begin{frame}{ Motivation }
+    \begin{columns}[T]
 
-    \begin{columns}
+        \column{0.50\framewidth}
+        \begin{itemize}
+            \item Welcome to my Presentation
+            \item My name is Anakin\uncover<2->{... yes, like the StarWars}
+            \item<3-> BSc  at RUC, combination Molecular Biology, Mathematics
+        \end{itemize}
 
-        \column{0.5\framewidth}
-
-        \begin{enumerate}
-            \item Statistics are weird and powerful
-            \item Biology is weird and incredibly adaptive
-            \item If the physicists could use statistics to explain the bizzare
-                nature of quantum tomfoolery
-            \item Adaptation and power can be considered the same
-            \item Is statistics and biology the same?
-        \end{enumerate}
-
-        \column{0.5\framewidth}
-
+        \column<4->{0.50\framewidth}
+        My Original Ambition:
+        \begin{itemize}
+            % \item Find a way to formalizing Waddington's `epigentic landscape'.%\beamerfootcite{Waddington2014}
+            \item Formalizing Waddington's `epigentic landscape'.%\beamerfootcite{Waddington2014}
+            \item An excuse to `balls deep' into stochasticity
+        \end{itemize}
     \end{columns}
 
-\end{frame}
-
-\begin{frame}{The Research Question}
-
-    \begin{enumerate}
-        \item There was a lot of indecision about the direction to take things
-        \item
-    \end{enumerate}
-
-    \begin{alertblock}{The Reseach Question:}
-            ``How can stochastic gene copy number dynamics underlying bacterial
-            heteroresistance be accurately captured using a Fokker-Planck formulation,
-            and what insights does this stochastic framework provide beyond deterministic ODE models.''
+    \begin{alertblock}<5->{Alert}
+        This presentation will not directly cover the material in my Thesis.\par
+        We will cover motivation/inspiration and tie it to results.
     \end{alertblock}
 
 \end{frame}
 
-
-\begin{frame}{The process}
-
-    \begin{itemize}
-        \item I had to cover a lot of novel ground
-        \item
-    \end{itemize}
-
-\end{frame}
+% \item I believe there is an inherent relationship between
+%     genetic phenotypes and enviromental pressures that
+%     only statistical manifolds can represent
 
 
-\section{Gene stuff}
-\begin{frame}{ Recapping the Model }
-
+% TODO:
+\subsection{ Motivation }
+\begin{frame}{ Motivation }
+    \vspace{1em}
 
     \begin{columns}
 
-        \column{0.5\framewidth}
+        \column{0.45\framewidth}
+        \begin{itemize}[<+->]
+            \item The Physical Analogy
+                \begin{itemize}[<.->]
+                    \item Potential Energy Landscapes
+                    \item Valleys as Stable phenotypes
+                \end{itemize}
+            % \item I considered Information Geometry as a viable route
+            \item Information Geometry Route
+                \begin{itemize}[<.->]
+                    \item Frobenius Manifolds% have Appropriate Requirements
+                    \item Statistical Geometry %would introduce a natural
+                    \item Natural of random variables
+                \end{itemize}
+            \item However I lacked a lot of the pre-requisites educationally
+        \end{itemize}
 
-        \column{0.5\framewidth}
+
+        \column{0.60\framewidth}
+
+        \begin{figure}[htbp]
+        \centering
+        \includegraphics[width=0.7\textwidth]{epigenetic.png}
+        \caption{Part of an epigentic landscape\beamerfootcite{Waddington2014}.}
+        \end{figure}
+
+
+
+        % \includegraphics[width=0.5\framewidth]{placehold.pdf}
 
     \end{columns}
 
-    \tikz[overlay, remember picture] \node at (frame cs:0.35,0) {%
+
+\end{frame}
+
+\subsection{The Research Question}
+\begin{frame}[t]{The Research Question}
+
+    \vspace{2em}
+
+        % Why I chose this
+        % \begin{enumerate}[<+->]
+        %     \item It's a tangible problem
+        %     \item I wanted to find an excuse to go `balls deep' into stochasticity
+        %     \item I believe there is an inherent relationship between
+        %         genetic phenotypes and enviromental pressures that
+        %         only statistical manifolds can represent
+        % \end{enumerate}
+
+    % \item I needed something more concrete to begin working with.
+    \begin{itemize}[<+->]
+        \item After \alt<2->{\xout{some} \emph{a lot} of}{some} deliberation,
+            % and an expectation of data from a molecular biologist,
+            %I settled on
+            \begin{block}<+->{The Reseach Question:}
+                ``How can stochastic gene copy number dynamics underlying bacterial
+                heteroresistance be accurately captured using a Fokker-Planck formulation,
+                and what insights does this stochastic framework provide beyond deterministic ODE models.''
+            \end{block}
+    \end{itemize}
+
+
+    \tikz[overlay, remember picture] \node<2-> at (frame cs:0.35,-0.4) {%
         \begin{tikzpicture}
             \pgfmathsetnewmacro\genelength{35}
             \pgfmathsetnewmacro\geneheight{2}
@@ -380,169 +429,427 @@
         \end{tikzpicture}
     };
 
+    \tikz[overlay, remember picture] \node<2-> at (frame cs:-0.65,-0.35) {
+        \begin{tikzpicture}[ scale = 1,
+            draw = black!80,
+            thick,
+            shorten >=2pt,
+            overlay
+            ]
+
+            \node[draw=black, circle] (c1) at (-1, 0) {\(c_1\)};
+            \node[draw=black, circle] (c2) at ( 1, 0) {\(c_2\)};
+
+            \node[draw=black] (m) at ( -1, -1.20) {\(m\)};
+            \node[] (source) at ( -2, -1.20) {\(m_0\)};
+
+            \draw[->] (c2) [bend left]to node[midway, below] {\(w_2\)} (c1);
+            \draw[->] (c1) [bend left]to node[midway, above] {\(w_1\)} (c2);
+
+            \draw[->] (c1)  [loop left]to node[midway, left]  {\(k_1\)} (c1);
+            \draw[->] (c2) [loop right]to node[midway, right] {\(k_2\)} (c2);
+
+            \draw[-|] (m) to node[pos=0.35] (mm) {} (c1);
+            \draw[-|, rounded corners] (c2) |- node[midway,anchor=south west] {\(q_m\)} (m);
+            % \draw[-|] (c2) to[out=270, in=0, looseness=2] node[midway,anchor=north west] {\(q_m\)} (m);
+
+            \node[anchor=east] at (mm) {\(q_1\)};
+
+            \draw[->] (source) -- (m);
+
+    \end{tikzpicture}};
+
+    % \begin{tikzpicture}[overlay, remember picture]
+    %
+    %     \node<2-> at (frame cs: 0, -0.40) {%
+    %             % \includegraphics[width=0.65\framewidth]{cgn.png}
+    %         };
+    %
+    % \end{tikzpicture}
+
+\end{frame}
+
+% \section{ Why this stuff goes hard }
+\section{ Real World Examples }
+
+
+% \subsection{}
+
+% \begin{frame}{ Real World Examples }
+%
+%
+%     \begin{tikzpicture}[overlay, remember picture]
+%         \node<1>[fill] (a) at (frame cs: 0, 0.18) {%
+%                 \includegraphics[width=0.85\framewidth]{phenotypespace.png}
+%             };
+%
+%
+%
+%         \node at (frame cs: 0, -0.5) {%
+%                 Phase portraits characterize the genotype–phenotype map\beamerfootcite{Jaeger2014}
+%             };
+%     \end{tikzpicture}
+%
+%     % \begin{figure}[htbp]
+%     % \centering
+%     % \includegraphics[width=0.7\textwidth]{phenotypespace.png}
+%     % \caption{Phase portraits characterize the genotype–phenotype map\beamerfootcite{Jaeger2014}}
+%     % \end{figure}
+%
+% \end{frame}
+
+\begin{frame}{ Dongya Jia et al. }
+
+
+    \begin{tikzpicture}[overlay, remember picture]
+
+        \begin{scope}[fill]
+            \node[fill] (a) at (frame cs: -0.52, 0.2) {
+                    \includegraphics[width=0.48\textwidth]{cancers-09-00070-g002--1.png}
+                };
+            \node[fill] (b) at (frame cs: 0.35, 0.2) {
+                    \includegraphics[width=0.48\textwidth]{cancers-09-00070-g002--2.png}
+                };
+            \node[fill] (c) at (frame cs: 0.85, 0.2) {
+                    \includegraphics[height=0.35\framewidth]{cancers-09-00070-g002--3.png}
+                };
+        \end{scope}
+
+        \node[text width=0.8\framewidth] at (frame cs: -0.05, -.38) {
+                Schematic illustration of the quasi-potential landscape for epithelial-to-mesenchymal transition (EMT) in 3-dimensional space\beamerfootcite{Jia2017}
+            };
+
+    \end{tikzpicture}
+
 
 \end{frame}
 
 
-% \begin{frame}{ Proof }
+\begin{frame}{ Michael Levin }
+
+    \begin{tikzpicture}[overlay, remember picture]
+        \node<1>[fill] (a) at (frame cs: 0, 0.18) {%
+                \includegraphics[width=0.85\framewidth]{cellregeneration.png}
+            };
+
+        \node[text width = 0.9\textwidth] at (frame cs: 0, -0.46) {%
+                Kidney tubules form with roughly correct diameter in newts despite polyploidy, which changes cell size. \beamerfootcite{Levin2021}
+            };
+    \end{tikzpicture}
+
+\end{frame}
+
+% \begin{frame}{ Levin }
 %
+%     % \begin{tikzpicture}[overlay, remember picture]
+%     %     \node<1>[fill] (a) at (frame cs: 0, 0.18) {%
+%     %             \includegraphics[width=0.85\framewidth]{cellregeneration.png}
+%     %         };
+%     %
+%     %     \node[text width = 0.8\textwidth] at (frame cs: 0, -0.5) {%
+%     %             Kidney tubules form with roughly correct diameter in newts despite polyploidy, which changes cell size. \beamerfootcite{Levin2021}
+%     %         };
+%     % \end{tikzpicture}
+%
+% \end{frame}
+
+
+
+\section{ Results }
+
+
+\begin{frame}{ A Question Emerges }
+
 %     \begin{columns}
-%         \column{ 0.5\framewidth}
 %
-%         \begin{description}
-%             \item[S:] Statistics
-%             \item[B:] Biology
-%             \item[R:]
-%         \end{description}
+%         \column{0.5\framewidth}
 %
-%         | \hfill |
-%
-%         \column{ 0.5\framewidth}
-%
-%         \begin{description}
-%             \item \(P \implies Q\)
-%             \item \(Q \implies R\)
-%             \item \(P \implies Q, Q \implies R \vdash P \implies R\)
-%         \end{description}
-%
-%         | \hfill |
+%         \column{0.5\framewidth}
 %
 %     \end{columns}
 %
 % \end{frame}
+%
+% \begin{frame}{The Proposition}
 
-\begin{frame}{ Birth Death Processes }
+    \vspace{1em}
 
-    \begin{columns}%[C]
+    \begin{onlyenv}<1>
 
-        \column{0.5\framewidth}
+    \end{onlyenv}
 
-        \begin{enumerate}
-            \item A discretized form of random walk
-            \item Stationary form takes the appearance
-                \begin{equation}
-                    0 = J\of{x+1} - J\of x
-                \end{equation}
-        \end{enumerate}
+    \begin{onlyenv}<2->
+        \begin{proposition}[name={Stochastic Stability Decay}] \label{prp.ssd}
 
-        \column{0.5\framewidth}
+            %which we can represent with \gls{fpe}
+            Assume \(M\) is a manifold denoting a state space with an unstable origin,
+            whose {evolution rule} is \(\varphi:\R\times M\to M\),
+            \(t\in\R\), and that \(N\subset M\) is a submanifold that includes the origin.
 
-    \end{columns}
+            % with an attracting point \(\vec{x}^*\in N\backslash\{\vec{0}\}\).
+            Additionally assume we have system of SDEs,
+            which involves an isolated autocatalytic process,
+            \begin{equation*}
+                \hfill
+                \delta \vec{x}\of t
+                = \vec{A}\br{\vec{x}\of t, t}
+                + \sqrt{\bfm B\br{\vec{x}\of t, t}} \ \delta{\vec{W}\of{t\st \vec{x}}}
+                \hfill
+            \end{equation*}
+            Such that the drift term \(\vec{A}:N\to\R^n\) is the vector field
+            associated with the flow \(\varphi_t\of N\).
+            % homeomorphic to \(N\).
 
+            If \(\varphi_t\of{N}\) can be partitioned into a trapping region,
+            \(N\backslash\{\vec{0}\}\), and the unstable point \(\{\vec{0}\}\).
+            Then given a large enough time interval,
+            the stochastic system will inevitably decay from stability.
 
-\end{frame}
-
-% \item Distinguished by not inherently
-
-
-% TODO:
-\section{My Model in 1-Dimension}
-\begin{frame}{Simplest Novel Model}
-
-    \begin{enumerate}
-        \item It somehow never crossed my mind to make my model in one dimension
-        \item So we present it
-    \end{enumerate}
-
-    \begin{columns}%[C]
-
-        \column{0.5\framewidth}
-
-        \begin{reactiontable}
-            \reactionterm[\(k_{-1} x^2\)]{\(k_1 n x\)}{\(X+N\)}{\(2 X\)}{ 1 }
-            \reactionterm{\(k_3 b x\)}{\(X+B\)}{\(B+N\)}{ -1 }
-        \end{reactiontable}
-
-        \column<2->{0.4\framewidth}
-
-        \begin{align*}
-            A &= k_{-1} x^2 + \pa{ k_3 b - k_1 n } x
-            \\
-            B &= {1 \over \Omega} \pa{k_{-1} x^2 + \pa{ k_1 n + k_3 b } x}
-        \end{align*}
-
-    \end{columns}
-
-
+        \end{proposition}
+    \end{onlyenv}
 
 \end{frame}
 
-\begin{frame}{ Analytical Distribution }
 
-    \begin{columns}
-
-        \column{0.5\framewidth}
-
-        \column{0.5\framewidth}
-
-    \end{columns}
+\begin{frame}{ Stochastic Processes }
 
     \begin{tikzpicture}[overlay, remember picture]
-        \node at (frame cs:0.5, 0.0) {
-                \includegraphics[width=0.5\textwidth]
-                {Novel1VarData.pdf}
+        \node<1> (a) at (frame cs: -0.45, 0.08) {%
+                \includegraphics[width=0.55\framewidth, page=1]{ssa:ODE8Par3Var:I34:C1T17476639695953887:2dHist.pdf}
+            };
+        \node<1> (a) at (frame cs: 0.45, 0.08) {%
+                \includegraphics[width=0.50\framewidth, page=2]{ssa:ODE8Par3Var:I34:C1T17476639695953887:2dHist.pdf}
+            };
+
+        \node[text width = 0.9\textwidth] at (frame cs: 0, -0.66) {%
+                The stochastic process logically equivalent to the ODE model
+                outlined in Section 6.1
             };
     \end{tikzpicture}
 
 \end{frame}
 
 
+
+
+\begin{frame}{ Stochastic Processes }
+
+    \begin{tikzpicture}[overlay, remember picture]
+        \node<1> (a) at (frame cs: -0.45, 0.08) {%
+                \includegraphics[width=0.55\framewidth, page=1]{ssa:Novel5Par3Var:I26:C1T17475033100262814:2dHist.pdf}
+            };
+        \node<1> (a) at (frame cs: 0.45, 0.08) {%
+                \includegraphics[width=0.50\framewidth, page=2]{ssa:Novel5Par3Var:I26:C1T17475033100262814:2dHist.pdf}
+            };
+
+        \node[text width = 0.9\textwidth] at (frame cs: 0, -0.66) {%
+                The stochastic process of my own model outlined in Section 6.2
+            };
+    \end{tikzpicture}
+
+\end{frame}
+
+
+% \subsection{What I did}
+% \begin{frame}{The process}
+%
+%     \begin{itemize}
+%         \item I had to cover a lot of novel ground
+%         \item
+%     \end{itemize}
+%
+% \end{frame}
+% \section{ Meat 'n Potatoes }
+% \subsection{Background Elaboration}
+
+% \begin{frame}{ Birth Death Processes }
+%
+%     \begin{columns}[T]
+%
+%         \column{0.5\framewidth}
+%
+%         \begin{itemize}
+%             \item Discrete Stochastic Processes
+%                 \begin{itemize}
+%                     \item Jump Processes
+%                     \item Birth-Death Processes
+%                 \end{itemize}
+%             \item Continuous Stochastic Processes
+%         \end{itemize}
+%
+%         \column{0.5\framewidth}
+%
+%         \begin{itemize}
+%             \item
+%         \end{itemize}
+%
+%     \end{columns}
+%
+%
+% \end{frame}
+
+% \subsection{Gene stuff}
+
+% \begin{frame}{ Recapping the Model }
+%
+%
+%     \vspace{1em}
+%     \begin{columns}
+%
+%         \column{0.4\framewidth}
+%
+%         \begin{onlyenv}<1>
+%
+%             \begin{itemize}
+%                 \item[\(X\)] represents the gene copy number
+%                 \item[\(Y\)] represents the protective resistance proteins
+%                 \item[\(N\)] represents the available nutrients in the system
+%                 \item[\(B\)] represents the antibiotic added to the system
+%                 \item[\(\emptyset\)] represents elements outside the scope of the system
+%             \end{itemize}
+%
+%         \end{onlyenv}
+%
+%         \begin{onlyenv}<2->
+%             The reactions:
+%             \begin{align}
+%                 X + N &\xrightleftharpoons[k_{-1}]{k_1} 2 X \\
+%                 X + N &\xrightarrow{k_2} X + Y \\
+%                 X + B &\xrightarrow{k_3} B \\
+%                 Y + B &\xrightarrow{k_4} N \\
+%                 Y     &\xrightarrow{k_5} N \\
+%                 % \uncover<3->{\emptyset &\xrightarrow{k_b} B \\ }
+%                 \notag
+%             \end{align}
+%         \end{onlyenv}
+%
+%         \column{0.50\framewidth}
+%
+%     \end{columns}
+%
+%     \tikz[overlay, remember picture] \node at (frame cs:0.35,0) {%
+%         \begin{tikzpicture}
+%             \pgfmathsetnewmacro\genelength{35}
+%             \pgfmathsetnewmacro\geneheight{2}
+%
+%             \pgfmathsetnewmacro\translength{10}
+%             \pgfmathsetnewmacro\transheight{2}
+%
+%             \pgfmathsetnewmacro\reactionthickness{1}
+%             \pgfmathsetnewmacro\dnawidth{4}
+%
+%             \pgfmathsetnewmacro\shortendist{6}
+%             \pgfmathsetnewmacro\bendstrength{1.05} % √(1²+(0.2-0.75)²)
+%
+%             \pgfmathsetnewmacro\geneshift{5}
+%
+%             \providecommand*\genecolor{red!80!black}
+%             \providecommand*\transcolor{green!80!black}
+%
+%             \useasboundingbox (-4,-1.25) rectangle (5.5,1.35);
+%             \coordinate (O) at (0,0);
+%
+%             \node[circle] (west) at (-3.5, 0) {};
+%             \node[circle] (east) at ( 4.5, 0) {};
+%
+%             \node[anchor=south east] at (west) {\(5'\)};
+%             \node[anchor=south west] at (east) {\(3'\)};
+%
+%             \draw[line width = \dnawidth] (west.center) to (east.center);
+%
+%             \draw[line width = \dnawidth] (east.north) to (east.south);
+%             \draw[line width = \dnawidth] (west.north) to (west.south);
+%
+%
+%             \coordinate (g1) at (-2,0); \coordinate (g2) at ( 0,0);
+%             \coordinate (g3) at ( 3,0);
+%
+%             \coordinate (t1) at (-3,0); \coordinate (t2) at (-1,0);
+%             \coordinate (t3) at ( 1,0);
+%             \coordinate (t4) at ( 2,0); \coordinate (t5) at ( 4,0);
+%
+%             \draw[line width = \dnawidth+1, BackgroundColor, dashed] (t3) -- (t4);
+%             \draw[line width = \dnawidth+1, BackgroundColor] ([xshift=0.37cm]t3) to ([xshift=-0.43cm]t4);
+%
+%             \foreach \POINT in {1,2,3}{
+%                 \node[rectangle, fill=\genecolor, draw=\genecolor, minimum width=\genelength, minimum height=\geneheight] at (g\POINT) {};
+%             }
+%
+%             \foreach \POINT in {1,2,3,4,5}{
+%                 \node[rectangle, fill=\transcolor, draw=\transcolor, minimum width=\translength, minimum height=\transheight] at (t\POINT) {};
+%             }
+%
+%             \node[above, yshift=5] (x1) at (g1) {\(X\)};
+%             \node[above, yshift=5] (x2) at (g2) {\(X\)};
+%             \node[above, yshift=5] (x3) at (g3) {\(X\)};
+%
+%             \node  (B) at ( 4.75, 0.85) {\(B\)};
+%             \node (B2) at ( 0.50, 0.85) {\(B\)};
+%
+%             \node  (N) at ( 2.00,-0.75) {\(N\)};
+%             \node (N2) at (-2.00, 1.00) {\(N\)};
+%             \node (N3) at ( 2.75, 1.00) {\(N\)};
+%
+%             \node  (y) at ( 4.00,-0.75) {\(Y\)};
+%             \node (y2) at ( 1.50, 0.30) {\(Y\)};
+%             \node (y3) at ( 0.75,-0.75) {\(Y\)};
+%
+%             \begin{scope}[line width=\reactionthickness, shorten <=\shortendist, shorten >=\shortendist]
+%                 \draw[->] ([yshift=\geneshift]g1)
+%                     to[bend left] node[midway, sloped] (k1path) {}
+%                     ([yshift=\geneshift]g2);
+%                 \draw[->] ([yshift=-\geneshift]g2)
+%                     to[bend left] node[midway] (k-1path) {}
+%                     ([yshift=-\geneshift]g1);
+%             \end{scope}
+%
+%             \node[above] at (k1path) {\(k_1\)};
+%             \node[below] at (k-1path) {\(k_{-1}\)};
+%
+%             \draw[line width=\reactionthickness, shorten >=6pt]
+%                 (N2) to[bend right] ([yshift=2.3]k1path.center);
+%
+%             % \draw[->,line width=\reactionthickness, shorten <=5.5pt]
+%             %     ([yshift=-2.6]k-1path.center) to[bend right] (N3);
+%
+%
+%
+%             \begin{scope}[line width = \reactionthickness]
+%                 \draw[shorten >=5pt, shorten <=4pt ]
+%                     (B.center) -- (x3.center)
+%                     node[pos=0.5, sloped] (midbx) {\(\bigtimes\)};
+%                 \draw[shorten >=5pt, shorten <=4pt ]
+%                     (B2.center) -- (y2.center)
+%                     node[pos=0.5, sloped] (midby) {\(\bigtimes\)};
+%
+%                 \draw[->] (midbx.center) to[in=0, out=105, looseness=1.5] (N3);
+%                 \draw[->] (midbx.center) to[in=160, out=105, looseness=3] (B);
+%
+%                 \draw[->] (midby.center) to[in=180, out=71, looseness=1.5] (N3);
+%
+%                 % \draw[->] (midxb.center) -- ++(105:0.5);
+%                 % \draw[->] (midxb.center) to[bend right] (N2.east);
+%
+%                 \draw[->] (N) .. controls ++( 45:\bendstrength) and ++(135:\bendstrength) .. (y)
+%                     node[midway, below] {\(k_2\)};
+%                 \draw[->] (y3) -- (N) node[midway, above] {\(k_5\)};
+%             \end{scope}
+%
+%             \node[anchor=north west] at (midbx) {\(k_3\)};
+%             \node[anchor=west] at ([yshift=2,xshift=1]midby) {\(k_4\)};
+%
+%
+%         \end{tikzpicture}
+%     };
+%
+%
+% \end{frame}
+
+
+
+
+
 % TODO:
-\section{Revisiting the Proof}
-\begin{frame}{The Proposition}
-
-    \begin{proposition}[name={Stochastic Stability Decay}] \label{prp.ssd}
-
-        %which we can represent with \gls{fpe}
-        Assume \(M\) is a manifold denoting a state space with an unstable origin,
-        whose {evolution rule} is \(\varphi:\R\times M\to M\),
-        \(t\in\R\), and that \(N\subset M\) is a submanifold that includes the origin.
-
-        % with an attracting point \(\vec{x}^*\in N\backslash\{\vec{0}\}\).
-        Additionally assume we have system of SDEs,
-        which involves an isolated autocatalytic process,
-        \begin{equation*}
-            \delta \vec{x}\of t
-            = \vec{A}\br{\vec{x}\of t, t}
-            + \sqrt{\bfm B\br{\vec{x}\of t, t}} \ \delta{\vec{W}\of{t\st \vec{x}}}
-        \end{equation*}
-        Such that the drift term \(\vec{A}:N\to\R^n\) is the vector field
-        associated with the flow \(\varphi_t\of N\).
-        % homeomorphic to \(N\).
-
-        If \(\varphi_t\of{N}\) can be partitioned into a trapping region,
-        \(N\backslash\{\vec{0}\}\), and the unstable point \(\{\vec{0}\}\).
-        Then given a large enough time interval,
-        the stochastic system will inevitably decay from stability.
-
-    \end{proposition}
-
-\end{frame}
-
-\begin{frame}{ Elaboration }
-
-    \begin{columns}
-
-        \column{0.5\framewidth}
-
-        \column{0.5\framewidth}
-
-    \end{columns}
-
-\end{frame}
-
-
-\begin{frame}{Applied to the 1D Model}
-
-    \begin{enumerate}
-        \item From the Proposition, we see that 1-var will decay
-        \item The behavior is then of course easily carried to the higher
-            dimensional models
-        \item As established
-    \end{enumerate}
-
-\end{frame}
-
 
 % \begin{frame}{The Corollary}
 %
@@ -599,10 +906,171 @@
 % \end{frame}
 
 
-\section{ Discussion Points }
-\begin{frame}{Fuck}
-    frame contents
-\end{frame}
+% \begin{frame}{The ODE System}
+%
+%     \tikz[overlay] \node<1-> at (frame cs:-0.65,-1.35) {
+%         \begin{tikzpicture}[ scale = 1,
+%             draw = black!80,
+%             thick,
+%             shorten >=2pt,
+%             overlay
+%             ]
+%
+%             \node[draw=black, circle] (c1) at (-1, 0) {\(c_1\)};
+%             \node[draw=black, circle] (c2) at ( 1, 0) {\(c_2\)};
+%
+%             \node[draw=black] (m) at ( -1, -1.20) {\(m\)};
+%             \node[] (source) at ( -2, -1.20) {\(m_0\)};
+%
+%             \draw[->] (c2) [bend left]to node[midway, below] {\(w_2\)} (c1);
+%             \draw[->] (c1) [bend left]to node[midway, above] {\(w_1\)} (c2);
+%
+%             \draw[->] (c1)  [loop left]to node[midway, left]  {\(k_1\)} (c1);
+%             \draw[->] (c2) [loop right]to node[midway, right] {\(k_2\)} (c2);
+%
+%             \draw[-|] (m) to node[pos=0.35] (mm) {} (c1);
+%             \draw[-|, rounded corners] (c2) |- node[midway,anchor=south west] {\(q_m\)} (m);
+%             % \draw[-|] (c2) to[out=270, in=0, looseness=2] node[midway,anchor=north west] {\(q_m\)} (m);
+%
+%             \node[anchor=east] at (mm) {\(q_1\)};
+%
+%             \draw[->] (source) -- (m);
+%
+%     \end{tikzpicture}};
+%
+%
+%     \begin{columns}
+%         \column{0.35\framewidth}
+%         \vspace{8em}\par
+%
+%
+%         \column{0.5\framewidth}
+%         \begin{align*}
+%             \ode{c_1} &= k_1 c_1\left({n_1 - c_t \over n_1}\right) - w_1 c_1 + w_2 c_2 - q_1 m c_1 \nonumber \\
+%             \ode{c_2} &= k_2 c_2\left({n_2 - c_t \over n_2}\right) - w_2 c_2 + w_1 c_1\nonumber\\
+%             \ode{m}   &= m_0 - q_m m c_2 \nonumber
+%         \end{align*}
+%
+%     \end{columns}
+%
+%     \begin{itemize}
+%         \item Shown to be Lyapunov stable at the sole fixed point.
+%     \end{itemize}
+%
+% \end{frame}
+
+% \begin{frame}{The ODE Dynamics}
+%
+%
+%     \begin{onlyenv}<1>
+%         \begin{figure}[htbp]
+%             \centering
+%             \begin{subfigure}{0.5\framewidth}
+%                 \centering
+%                 \includegraphics[width=1\textwidth,page=1]{ode:jesper:I15:C1:T1748197107286477.pdf}
+%                 \caption{The ODE system with \(m_0 = 0.20\)}
+%             \end{subfigure}~
+%             \begin{subfigure}{0.5\framewidth}
+%                 \centering
+%                 \includegraphics[width=1\textwidth,page=1]{ode:jesper:I32:C1fp:T17481997939903586.pdf}
+%                 \caption{The ODE system with \(m_0 = 10\)}
+%             \end{subfigure}
+%             \caption{ Two examples of the traditional ODE system with varying parameters }
+%         \end{figure}
+%     \end{onlyenv}
+%
+%     \begin{onlyenv}<2>
+%         \begin{figure}[htbp]
+%             \centering
+%             \begin{subfigure}{0.5\framewidth}
+%                 \centering
+%                 \includegraphics[width=1\textwidth,page=1]{ssa:ODE8Par3Var:I34:C2:T17476639695953887.pdf}
+%             \end{subfigure}~
+%             \begin{subfigure}{0.5\framewidth}
+%                 \centering
+%                 \includegraphics[width=1\textwidth,page=2]{ssa:ODE8Par3Var:I34:C2:T17476639695953887.pdf}
+%             \end{subfigure}
+%             \caption{
+%                 The stochastic version of the model simulated using
+%                 Gillespie's SSA.
+%                 The ODE system with \(m_0 = 10\)
+%             }
+%         \end{figure}
+%     \end{onlyenv}
+%
+%     \begin{onlyenv}<3->
+%         \begin{figure}[htbp]
+%             \centering
+%             \begin{subfigure}{0.5\framewidth}
+%                 \centering
+%                 \includegraphics[width=1\textwidth,page=3]{ssa:ODE8Par3Var:I34:C2:T17476639695953887.pdf}
+%             \end{subfigure}~
+%             \begin{subfigure}{0.5\framewidth}
+%                 \centering
+%                 \includegraphics[width=1\textwidth,page=4]{ssa:ODE8Par3Var:I34:C2:T17476639695953887.pdf}
+%             \end{subfigure}
+%             \caption{
+%                 The stochastic version of the model simulated using
+%                 Gillespie's SSA.
+%                 The ODE system with \(m_0 = 10\)
+%             }
+%         \end{figure}
+%     \end{onlyenv}
+%
+% \end{frame}
+
+% \begin{frame}{ Stochastic Model Dynamics }
+%
+%     \begin{onlyenv}<2->
+%         \begin{figure}[htbp]
+%             \centering
+%             \begin{subfigure}{0.5\framewidth}
+%                 \centering
+%                 \includegraphics[width=1\textwidth,page=1]{ssa:Novel5Par3Var:I26:C2:T17475033100262814.pdf}
+%             \end{subfigure}~
+%             \begin{subfigure}{0.5\framewidth}
+%                 \centering
+%                 \includegraphics[width=1\textwidth,page=1]{ssa:Novel5Par3Var:I22:C1:T17475031669379826.pdf}
+%             \end{subfigure}
+%             \caption{
+%                 The stochastic version of the model simulated using
+%                 Gillespie's SSA.
+%                 The ODE system with \(m_0 = 10\)
+%             }
+%         \end{figure}
+%     \end{onlyenv}
+%
+% \end{frame}
+
+
+% % TODO:
+% \subsection{Revisiting the Proof}
+
+% \begin{frame}{ Elaboration }
+%
+%     \begin{columns}
+%
+%         \column{0.5\framewidth}
+%
+%         \column{0.5\framewidth}
+%
+%     \end{columns}
+%
+% \end{frame}
+
+
+% \begin{frame}{Applied to the 1D Model}
+%
+%     \begin{itemize}
+%         \item From the Proposition, we see that 1-var will decay
+%         \item The behavior is then of course easily carried to the higher
+%             dimensional models
+%         \item But we of course care about the transient state
+%     \end{itemize}
+%
+% \end{frame}
+
+\section{ Conclusions }
 
 
 \begin{frame}{Fuck}
@@ -610,8 +1078,10 @@
 \end{frame}
 
 
-\begin{frame}{Bibliography}
+\begin{frame}[allowdisplaybreaks=4]{Bibliography}
+    %, allowframebreaks=0.25]
 
+    % \printbibliography
 
 
 \end{frame}
@@ -621,8 +1091,157 @@
 
 
 \appendix
+\section{\appendixname}
 
-\begin{frame}{ Flux Derivation }
+
+\begin{frame}[t]{ Weird Outcomes }
+
+    \vspace{2em}
+    \begin{itemize}
+        \item Recalling the unexpected behavior in Figures 6.4 and 6.5 ( on page 36 )
+    \end{itemize}
+
+    \begin{tikzpicture}[overlay, remember picture]
+
+        \node at (frame cs:-0.5, 0) {
+                \includegraphics[width=0.5\textwidth,page=1]{ssa:ode-5-2:I19:C2fp:T17475890580172482.pdf}
+            };
+
+        \node at (frame cs: 0.5, 0) {
+                \includegraphics[width=0.5\textwidth,page=2]{ssa:ode-5-2:I19:C2fp:T17475890580172482.pdf}
+            };
+
+    \end{tikzpicture}
+
+
+\end{frame}
+
+
+\begin{frame}{Waddington's Figures}
+
+    \begin{columns}%[T]
+
+        \column{0.5\framewidth}
+    \begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.9\textwidth]{epigenetic.png}
+    \caption{
+        Part of an Epigenetic Landscape.
+    }
+    \end{figure}
+
+        \column{0.5\framewidth}
+    \begin{figure}[htbp]
+    \centering
+    \includegraphics[width=1\textwidth]{factorsofepigenetic.png}
+    \caption{
+        The complex system of interactions underlying the epigenetic landscape.
+    }
+    \end{figure}
+
+    \end{columns}
+
+\end{frame}
+
+
+
+\subsection{My Model in 1-Dimension}
+\begin{frame}{Simplest Novel Model}
+
+    \begin{itemize}
+        \item The one dimensional, i.e., just the GCN
+        \item So to rectify that
+    \end{itemize}
+
+    \begin{columns}%[C]
+
+        \column{0.5\framewidth}
+
+        \begin{reactiontable}
+            \reactionterm[\(k_{-1} x^2\)]{\(k_1 n x\)}{\(X+N\)}{\(2 X\)}{ 1 }
+            \reactionterm{\(k_3 b x\)}{\(X+B\)}{\(B+N\)}{ -1 }
+        \end{reactiontable}
+
+        \column{0.4\framewidth}
+
+        \begin{align*}
+            A\of x &= k_{-1} x^2 + \pa{ k_3 b - k_1 n } x
+            \\
+            B\of x &= {1 \over \Omega} \pa{k_{-1} x^2 + \pa{ k_1 n + k_3 b } x}
+        \end{align*}
+
+    \end{columns}
+
+\end{frame}
+
+\begin{frame}{ Analytical Distribution }
+
+    \begin{columns}
+
+        \column{0.60\framewidth}
+
+        \begin{itemize}
+            \item Has an exponential distribution
+                \begin{itemize}
+                    \item Which is what I would hope for
+                \end{itemize}
+            \item Very dependent to changes in ratio of \(N\) to \(B\)
+                \begin{itemize}
+                    \item \(N \approx  B \implies\) distribution centered on \(x=0\)
+                    \item \(N \not\approx B \implies\) distribution centered on \( (k_1n - k_3b) / k_{-1}\)
+                \end{itemize}
+            \item Would have made the rest of my life easier to see the
+                problems from this version
+        \end{itemize}
+
+        \column{0.6\framewidth}
+
+    \end{columns}
+
+    \begin{tikzpicture}[overlay, remember picture]
+        \node at (frame cs:0.55, 0.0) {
+                \includegraphics[width=0.5\textwidth]
+                {Novel1VarData.pdf}
+            };
+    \end{tikzpicture}
+
+\end{frame}
+
+
+
+
+
+
+\begin{frame}{ Research Question Drafts }
+
+    \vspace{2ex}
+    \begin{columns}[T]
+
+        \column{0.5\framewidth}
+
+        \begin{enumerate}
+            \item To what degree can modeled systems accurately determine the
+                outcome of heteroresistence in bacteria
+            \item Formalization of Waddington's epigenetic landscape through
+                statistical manifolds
+            \item How can one apply the Fokker-Planck equation to understand the
+                evolution of distinct bacterial populations in relation to the
+                bacterial property of heteroresistence of antibiotics
+            \item How much insight can be obtained on heteroresistence through
+                generalized models of ODE interactions
+        \end{enumerate}
+
+        \column{0.5\framewidth}
+
+        \begin{enumerate}
+            \item How can the FPE be used to model the stochastic dynamics of
+                gene copy number in bacterial populations exhibiting heteroresistence.
+            \item What are the key differences in prediction accuracy between
+                ODE-based models and FPE-based models for GCN
+                dynamics in bacteria
+        \end{enumerate}
+
+    \end{columns}
 
 
 
