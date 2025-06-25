@@ -64,9 +64,9 @@
 \hypersetup{colorlinks,linkcolor=PrimaryColor,urlcolor=SecondaryColor}
 
 % set fonts
-\setbeamerfont{itemize/enumerate body}{size=\large}
-\setbeamerfont{itemize/enumerate subbody}{size=\normalsize}
-\setbeamerfont{itemize/enumerate subsubbody}{size=\small}
+\setbeamerfont{itemize/enumerate body}{size=\normalsize}
+\setbeamerfont{itemize/enumerate subbody}{size=\small}
+\setbeamerfont{itemize/enumerate subsubbody}{size=\scriptsize}
 
 % make pixelated bullets
 \setbeamertemplate{itemize item}{
@@ -98,8 +98,28 @@
 % custom draw the title page above
 \setbeamertemplate{title page}{}
 
-% again, manually draw the frame title above
+% Again, manually draw the frame title above
 \setbeamertemplate{frametitle}{}
+
+%% Introducing a header bounding box
+\setbeamertemplate{headline}{%
+    \vskip1cm
+}
+  % \begin{beamercolorbox}{section in head/foot}
+  %   \vskip25pt\insertnavigation{\paperwidth}\vskip2pt
+  % \end{beamercolorbox}%
+
+%% Renamed for ease of comprehension
+\let\slideheight=\paperheight
+\let\slidewidth=\paperwidth
+% \newdimen\slidewidth % auxiliary dimension
+% \newdimen\slideheight % auxiliary dimension
+% \slidewidth=\the\paperwidth
+% \slideheight=\the\paperheight
+
+%% Testing
+
+
 
 % disable "Figure:" in the captions
 % TODO: somehow this doesn't work for md-generated slides
@@ -115,9 +135,16 @@
     \insertfootnotetext\par\vspace{2em}%
 }
 
+
 % add the same vspace both before and after quotes
 \setbeamertemplate{quote begin}{\vspace{0.5em}}
 \setbeamertemplate{quote end}{\vspace{0.5em}}
+
+
+%% Setting background color
+\setbeamercolor{background canvas}{bg = BackgroundColor}
+
+
 
 % progress bar counters
 \newcounter{showProgressBar}
@@ -136,19 +163,20 @@
 \newdimen\progressbar@pbwidth %progressbar width
 \newdimen\progressbar@tmpdim % auxiliary dimension
 
-\newdimen\slidewidth % auxiliary dimension
-\newdimen\slideheight % auxiliary dimension
+
+
+
+
+
 
 % make the progress bar go across the screen
 \progressbar@pbwidth=\the\paperwidth
-\slidewidth=\the\paperwidth
-\slideheight=\the\paperheight
 
 % draw everything with tikz
 \setbeamertemplate{background}{ % all slides
     % progress bar stuff
     \progressbar@tmpcounta=\insertframenumber
-    \progressbar@tmpcountb=\inserttotalframenumber
+    \progressbar@tmpcountb=\insertmainframenumber
     \progressbar@tmpdim=\progressbar@pbwidth
     \divide\progressbar@tmpdim by 100
     \multiply\progressbar@tmpdim by \progressbar@tmpcounta
@@ -160,7 +188,7 @@
         \useasboundingbox (0,0) rectangle (\the\paperwidth,\the\paperheight);
 
         % background
-        \fill[color=BackgroundColor] (0,0) rectangle(\the\paperwidth,\the\paperheight);
+        % \fill[color=BackgroundColor] (0,0) rectangle(\the\paperwidth,\the\paperheight);
 
         \ifnum\thepage=1\relax % only title slides
             % primary color rectangle
@@ -196,7 +224,7 @@
                     % if slide totals are active
                     \ifnum \value{showSlideTotal}>0\relax%
                         % draw both slide number and slide total
-                        \node[anchor=south east] at(\slidewidth,0.25cm) {\color{PrimaryColor}\tiny\insertframenumber/\inserttotalframenumber};
+                        \node[anchor=south east] at(\slidewidth,0.25cm) {\color{PrimaryColor}\tiny\insertframenumber/\insertmainframenumber};
                     \else
                         \node[anchor=south east] at(\slidewidth,0.25cm) {\color{PrimaryColor}\tiny\insertframenumber};
                     \fi
@@ -209,7 +237,7 @@
                     % if slide totals are active
                     \ifnum \value{showSlideTotal}>0\relax%
                         % slide number and slide total
-                        \node[anchor=south east] at(\slidewidth,0cm) {\color{PrimaryColor}\tiny\insertframenumber/\inserttotalframenumber};
+                        \node[anchor=south east] at(\slidewidth,0cm) {\color{PrimaryColor}\tiny\insertframenumber/\insertmainframenumber};
                     \else
                         \node[anchor=south east] at(\slidewidth,0cm) {\color{PrimaryColor}\tiny\insertframenumber};
                     \fi
@@ -224,12 +252,11 @@
 
 %\AtBeginSection{\frame{\sectionpage}} % section pages
 \setbeamertemplate{section page}{
-    \begin{tikzpicture}
-        % set up the entire slide as the canvas
-        \useasboundingbox (0,0) rectangle(\slidewidth,\slideheight);
-        \fill[color=BackgroundColor] (-1cm, 2cm) rectangle (\slidewidth, \slideheight+0.1cm);
-        \fill[color=PrimaryColor] (-1cm, 0.5\slideheight-1cm) rectangle(\slidewidth, 0.5\slideheight+1cm);
-        \node[text width=\the\paperwidth-1cm,align=center] at (0.4\slidewidth, 0.5\slideheight) {\color{SecondaryColor}\Huge\textbf{\insertsection}};
+    \begin{tikzpicture}[overlay, remember picture]
+        \fill[color=BackgroundColor] (frame cs: -1, -0.8) rectangle (frame cs: 1, 1);
+        \fill[color=PrimaryColor]    (frame cs: -1, -0.3) rectangle (frame cs: 1, 0.3);
+
+        \node[text width=\the\paperwidth-1cm, align=center] at (frame cs: 0, 0) {\color{SecondaryColor}\Huge\textbf{\insertsection}};
     \end{tikzpicture}
 }
 

@@ -12,22 +12,27 @@ fig_env = str(os.getenv("THESIS_FIGURE_PATH"))
 # yb = (0, 1)
 
 
-rcparams_kwargs: dict = {
-    "axes.labelsize": 20,
-    "axes.titleweight": "bold",
-    "xtick.labelsize": 15,
-    "ytick.labelsize": 15,
-    "savefig.facecolor": "#c0c0ca",
-}
-# "axes.titlecolor": "white",
-# "xtick.labelcolor": "white",
-# "ytick.labelcolor": "white",
+# rcparams_kwargs: dict = {
+#     "axes.labelsize": 20,
+#     "axes.titleweight": "bold",
+#     "xtick.labelsize": 12,
+#     "ytick.labelsize": 12,
+#     # "figure.labelsize": 20,
+#     "figure.titlesize": 20,
+#     "savefig.facecolor": "#c0c0ca",
+# }
 
-keys = rcparams_kwargs.keys()
-values = rcparams_kwargs.values()
 
-for k, v in zip(keys, values):
-    matplotlib.rcParams[k] = v
+matplotlib.rcParams["axes.titlesize"] = 18
+matplotlib.rcParams["axes.labelsize"] = 16
+matplotlib.rcParams["axes.titleweight"] = "bold"
+
+matplotlib.rcParams["xtick.labelsize"] = 13
+matplotlib.rcParams["ytick.labelsize"] = 13
+matplotlib.rcParams["savefig.facecolor"] = "#c0c0ca"
+
+matplotlib.rcParams["figure.titlesize"] = 20
+
 
 fig, ax = subplots(figsize=(6, 5))
 
@@ -67,12 +72,10 @@ font_kwargs: dict = {
 ax.set_ylabel(
     # "Fraction of $c_2$",
     "Distribution",
-    fontdict=font_kwargs,
 )
 ax.set_xlabel(
     # "Fraction of $c_1$",
     "Fraction of $x$",
-    fontdict=font_kwargs,
 )
 
 
@@ -80,10 +83,10 @@ ax.set_xlabel(
 # ax.set_xticks(ticks)
 # ax.set_yticks(ticks)
 
-ax.set_xlim(0 - 0.01, 1.0)
+ax.set_xlim(0 - 0.005, 1.0)
 ax.set_ylim(0, 1.0)
 
-ax.set_title("Analytical solution of 1 variable steady state")
+ax.set_title("Analytical Solution of Steady State Distribution")
 
 
 # axe = ax.plot(*output)
@@ -91,7 +94,8 @@ ax.set_title("Analytical solution of 1 variable steady state")
 # file_name = os.path.join(data_env, "five_var", name + ".pdf")
 # file_name = os.path.join(data_env, "five_var", name + ".pdf")
 
-file_name = os.path.join(fig_env, "{}.pdf".format(name))
+pres_path = os.path.join(fig_env, "..", "..", "Presentation", "images")
+file_name = os.path.join(pres_path, "{}.pdf".format(name))
 
 savefig(file_name, format="pdf")
 show()

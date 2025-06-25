@@ -37,10 +37,10 @@ end
 
 function DifferentialStruct(;
         n ::Vector{<: T} = [100; 100],     k ::Vector{<: T} = [1.0; 1.0],
-        w ::Vector{<: T} = [0.015; 0.015], q ::Vector{<: T} = [0.8; 0.8],
+        w ::Vector{<: T} = [0.15; 0.15], q ::Vector{<: T} = [0.8; 0.8],
         m₀::Real = 0 ) :: DifferentialStruct where T <: Real
 
-    nn, kk, ww, qq = promote(n, w, k, q)
+    nn, kk, ww, qq = promote(n, k, w, q)
     mm₀ = float(m₀)
     return DifferentialStruct{typeof(mm₀), typeof(nn)}(nn, kk, ww, qq, mm₀)
 end
@@ -164,6 +164,27 @@ abstract type AnalyticalSpace{T, N} end
 const OneDimensional{T}   = AnalyticalSpace{T, 1}
 const TwoDimensional{T}   = AnalyticalSpace{T, 2}
 const ThreeDimensional{T} = AnalyticalSpace{T, 3}
+
+
+struct OneDimGradient{T} <: OneDimensional{T}
+    X :: Vector{T}
+    Φ :: Vector{T}
+end
+
+struct TwoDimGradient{T} <: TwoDimensional{T}
+    X :: Vector{T}
+    Y :: Vector{T}
+    Φ :: Matrix{T}
+end
+
+struct ThreeDimGradient{T} <: ThreeDimensional{T}
+    X :: Vector{T}
+    Y :: Vector{T}
+    Z :: Vector{T}
+    Φ :: Array{T}
+end
+
+
 
 
 struct AnalyticalSol{T <: BigFloat, V <: AbstractVector{T}} <: OneDimensional{T}

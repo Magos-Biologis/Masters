@@ -222,6 +222,7 @@
 %% ----------------------------------------------------------------
 %% House Keeping
 %% ----------------------------------------------------------------
+% \author[Anakin]{Anakin Diermayr \\ \texttt{anakin@ruc.dk} }
 \author{Anakin}
 \endinput
 %% File: classesOfRUC.dtx

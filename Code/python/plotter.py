@@ -21,6 +21,11 @@ ode_env = str(os.getenv("ODE_FIGURE_ENV"))
 
 data_env = str(os.getenv("THESIS_DATA_PATH"))
 
+
+presentation_fig_env = os.path.join(
+    str(os.getenv("THESIS_REPORT")), "..", "Presentation", "images"
+)
+
 ode_dir = os.path.join(fpe_env, "ode")
 fpe_dir = os.path.join(fpe_env, "five_var")
 
@@ -232,7 +237,7 @@ model_count: int = args.index
 
 
 is_ode = False
-check_ode = re.compile(r"ode").search(model)
+check_ode = re.compile(r"(ODE|ode)").search(model)
 if check_ode is not None:
     is_ode = True
 
@@ -274,8 +279,8 @@ raw_frame.sort_values(by="serial", inplace=True)  ## Sorting by unix epoch time,
 ## assigning the number of each step accordingly.
 ## From which multi-index is generated for the dataframe
 ## so as to have an easier time choosing which file to plot
-raw_frame["model_index"] = raw_frame.groupby("model").cumcount()
-file_frame = raw_frame.set_index(["datasource", "model"]).sort_index()
+file_frame = raw_frame.set_index(["datasource", "model"])
+file_frame["model_index"] = file_frame.groupby("model").cumcount()
 
 
 ## Now we select only the entries with the entries we care about
@@ -334,6 +339,13 @@ else:
     m_index = args.index
 
 
+## if should have a fixed_point plotted
+if args.plot_fixedpoints:
+    set_fixed_points = True
+else:
+    set_fixed_points = False
+
+
 ## For if it is a comparison
 ## We try to set as many things up here to make it easier in the future
 ### Placing things in lists so we can use indices to generalize
@@ -343,15 +355,18 @@ if args.compare_plots:
     data_set_quantity = 2
     file_choice = sourced_frame.loc[m_index : m_index + 1].reset_index(drop=True)
     path_list.extend([path for path in file_choice.pop("file_name")])
-    initial_list.extend([init for init in file_choice.pop("initcond")])
+    # initial_list.extend([init for init in file_choice.pop("initcond")])
     data_frame = file_choice.loc[0]
 else:
     data_set_quantity = 1
     file_choice = sourced_frame.loc[m_index]
     path_list.append(file_choice.pop("file_name"))
-    initial_list.append(file_choice.pop("initcond"))
+    # initial_list.append(file_choice.pop("initcond"))
     data_frame = file_choice
 
+
+# print(data_frame)
+# exit()
 
 #######################
 #   File name stuff   #
@@ -365,7 +380,7 @@ if model == "5_2":
 
 
 ## Adding the epoch time to ensure the files don't overwrite eachother
-epoch = data_frame["t"]
+epoch = data_frame["serial"]
 if data_source != "phase":
     c_data = data_set_quantity
 else:
@@ -373,21 +388,37 @@ else:
 
 # Format rapidfire
 file_name += "I{}:".format(m_index)
-if args.plot_fixedpoints:
-    file_name += "C{}".format(c_data)
+file_name += "C{}".format(c_data)
+if set_fixed_points:
     file_name += "{}:".format("fp")
-else:
-    file_name += "C{}:".format(c_data)
 file_name += "T{}".format(epoch)
 
+
+#############################################################################
+
+## Trying to use a 'switch case' to make the plotting hopefully smoother
+## the idea is that we can seperate the source of the data here, and plot it after?
+numpy_datas = []
+metadatas = []
+for i, path in enumerate(path_list):
+    file_path = os.path.join(data_env, path)
+    numpy_data = np.load(file_path)
+    numpy_datas.append(numpy_data)
+    ## As the metadata is encoded in utf-8 for julia compatibility, we need
+    ## to decode it here for the json module to properly read it
+    metadatas.append(json.loads(numpy_data["metadata"].tobytes()))
+
 #######################
+
+# print(metadatas[0])
+# exit()
 
 ## For custom plotting counts
 if data_source == "ssa":
     if args.bin_count is not None:
         m: int = args.bin_count
     else:
-        m: int = data_frame["count"]
+        m: int = metadatas[0]["number_of_particles"]
 else:
     m = 100
 
@@ -397,6 +428,8 @@ beta = m + 1  # file_choice["count"]
 boxes = np.arange(alpha, beta + 1, 1, dtype=np.int_)
 xlims = (alpha, beta)
 ylims = (alpha, beta)
+
+#######################
 
 
 ##########################
@@ -447,7 +480,7 @@ rcparams_kwargs: dict = {
     # "axes.titlecolor": "white",
     # "xtick.labelcolor": "white",
     # "ytick.labelcolor": "white",
-    # "savefig.facecolor": "#c0c0ca",
+    "savefig.facecolor": "#c0c0ca",
 }
 
 
@@ -468,7 +501,7 @@ if is_ode:
         plot_kwargs.update(z_name=r"$m$")
         plot_kwargs.update(w_name=r"$m$")
     else:
-        if model == "ode_8_3":
+        if model == "ODE8Par3Var":
             plot_kwargs.update(z_name=r"$b$")
         else:
             plot_kwargs.update(z_name=r"$n$")
@@ -500,11 +533,11 @@ w_name = plot_kwargs.pop("w_name")
 x_color = plot_kwargs.pop("x_color", "r")
 y_color = plot_kwargs.pop("y_color", "b")
 z_color = plot_kwargs.pop("z_color", "g")
-# w_color = plot_kwargs.pop("w_color", "k")
+w_color = plot_kwargs.pop("w_color", "m")
 
 
 names = [x_name, y_name, z_name, w_name]
-colors = [x_color, y_color, z_color]
+colors = [x_color, y_color, z_color, w_color]
 
 #############################################################################
 #                                                                           #
@@ -549,20 +582,6 @@ custom_cmap = mpl.colors.LinearSegmentedColormap.from_list("custom_cmap", stacke
 gillespies = ps.gillespiePlotters(**plot_class_dict)
 odeies = ps.odePlotters(stream_kwargs=stream_kwargs, **plot_class_dict)
 
-#############################################################################
-
-## Trying to use a 'switch case' to make the plotting hopefully smoother
-## the idea is that we can seperate the source of the data here, and plot it after?
-numpy_datas = []
-metadatas = []
-for i, path in enumerate(path_list):
-    file_path = os.path.join(data_env, path)
-    numpy_data = np.load(file_path)
-    numpy_datas.append(numpy_data)
-    ## As the metadata is encoded in utf-8 for julia compatibility, we need
-    ## to decode it here for the json module to properly read it
-    metadatas.append(json.loads(numpy_data["metadata"].tobytes()))
-
 ## Using the switch case to 'prime' the plotting space so to speak
 match data_source:
     case "anal":
@@ -606,14 +625,30 @@ match data_source:
             walk_axis = walk_axes[i]
             hist_axis = hist_axes[i]
 
+            # print(args.language_source)
+            # print(typeof(args.language_source))
+            # exit()
             time = data["time"]
-            states = data["states"]
+            if data_frame["language_source"] == "python":
+                states = data["states"]
+            elif data_frame["language_source"] == "julia":
+                states = data["states"].T
+            else:
+                print("Fuck")
+                exit()
+
+            # print(states.shape)
+            # print(time.shape)
+            # plt.plot(time, states[i, :])
+            # plt.show()
+            # exit()
+
             try:
                 metadata = metadatas[i]
             except:
-                pass
-
-            init_cond_string: str = "{}".format(initial_list[i])
+                init_cond_string: str = "{}".format("[100 0]")
+            else:
+                init_cond_string: str = "{}".format(metadata["initial_condition"])
 
             plot_kwargs.update(label=names[i], color=colors[i])
             gillespies.plot_walks(
@@ -625,12 +660,15 @@ match data_source:
                 plot_kwargs=plot_kwargs,
             )
 
-            gillespies.plot_hists(
-                ax=hist_axis,
-                results=states,
-            )
+            # gillespies.plot_hists(
+            #     ax=hist_axis,
+            #     results=states,
+            # )
             # color=colors[i],
             # label=names[i],
+
+            # print(metadata)
+            # exit()
 
             walk_axis.set_xlabel("Time", fontdict=font_kwargs)
             walk_axis.set_ylabel("Count", fontdict=font_kwargs)
@@ -655,27 +693,40 @@ match data_source:
                         )
                     else:
                         ax.set_title(
-                            "Distribution of Gene Copy Number",
+                            "Distribution of Gene Copy Number to Resistence Protein",
                             fontdict=font_kwargs,
                         )
+
+            # print(metadata)
+            # exit()
+
+            file_name += ":2dHist"
+            hist_axis.grid(False)
+            hist2d_boxes = np.arange(alpha, beta + 10, 1)
+            hist_axis.hist2d(
+                states[0, :],
+                states[1, :],
+                bins=(hist2d_boxes - 0.5, hist2d_boxes - 0.5),
+                density=True,
+                norm=mpl.colors.LogNorm(),
+                cmap=mpl.cm.bone_r,
+                # cmap=mpl.cm.plasma,
+                label="Heatmap of $c_1$ and $c_2$",
+            )
+            hist_axis.set_xlabel(
+                "Count of {}".format(x_name),
+                fontdict=font_kwargs,
+            )
+            hist_axis.set_ylabel(
+                "Count of {}".format(y_name),
+                fontdict=font_kwargs,
+            )
 
             # axe =
             # import matplotlib.pyplot as plt
             # my_cmap = plt.cm.jet
             # my_cmap.set_under("w", 1)
             # ...
-            # plt.hist2d( ..., cmap = my_cmap)
-            # hist2d_boxes = np.arange(alpha, beta + 10, 1)
-            # counts, xedges, yedges, im = hist_axes[i].hist2d(
-            #     states[0, :],
-            #     states[1, :],
-            #     bins=(hist2d_boxes - 0.5, hist2d_boxes - 0.5),
-            #     density=True,
-            #     norm=mpl.colors.LogNorm(),
-            #     cmap=mpl.cm.bone_r,
-            #     # cmap=mpl.cm.plasma,
-            #     label="Heatmap of x and y",
-            # )
             # fig3.colorbar(im, ax=hist_axes[i], label="Fraction of Samples")
             # phase_frame = file_frame.loc[("phase", "jesper")]
             # # data_frame["metadata"]["n1"] *= 2
@@ -715,14 +766,6 @@ match data_source:
             # temp_k1 = metadata["k1"]
             # temp_k2 = metadata["k2"]
             # temp_n = data_frame["count"]
-            # hist_axes[i].set_xlabel(
-            #     "Count of $c_1$",
-            #     fontdict=font_kwargs,
-            # )
-            # hist_axes[i].set_ylabel(
-            #     "Count of $c_2$",
-            #     fontdict=font_kwargs,
-            # )
 
             # break
             # from gillespie import analytical as dga
@@ -781,7 +824,6 @@ match data_source:
     #     for fig in figs:
     #         fig.tight_layout()
     #
-    #     if args.plot_fixedpoints:
     #         inputs = data_frame["metadata"]
     #         # input_dict = dict([(string.replace("-", "_"), val) for string, val in inputs])
     #
@@ -942,8 +984,9 @@ match data_source:
 #     hist_axes[0].set_title("2D histogram of chemical species distribution")
 #
 #
-# for ax in walk_axes:
-#     ax.legend(loc="upper right", fontsize=legend_font_size)
+
+for ax in walk_axes:
+    ax.legend(loc="upper right", fontsize=legend_font_size)
 
 figs = [plt.figure(i) for i in plt.get_fignums()]
 for fig in figs:
@@ -986,6 +1029,8 @@ if args.save:
             print("what")
             exit()
             pass
+
+    file_path = os.path.join(presentation_fig_env, file_name)
 
     ## Just making sure the shit is sorted
     save_image(file_path)
