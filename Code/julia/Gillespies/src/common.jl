@@ -167,20 +167,20 @@ const ThreeDimensional{T} = AnalyticalSpace{T, 3}
 
 
 struct OneDimGradient{T} <: OneDimensional{T}
-    x :: Vector{T}
+    X :: Vector{T}
     Φ :: Vector{T}
 end
 
 struct TwoDimGradient{T} <: TwoDimensional{T}
-    x :: Vector{T}
-    y :: Vector{T}
+    X :: Vector{T}
+    Y :: Vector{T}
     Φ :: Matrix{T}
 end
 
 struct ThreeDimGradient{T} <: ThreeDimensional{T}
-    x :: Vector{T}
-    y :: Vector{T}
-    z :: Vector{T}
+    X :: Vector{T}
+    Y :: Vector{T}
+    Z :: Vector{T}
     Φ :: Array{T}
 end
 

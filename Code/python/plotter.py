@@ -697,6 +697,9 @@ match data_source:
                             fontdict=font_kwargs,
                         )
 
+            # print(metadata)
+            # exit()
+
             file_name += ":2dHist"
             hist_axis.grid(False)
             hist2d_boxes = np.arange(alpha, beta + 10, 1)

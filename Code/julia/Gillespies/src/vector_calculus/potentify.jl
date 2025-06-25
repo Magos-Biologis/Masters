@@ -83,8 +83,10 @@ function gradient_int_one_dim(L :: T, Par :: N, range :: Vector{S};
 
     ∇F = f.(x)
 
+    Δx = sum(diff(range[1])) / length(range[1])
+
     Φ  = similar(∇F)
-    Φ .= cumsum( ∇F .* diff( [x[1]; x] )   )
+    Φ .= cumsum( ∇F .* Δx )
 
 
     return OneDimGradient{eltype(x)}(x, Φ)
@@ -98,15 +100,15 @@ function gradient_int_two_dim(L :: T, Par :: N, ranges :: Vector{S};
 
     f  = potentiating(L, Par)
     ∇F = f.(x, y')
-    Fx = ∇F .|> first
-    Fy = ∇F .|> last
+    Fx = ∇F .|> x -> x[1]
+    Fy = ∇F .|> x -> x[2]
 
     Δx = sum(diff(ranges[1])) / length(ranges[1])
     Δy = sum(diff(ranges[2])) / length(ranges[2])
 
     Φ  = similar( Fx )
     Φ .= cumsum( Fx .* Δx; dims = 1 )
-    Φ += cumsum( Fy .* Δy; dims = 2 )
+    Φ.+= cumsum( Fy .* Δy; dims = 2 )
 
     return TwoDimGradient{eltype(x)}( x, y, Φ )
 end
@@ -118,7 +120,7 @@ function gradient_int_thr_dim(L :: T, Par :: N, ranges :: Vector{S};
     x = ranges[1]
     y = ranges[2]
     z = ranges[3]
-    ∇F = Array{Any}(undef, length(x),length(y),length(z))
+    ∇F = Array{Any}(undef, length(x),length(y), length(z))
 
     f  = potentiating(L, Par)
     for (i, zᵢ) ∈ enumerate(z)
@@ -129,14 +131,14 @@ function gradient_int_thr_dim(L :: T, Par :: N, ranges :: Vector{S};
     Fy = ∇F .|> x -> x[2]
     Fz = ∇F .|> x -> x[3]
 
-    Δx = sum(diff(ranges[1])) / length(ranges[1])
-    Δy = sum(diff(ranges[2])) / length(ranges[2])
-    Δz = sum(diff(ranges[3])) / length(ranges[3])
+    Δx = sum(diff(x)) / length(x)
+    Δy = sum(diff(y)) / length(y)
+    Δz = sum(diff(z)) / length(z)
 
     Φ  = similar( Fx )
     Φ .= cumsum( Fx .* Δx; dims = 1 )
-    Φ += cumsum( Fy .* Δy; dims = 2 )
-    Φ += cumsum( Fy .* Δz; dims = 3 )
+    Φ.+= cumsum( Fy .* Δy; dims = 2 )
+    Φ.+= cumsum( Fy .* Δz; dims = 3 )
 
     return ThreeDimGradient{eltype(x)}( x, y, z, Φ )
 end

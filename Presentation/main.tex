@@ -72,6 +72,11 @@
 \ProvideDocumentCommand{\beamerfootcite}{ m }{\footnote[frame]{\ \fullcite{#1}}}
 \renewcommand*{\nameyeardelim}{\addcomma\space} % cleaner authoryear style
 
+% \AtBeginSection{ \frame{\sectionpage} }
+    % \begin{frame}{\insertsection}
+    %     \sectionpage
+    % \end{frame}
+
 % \usepackage{animate}
 
 
@@ -210,9 +215,10 @@
 
 
 \section{Introduction}
+
 \begin{frame}{Introduction}
 
-    \vspace{2em}
+    % \vspace{2em}
 
 
     \begin{columns}[T]
@@ -248,7 +254,7 @@
 % TODO:
 \subsection{ Motivation }
 \begin{frame}{ Motivation }
-    \vspace{1em}
+    % \vspace{1em}
 
     \begin{columns}
 
@@ -262,11 +268,11 @@
             % \item I considered Information Geometry as a viable route
             \item Information Geometry Route
                 \begin{itemize}[<.->]
-                    \item Frobenius Manifolds% have Appropriate Requirements
                     \item Statistical Geometry %would introduce a natural
-                    \item Natural of random variables
+                    \item Frobenius Algebras/Manifolds% have Appropriate Requirements
+                    \item Natural construction from random variables
                 \end{itemize}
-            \item However I lacked a lot of the pre-requisites educationally
+            \item However, I lacked a lot of the pre-requisites educationally
         \end{itemize}
 
 
@@ -290,7 +296,7 @@
 \subsection{The Research Question}
 \begin{frame}[t]{The Research Question}
 
-    \vspace{2em}
+    % \vspace{2em}
 
         % Why I chose this
         % \begin{enumerate}[<+->]
@@ -560,21 +566,14 @@
 
 \begin{frame}{ A Question Emerges }
 
-%     \begin{columns}
-%
-%         \column{0.5\framewidth}
-%
-%         \column{0.5\framewidth}
-%
-%     \end{columns}
-%
-% \end{frame}
-%
-% \begin{frame}{The Proposition}
 
-    \vspace{1em}
+    % \vspace{1em}
 
     \begin{onlyenv}<1>
+
+    \begin{itemize}
+        \item How does any of this relate to the results?
+    \end{itemize}
 
     \end{onlyenv}
 
@@ -611,13 +610,14 @@
 \end{frame}
 
 
+\subsubsection{ODE Model Potentials}
 \begin{frame}{ Stochastic Processes }
 
     \begin{tikzpicture}[overlay, remember picture]
-        \node<1> (a) at (frame cs: -0.45, 0.08) {%
+        \node<1> at (frame cs: -0.45, 0.08) {%
                 \includegraphics[width=0.55\framewidth, page=1]{ssa:ODE8Par3Var:I34:C1T17476639695953887:2dHist.pdf}
             };
-        \node<1> (a) at (frame cs: 0.45, 0.08) {%
+        \node<1> at (frame cs: 0.45, 0.08) {%
                 \includegraphics[width=0.50\framewidth, page=2]{ssa:ODE8Par3Var:I34:C1T17476639695953887:2dHist.pdf}
             };
 
@@ -629,16 +629,52 @@
 
 \end{frame}
 
+\begin{frame}{ Analytical/Numeric Processes }
+
+    \begin{onlyenv}<1>
+
+    \begin{columns}
+        \column{0.5\framewidth}
+                \includegraphics[width=1\textwidth, page=1]{potential_ODE8Par3Var--1.pdf}
+                The distribution of the system when \(m_0 = 0\)
 
 
+        \column{0.5\framewidth}
+                \includegraphics[width=1\textwidth, page=1]{potential_ODE8Par3Var--100.pdf}
+                The distribution of the system when \(m_0 = 10\)
 
+    \end{columns}
+
+    \end{onlyenv}
+
+    \begin{onlyenv}<2>
+
+        \begin{columns}
+            \column{0.5\framewidth}
+            \includegraphics[width=1\textwidth, page=1]{potential_ODE8Par3Var--Potential--M0=0--1.pdf}
+                The potential landscape of the system when \(m_0 = 0\)
+
+
+            \column{0.5\framewidth}
+            \includegraphics[width=1\textwidth, page=1]{potential_ODE8Par3Var--Potential--M0=10--1.pdf}
+            % \includegraphics[width=1\textwidth, page=1]{potential_ODE8Par3Var--Potential--100.pdf}
+                The potential landscape of the system when \(m_0 = 10\)
+
+        \end{columns}
+
+    \end{onlyenv}
+
+\end{frame}
+
+
+\subsubsection{My Model Potentials}
 \begin{frame}{ Stochastic Processes }
 
     \begin{tikzpicture}[overlay, remember picture]
-        \node<1> (a) at (frame cs: -0.45, 0.08) {%
+        \node<1> at (frame cs: -0.45, 0.08) {%
                 \includegraphics[width=0.55\framewidth, page=1]{ssa:Novel5Par3Var:I26:C1T17475033100262814:2dHist.pdf}
             };
-        \node<1> (a) at (frame cs: 0.45, 0.08) {%
+        \node<1> at (frame cs: 0.45, 0.08) {%
                 \includegraphics[width=0.50\framewidth, page=2]{ssa:Novel5Par3Var:I26:C1T17475033100262814:2dHist.pdf}
             };
 
@@ -648,6 +684,46 @@
     \end{tikzpicture}
 
 \end{frame}
+
+\begin{frame}{ Analytical/Numeric Processes }
+
+    \begin{onlyenv}<1>
+
+        \begin{columns}
+            \column{0.5\framewidth}
+            \includegraphics[width=1\textwidth, page=1]{potential_Novel5Par3Var--B=0N--1.pdf}
+                The distribution of the system when \(B = 0\)
+
+
+            \column{0.5\framewidth}
+            \includegraphics[width=1\textwidth, page=1]{potential_Novel5Par3Var--B=N--1.pdf}
+                The distribution of the system when \(B = N\)
+
+        \end{columns}
+
+    \end{onlyenv}
+
+    \begin{onlyenv}<2>
+
+    \begin{columns}
+        \column{0.5\framewidth}
+                \includegraphics[width=1\textwidth, page=1]{potential_Novel5Par3Var--Potential--B=0N--1.pdf}
+                The potential landscape of the system when \(B = 0\)
+
+
+        \column{0.5\framewidth}
+                \includegraphics[width=1\textwidth, page=1]{potential_Novel5Par3Var--Potential--B=N--1.pdf}
+                The potential landscape of the system when \(B = N\)
+
+    \end{columns}
+
+\end{onlyenv}
+
+\end{frame}
+
+
+
+
 
 
 % \subsection{What I did}
@@ -906,157 +982,11 @@
 % \end{frame}
 
 
-% \begin{frame}{The ODE System}
-%
-%     \tikz[overlay] \node<1-> at (frame cs:-0.65,-1.35) {
-%         \begin{tikzpicture}[ scale = 1,
-%             draw = black!80,
-%             thick,
-%             shorten >=2pt,
-%             overlay
-%             ]
-%
-%             \node[draw=black, circle] (c1) at (-1, 0) {\(c_1\)};
-%             \node[draw=black, circle] (c2) at ( 1, 0) {\(c_2\)};
-%
-%             \node[draw=black] (m) at ( -1, -1.20) {\(m\)};
-%             \node[] (source) at ( -2, -1.20) {\(m_0\)};
-%
-%             \draw[->] (c2) [bend left]to node[midway, below] {\(w_2\)} (c1);
-%             \draw[->] (c1) [bend left]to node[midway, above] {\(w_1\)} (c2);
-%
-%             \draw[->] (c1)  [loop left]to node[midway, left]  {\(k_1\)} (c1);
-%             \draw[->] (c2) [loop right]to node[midway, right] {\(k_2\)} (c2);
-%
-%             \draw[-|] (m) to node[pos=0.35] (mm) {} (c1);
-%             \draw[-|, rounded corners] (c2) |- node[midway,anchor=south west] {\(q_m\)} (m);
-%             % \draw[-|] (c2) to[out=270, in=0, looseness=2] node[midway,anchor=north west] {\(q_m\)} (m);
-%
-%             \node[anchor=east] at (mm) {\(q_1\)};
-%
-%             \draw[->] (source) -- (m);
-%
-%     \end{tikzpicture}};
-%
-%
-%     \begin{columns}
-%         \column{0.35\framewidth}
-%         \vspace{8em}\par
-%
-%
-%         \column{0.5\framewidth}
-%         \begin{align*}
-%             \ode{c_1} &= k_1 c_1\left({n_1 - c_t \over n_1}\right) - w_1 c_1 + w_2 c_2 - q_1 m c_1 \nonumber \\
-%             \ode{c_2} &= k_2 c_2\left({n_2 - c_t \over n_2}\right) - w_2 c_2 + w_1 c_1\nonumber\\
-%             \ode{m}   &= m_0 - q_m m c_2 \nonumber
-%         \end{align*}
-%
-%     \end{columns}
-%
-%     \begin{itemize}
-%         \item Shown to be Lyapunov stable at the sole fixed point.
-%     \end{itemize}
-%
-% \end{frame}
-
-% \begin{frame}{The ODE Dynamics}
-%
-%
-%     \begin{onlyenv}<1>
-%         \begin{figure}[htbp]
-%             \centering
-%             \begin{subfigure}{0.5\framewidth}
-%                 \centering
-%                 \includegraphics[width=1\textwidth,page=1]{ode:jesper:I15:C1:T1748197107286477.pdf}
-%                 \caption{The ODE system with \(m_0 = 0.20\)}
-%             \end{subfigure}~
-%             \begin{subfigure}{0.5\framewidth}
-%                 \centering
-%                 \includegraphics[width=1\textwidth,page=1]{ode:jesper:I32:C1fp:T17481997939903586.pdf}
-%                 \caption{The ODE system with \(m_0 = 10\)}
-%             \end{subfigure}
-%             \caption{ Two examples of the traditional ODE system with varying parameters }
-%         \end{figure}
-%     \end{onlyenv}
-%
-%     \begin{onlyenv}<2>
-%         \begin{figure}[htbp]
-%             \centering
-%             \begin{subfigure}{0.5\framewidth}
-%                 \centering
-%                 \includegraphics[width=1\textwidth,page=1]{ssa:ODE8Par3Var:I34:C2:T17476639695953887.pdf}
-%             \end{subfigure}~
-%             \begin{subfigure}{0.5\framewidth}
-%                 \centering
-%                 \includegraphics[width=1\textwidth,page=2]{ssa:ODE8Par3Var:I34:C2:T17476639695953887.pdf}
-%             \end{subfigure}
-%             \caption{
-%                 The stochastic version of the model simulated using
-%                 Gillespie's SSA.
-%                 The ODE system with \(m_0 = 10\)
-%             }
-%         \end{figure}
-%     \end{onlyenv}
-%
-%     \begin{onlyenv}<3->
-%         \begin{figure}[htbp]
-%             \centering
-%             \begin{subfigure}{0.5\framewidth}
-%                 \centering
-%                 \includegraphics[width=1\textwidth,page=3]{ssa:ODE8Par3Var:I34:C2:T17476639695953887.pdf}
-%             \end{subfigure}~
-%             \begin{subfigure}{0.5\framewidth}
-%                 \centering
-%                 \includegraphics[width=1\textwidth,page=4]{ssa:ODE8Par3Var:I34:C2:T17476639695953887.pdf}
-%             \end{subfigure}
-%             \caption{
-%                 The stochastic version of the model simulated using
-%                 Gillespie's SSA.
-%                 The ODE system with \(m_0 = 10\)
-%             }
-%         \end{figure}
-%     \end{onlyenv}
-%
-% \end{frame}
-
-% \begin{frame}{ Stochastic Model Dynamics }
-%
-%     \begin{onlyenv}<2->
-%         \begin{figure}[htbp]
-%             \centering
-%             \begin{subfigure}{0.5\framewidth}
-%                 \centering
-%                 \includegraphics[width=1\textwidth,page=1]{ssa:Novel5Par3Var:I26:C2:T17475033100262814.pdf}
-%             \end{subfigure}~
-%             \begin{subfigure}{0.5\framewidth}
-%                 \centering
-%                 \includegraphics[width=1\textwidth,page=1]{ssa:Novel5Par3Var:I22:C1:T17475031669379826.pdf}
-%             \end{subfigure}
-%             \caption{
-%                 The stochastic version of the model simulated using
-%                 Gillespie's SSA.
-%                 The ODE system with \(m_0 = 10\)
-%             }
-%         \end{figure}
-%     \end{onlyenv}
-%
-% \end{frame}
 
 
 % % TODO:
 % \subsection{Revisiting the Proof}
 
-% \begin{frame}{ Elaboration }
-%
-%     \begin{columns}
-%
-%         \column{0.5\framewidth}
-%
-%         \column{0.5\framewidth}
-%
-%     \end{columns}
-%
-% \end{frame}
 
 
 % \begin{frame}{Applied to the 1D Model}
@@ -1070,19 +1000,26 @@
 %
 % \end{frame}
 
-\section{ Conclusions }
+\section{ Over Now }
 
 
-\begin{frame}{Fuck}
-    frame contents
-\end{frame}
-
-
-\begin{frame}[allowdisplaybreaks=4]{Bibliography}
+\begin{frame}[t, allowdisplaybreaks=4]{Bibliography}
     %, allowframebreaks=0.25]
 
-    % \printbibliography
 
+    % \vspace{2em}
+    \printbibliography
+
+
+\end{frame}
+
+\begin{frame}[t]{End}
+
+    % \vspace{2em}
+    \begin{itemize}
+        \item Thank
+        \item Questions?
+    \end{itemize}
 
 \end{frame}
 
@@ -1091,31 +1028,9 @@
 
 
 \appendix
-\section{\appendixname}
+\section{Auxiliary}
 
-
-\begin{frame}[t]{ Weird Outcomes }
-
-    \vspace{2em}
-    \begin{itemize}
-        \item Recalling the unexpected behavior in Figures 6.4 and 6.5 ( on page 36 )
-    \end{itemize}
-
-    \begin{tikzpicture}[overlay, remember picture]
-
-        \node at (frame cs:-0.5, 0) {
-                \includegraphics[width=0.5\textwidth,page=1]{ssa:ode-5-2:I19:C2fp:T17475890580172482.pdf}
-            };
-
-        \node at (frame cs: 0.5, 0) {
-                \includegraphics[width=0.5\textwidth,page=2]{ssa:ode-5-2:I19:C2fp:T17475890580172482.pdf}
-            };
-
-    \end{tikzpicture}
-
-
-\end{frame}
-
+\frame[noframenumbering]{\sectionpage}
 
 \begin{frame}{Waddington's Figures}
 
@@ -1143,7 +1058,27 @@
 
 \end{frame}
 
+\begin{frame}[t]{ Weird Outcomes }
 
+    % \vspace{2em}
+    \begin{itemize}
+        \item Recalling the unexpected behavior in Figures 6.4 and 6.5 ( on page 36 )
+    \end{itemize}
+
+    \begin{tikzpicture}[overlay, remember picture]
+
+        \node at (frame cs:-0.5, 0) {
+                \includegraphics[width=0.5\textwidth,page=1]{ssa:ode-5-2:I19:C2fp:T17475890580172482.pdf}
+            };
+
+        \node at (frame cs: 0.5, 0) {
+                \includegraphics[width=0.5\textwidth,page=2]{ssa:ode-5-2:I19:C2fp:T17475890580172482.pdf}
+            };
+
+    \end{tikzpicture}
+
+
+\end{frame}
 
 \subsection{My Model in 1-Dimension}
 \begin{frame}{Simplest Novel Model}
@@ -1207,10 +1142,141 @@
 
 \end{frame}
 
+\begin{frame}{The ODE System}
+
+    \tikz[overlay] \node<1-> at (frame cs:-0.65,-1.35) {
+        \begin{tikzpicture}[ scale = 1,
+            draw = black!80,
+            thick,
+            shorten >=2pt,
+            overlay
+            ]
+
+            \node[draw=black, circle] (c1) at (-1, 0) {\(c_1\)};
+            \node[draw=black, circle] (c2) at ( 1, 0) {\(c_2\)};
+
+            \node[draw=black] (m) at ( -1, -1.20) {\(m\)};
+            \node[] (source) at ( -2, -1.20) {\(m_0\)};
+
+            \draw[->] (c2) [bend left]to node[midway, below] {\(w_2\)} (c1);
+            \draw[->] (c1) [bend left]to node[midway, above] {\(w_1\)} (c2);
+
+            \draw[->] (c1)  [loop left]to node[midway, left]  {\(k_1\)} (c1);
+            \draw[->] (c2) [loop right]to node[midway, right] {\(k_2\)} (c2);
+
+            \draw[-|] (m) to node[pos=0.35] (mm) {} (c1);
+            \draw[-|, rounded corners] (c2) |- node[midway,anchor=south west] {\(q_m\)} (m);
+            % \draw[-|] (c2) to[out=270, in=0, looseness=2] node[midway,anchor=north west] {\(q_m\)} (m);
+
+            \node[anchor=east] at (mm) {\(q_1\)};
+
+            \draw[->] (source) -- (m);
+
+    \end{tikzpicture}};
 
 
+    \begin{columns}
+        \column{0.35\framewidth}
+        \vspace{8em}\par
 
 
+        \column{0.5\framewidth}
+        \begin{align*}
+            \ode{c_1} &= k_1 c_1\left({n_1 - c_t \over n_1}\right) - w_1 c_1 + w_2 c_2 - q_1 m c_1 \nonumber \\
+            \ode{c_2} &= k_2 c_2\left({n_2 - c_t \over n_2}\right) - w_2 c_2 + w_1 c_1\nonumber\\
+            \ode{m}   &= m_0 - q_m m c_2 \nonumber
+        \end{align*}
+
+    \end{columns}
+
+    \begin{itemize}
+        \item Shown to be Lyapunov stable at the sole fixed point.
+    \end{itemize}
+
+\end{frame}
+
+\begin{frame}{The ODE Dynamics}
+
+
+    \begin{onlyenv}<1>
+        \begin{figure}[htbp]
+            \centering
+            \begin{subfigure}{0.5\framewidth}
+                \centering
+                \includegraphics[width=1\textwidth,page=1]{ode:jesper:I15:C1:T1748197107286477.pdf}
+                \caption{The ODE system with \(m_0 = 0.20\)}
+            \end{subfigure}~
+            \begin{subfigure}{0.5\framewidth}
+                \centering
+                \includegraphics[width=1\textwidth,page=1]{ode:jesper:I32:C1fp:T17481997939903586.pdf}
+                \caption{The ODE system with \(m_0 = 10\)}
+            \end{subfigure}
+            \caption{ Two examples of the traditional ODE system with varying parameters }
+        \end{figure}
+    \end{onlyenv}
+
+    \begin{onlyenv}<2>
+        \begin{figure}[htbp]
+            \centering
+            \begin{subfigure}{0.5\framewidth}
+                \centering
+                \includegraphics[width=1\textwidth,page=1]{ssa:ODE8Par3Var:I34:C2:T17476639695953887.pdf}
+            \end{subfigure}~
+            \begin{subfigure}{0.5\framewidth}
+                \centering
+                \includegraphics[width=1\textwidth,page=2]{ssa:ODE8Par3Var:I34:C2:T17476639695953887.pdf}
+            \end{subfigure}
+            \caption{
+                The stochastic version of the model simulated using
+                Gillespie's SSA.
+                The ODE system with \(m_0 = 10\)
+            }
+        \end{figure}
+    \end{onlyenv}
+
+    \begin{onlyenv}<3->
+        \begin{figure}[htbp]
+            \centering
+            \begin{subfigure}{0.5\framewidth}
+                \centering
+                \includegraphics[width=1\textwidth,page=3]{ssa:ODE8Par3Var:I34:C2:T17476639695953887.pdf}
+            \end{subfigure}~
+            \begin{subfigure}{0.5\framewidth}
+                \centering
+                \includegraphics[width=1\textwidth,page=4]{ssa:ODE8Par3Var:I34:C2:T17476639695953887.pdf}
+            \end{subfigure}
+            \caption{
+                The stochastic version of the model simulated using
+                Gillespie's SSA.
+                The ODE system with \(m_0 = 10\)
+            }
+        \end{figure}
+    \end{onlyenv}
+
+\end{frame}
+
+\begin{frame}{ Stochastic Model Dynamics }
+
+    \begin{onlyenv}<2->
+        \begin{figure}[htbp]
+            \centering
+            \begin{subfigure}{0.5\framewidth}
+                \centering
+                \includegraphics[width=1\textwidth,page=1]{ssa:Novel5Par3Var:I26:C2:T17475033100262814.pdf}
+            \end{subfigure}~
+            \begin{subfigure}{0.5\framewidth}
+                \centering
+                \includegraphics[width=1\textwidth,page=1]{ssa:Novel5Par3Var:I22:C1:T17475031669379826.pdf}
+            \end{subfigure}
+            \caption{
+                The stochastic version of the model simulated using
+                Gillespie's SSA.
+                The ODE system with \(m_0 = 10\)
+            }
+        \end{figure}
+    \end{onlyenv}
+
+\end{frame}
 
 \begin{frame}{ Research Question Drafts }
 
